@@ -1,0 +1,92 @@
+{
+  "slug": "trace-to-preference",
+  "title": "Trace-to-Preference",
+  "description": "Turn LangChain, OpenAI, or Soup-serve traffic logs into DPO / KTO preference pairs with soup data from-traces. Thumbs, regenerations, and edits as signals. New in v0.26.0.",
+  "source": "https://trysoup.dev/docs/trace-to-preference",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "f31155123db8e866a6ce04f546e36f992101cc802544a88970d7efbd582cefb0",
+  "headings": [
+    {
+      "level": 2,
+      "id": "ingest-a-log",
+      "title": "Ingest a log"
+    },
+    {
+      "level": 2,
+      "id": "flags",
+      "title": "Flags"
+    },
+    {
+      "level": 2,
+      "id": "signals",
+      "title": "Signals"
+    },
+    {
+      "level": 2,
+      "id": "what-a-trace-record-has-to-look-like",
+      "title": "What a trace record has to look like"
+    },
+    {
+      "level": 2,
+      "id": "review-before-training",
+      "title": "Review before training"
+    },
+    {
+      "level": 2,
+      "id": "train-on-them",
+      "title": "Train on them"
+    },
+    {
+      "level": 2,
+      "id": "safety",
+      "title": "Safety"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Trace-to-Preference</h1><p>v0.26.0 turns traffic logs into DPO / KTO training data. Point <code>soup data from-traces</code> at LangChain, OpenAI, or Soup-serve logs. Soup extracts preference signals — thumbs, regenerations, user edits — and writes clean pairs.</p><h2 id=\"ingest-a-log\">Ingest a log</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data from-traces \\\n  --logs chat_logs.jsonl \\\n  --format langchain \\\n  --signal thumbs_up \\\n  --output prefs.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"flags\">Flags</h2><div><table><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--logs</code></td><td>JSONL trace file; for <code>--format soup-serve</code> it must be a <strong>directory</strong> (the <code>*.jsonl</code> per session that <code>soup serve --trace-log</code> writes), and a single file is refused with exit 1</td></tr><tr><td><code>--format</code></td><td><code>langchain</code> · <code>openai</code> · <code>soup-serve</code> (with a hyphen: <code>soup_serve</code> is refused with exit 1)</td></tr><tr><td><code>--signal</code></td><td><code>thumbs_up</code> · <code>regenerations</code> · <code>user_edit</code> (<code>regeneration</code>, singular, is refused with exit 1)</td></tr><tr><td><code>--output</code> / <code>-o</code></td><td>Destination JSONL (default <code>prefs.jsonl</code>)</td></tr><tr><td><code>--judge</code></td><td>Keep only pairs an LLM judge agrees with</td></tr><tr><td><code>--judge-provider</code></td><td><code>openai</code> · <code>server</code> · <code>ollama</code></td></tr><tr><td><code>--judge-model</code></td><td>Model id for the judge</td></tr><tr><td><code>--judge-api-base</code></td><td>Judge endpoint, validated against the SSRF guard: plain HTTP only for loopback, HTTPS for anything else, and since v0.75.2 never an IP address in a private, link-local or reserved range (see <a href=\"__DOCS_BASE__/private-addresses-refused\">what v0.75.2 refuses</a>), and, since v0.76.0, never a host written only as numbers that is not a valid IPv4 address (<code>10.0.0.256</code>, <code>4294967296</code>)</td></tr><tr><td><code>--min-confidence</code></td><td>Judge-confidence floor, default 0.7</td></tr></tbody></table></div><h2 id=\"signals\">Signals</h2><ul><li><code>thumbs_up</code> — a prompt with both a thumbs-up and a thumbs-down response becomes a pair: the thumbed-up output is chosen, the thumbed-down one rejected. A prompt with only thumbs-up feedback yields no pair</li><li><code>regenerations</code> — if the user hit regenerate, the later response is preferred</li><li><code>user_edit</code> — if the user rewrote the response, the edit becomes chosen</li></ul><h2 id=\"what-a-trace-record-has-to-look-like\">What a trace record has to look like</h2><p>The <code>soup-serve</code> parser reads a top-level <code>signal</code> in this vocabulary and falls back to a nested <code>feedback.rating</code> (<code>up</code> or <code>down</code>) for older logs:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"prompt\": \"Q\", \"output\": \"Good\", \"signal\": \"thumbs_up\"}\n{\"prompt\": \"Q\", \"output\": \"Bad\",  \"signal\": \"thumbs_down\"}\n{\"prompt\": \"Q\", \"output\": \"Raw\",  \"signal\": \"user_edit\", \"edited_output\": \"Polished\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>On a three-row directory like the one above, <code>--signal thumbs_up</code> wrote <code>{&quot;prompt&quot;: &quot;Q&quot;, &quot;chosen&quot;: &quot;Good&quot;, &quot;rejected&quot;: &quot;Bad&quot;, &quot;source&quot;: &quot;thumbs_up&quot;}</code> and <code>--signal user_edit</code> wrote the edited text as <code>chosen</code> and the original as <code>rejected</code>. Who writes what:</p><ul><li><code>soup ingest</code> is a producer. It writes one record per trace with <code>trace_id</code>, <code>prompt</code>, <code>output</code>, <code>source</code>, <code>metadata</code> and a top-level <code>signal</code> of <code>thumbs_up</code>, <code>thumbs_down</code> or <code>none</code>, so its output feeds this command directly.</li><li><code>user_edit</code> and <code>regenerated</code> rows come from <strong>your own</strong> pipeline. <code>signal: user_edit</code> has to accompany the edit field: a record with <code>edited_output</code> and no <code>signal</code> reads as &quot;no trace carried a signal&quot;. The edit is read from <code>edited_output</code>, <code>edited_response</code> or a nested <code>feedback.edited_output</code>.</li><li><code>soup serve --trace-log</code> records carry <strong>no signal yet</strong> (<code>ts</code>, <code>prompt</code>, <code>response</code>, <code>latency_ms</code>, <code>tokens</code>), so harvesting that directory builds nothing. Thumbs recorded through <code>POST /v1/thumbs</code> go to the database <code>soup serve --record-thumbs</code> writes instead, and since v0.77.0 the pre-wired harvest of <a href=\"__DOCS_BASE__/soup-loop\"><code>soup loop</code></a> reads that database (<code>soup loop init --thumbs-db</code>); <code>from-traces</code> does not.</li></ul><p>Through v0.75.2 the <code>soup-serve</code> parser read the signal only from a nested <code>feedback.rating</code> that no Soup producer writes, so <code>soup ingest</code> output and <code>--trace-log</code> records alike read as <code>none</code>, and <code>--signal thumbs_up</code> wrote an empty file and exited 0. Since v0.76.0 the top-level <code>signal</code> is read, and a harvest that reads traces but matches none says so. On a directory of <code>--trace-log</code> records it printed <code>Read 1 trace(s) but built no pairs for --signal thumbs_up. No trace carried a signal. Check the record shape: ...</code> and then <code>Wrote 0 preference pair(s)</code>. That is still exit 0, so check the count line in a script rather than the exit code. A source that reads zero traces says so before the count line. Trace files are capped at 100,000 lines, and a PII reminder panel prints on every run.</p><p>If you built a preference dataset with <code>from-traces</code> on an older release from <code>soup ingest</code> output, it is worth checking that it is not an empty file.</p><p><strong>Which prompt a pair is grouped under (v0.77.0).</strong> Pairs are grouped by prompt. Since v0.77.0 the OpenAI and LangChain parsers, like <code>soup ingest</code>, keep a conversation&#x27;s context through its <strong>last user turn</strong>: with no user or assistant turn before it (a system prompt plus one question included), the prompt is that user&#x27;s plain text, and otherwise it is compact JSON of the <code>role</code> and <code>content</code> turns through the last user (#1848). See <a href=\"__DOCS_BASE__/trace-ecosystem#soup-ingest-universal-trace-importer\">Trace ecosystem</a> for the full rule.</p><blockquote><p><strong>Re-run this (v0.77.0).</strong> Through v0.76.1 the OpenAI parser took a multi-turn trace&#x27;s first user turn as its prompt, so answers from different conversations that opened the same way could become one preference pair; upstream now keeps &quot;context through the last user turn so unrelated answers do not form preference pairs&quot; (#1809, #1848). Build preference files from multi-turn traces again, including files written by <code>soup ingest</code>, and re-train a model trained on them.</p></blockquote><h2 id=\"review-before-training\">Review before training</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data review prefs.jsonl --sample 10"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Previews the first N pairs in the file, in file order (<code>--sample</code> / <code>-s</code>, 1 to 100, default 10), each with its prompt, chosen and rejected text cut to 400 characters. It is not a random sample, so it will not show you problems that only occur later in the file. Use it as a sanity check before burning a GPU on junk data.</p><h2 id=\"train-on-them\">Train on them</h2><p>DPO or KTO — the output format of <code>from-traces</code> matches both:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: Qwen/Qwen2.5-0.5B-Instruct\ntask: dpo\ndata:\n  train: prefs.jsonl\n  format: dpo"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"safety\">Safety</h2><ul><li>Logs never execute model code — parsers only read JSON.</li><li>Traces may contain PII or secrets; Soup warns on ingest and leaves scrubbing to you before sharing pairs externally.</li><li><strong>A judge that stops answering stops the run.</strong> With <code>--judge</code>, each request is retried twice on a 429, a 5xx or a transport error. A pair whose judge call keeps failing is skipped and counted, but once 3 requests in a row have spent their retries unanswered the command exits 1, names the judge URL and how many pairs were not judged, and writes no output file (v0.76.0, #1522). Before, <code>from-traces --judge</code> waited out the retries for every pair against a judge that never answered, and then wrote an empty file with exit 0. This comes from the code and the changelog; it was not run here, because no judge endpoint was available.</li><li>Output JSONL can be validated with the same <code>soup data validate</code> pipeline as any other dataset.</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/data-formats\">Data formats</a></li><li><a href=\"__DOCS_BASE__/dpo-training-guide\">DPO training guide</a></li></ul><nav><a href=\"__DOCS_BASE__/data-augment\"><span>Previous</span><span>Data Augmentation</span></a><a href=\"__DOCS_BASE__/data-pipeline-pro\"><span>Next</span><span>Data Pipeline Pro</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

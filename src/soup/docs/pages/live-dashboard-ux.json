@@ -1,0 +1,15 @@
+{
+  "slug": "live-dashboard-ux",
+  "title": "Live Dashboard & UX (v0.44.0)",
+  "description": "Live Dashboard & UX polish in Soup CLI v0.44.0. 21 cross-cutting UX fixes across eval-gate dashboard, HF resume checkpoint skipping, run cost, replay, profiling, and Textual TUI. +192 tests.",
+  "source": "https://trysoup.dev/docs/live-dashboard-ux",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "3137ec00ab639c02ecdaa5ffd9ae2c63199dfa62a39abebc3ba2c7c63bc3004e",
+  "headings": [],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Live Dashboard &amp; UX (v0.44.0)</h1><p>21 cross-cutting UX features, +192 tests.</p><p>Highlights:</p><ul><li>Format-gate row helpers for the eval-gate dashboard</li><li>HF resume checkpoint skipping optimization</li><li>Polish across run cost, replay, profiling, and the Textual TUI</li></ul><p>See <a href=\"__DOCS_BASE__/observability\">observability</a> for <code>soup why</code> / <code>soup tui</code> / crash bundles.</p><nav><a href=\"__DOCS_BASE__/observability\"><span>Previous</span><span>Observability &amp; Dev UX</span></a><a href=\"__DOCS_BASE__/plugins\"><span>Next</span><span>Plugin System &amp; Ecosystem</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

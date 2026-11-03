@@ -1,0 +1,60 @@
+{
+  "slug": "recipe-expansion",
+  "title": "Massive Recipe Expansion (v0.31.0)",
+  "description": "Soup CLI v0.31.0 expands the recipe catalog from 46 → 80. Vision (Pixtral, Qwen2-VL, InternVL, MiniCPM-V), audio (Qwen2-Audio, Whisper-large-v3, SeamlessM4T-v2), reasoning (all 6 DeepSeek-R1-Distill sizes, Qwen3-Coder, Phi-4 reasoning), edge (SmolLM2, Phi-3.5-mini), domain specialists (BioMistral, Meditron, CodeLlama, Magicoder, Mathstral, Nemotron-4).",
+  "source": "https://trysoup.dev/docs/recipe-expansion",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "5f31896ca561529a35abd79b51f583e5ee0f79ac1c041f237164e108d61bbb29",
+  "headings": [
+    {
+      "level": 2,
+      "id": "what-s-new",
+      "title": "What's new"
+    },
+    {
+      "level": 2,
+      "id": "vision-multimodal",
+      "title": "Vision (multimodal)"
+    },
+    {
+      "level": 2,
+      "id": "audio-speech",
+      "title": "Audio (speech)"
+    },
+    {
+      "level": 2,
+      "id": "reasoning",
+      "title": "Reasoning"
+    },
+    {
+      "level": 2,
+      "id": "small-edge-mobile",
+      "title": "Small / edge / mobile"
+    },
+    {
+      "level": 2,
+      "id": "domain-specialists",
+      "title": "Domain specialists"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Massive Recipe Expansion (v0.31.0)</h1><p>v0.31 grows the recipe catalog from 46 → 80 ready-made configs. Every category gets first-class coverage — vision, audio, reasoning, edge, domain specialists, and multimodal reasoning.</p><p>This page records the v0.31 expansion. The catalog today has 171 recipes at v0.77.0: see <a href=\"__DOCS_BASE__/recipe-catalog\">Recipe catalog</a> for every one, and for what changed in v0.77.0 (two added, one removed, two marked unavailable) and v0.76.0 (nine added, six removed).</p><h2 id=\"what-s-new\">What&#x27;s new</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup recipes list                    # browse the full catalog (171 recipes)\nsoup recipes search vision           # filter by category\nsoup recipes search reasoning\nsoup recipes search edge\nsoup recipes use llama3.2-vision-grpo"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"vision-multimodal\">Vision (multimodal)</h2><ul><li><strong>Pixtral-12B-2409</strong> — <code>pixtral-12b-sft</code> + <code>pixtral-dpo</code> (the DPO recipe was not usable as shipped through v0.76.1, tracked as #1867: its <code>llava</code> data format has no <code>chosen</code> and <code>rejected</code> columns. Since closed in v0.77.0: <code>pixtral-dpo</code> was retired, because its vision rows could not train as preference rows, and v0.77.0 refuses them at config load, #2064)</li><li><strong>Qwen2-VL</strong> — 7B + 72B (FSDP2 multi-GPU)</li><li><strong>InternVL 2.5</strong> — OpenGVLab vision</li><li><strong>MiniCPM-V 2.6</strong> — compact vision</li><li><strong>Llama-3.2-Vision GRPO</strong> — multimodal reasoning (at v0.77.0 the GRPO trainer still loads the base as a text-only causal LM with a tokenizer and no vision processor, so this recipe does not train on the images; see <a href=\"__DOCS_BASE__/grpo-plus#long-context-vision-grpo\">GRPO Plus</a>)</li></ul><h2 id=\"audio-speech\">Audio (speech)</h2><ul><li><strong>Qwen2-Audio-7B-Instruct</strong> — speech understanding</li><li><strong>Whisper-large-v3</strong> — ASR fine-tune: use <code>whisper-large-v3-asr</code> (the <code>task: asr</code> recipe); <code>whisper-large-v3-ft</code> is the generic audio SFT path</li><li><strong>SeamlessM4T-v2</strong> — speech translation</li></ul><h2 id=\"reasoning\">Reasoning</h2><p>All 6 DeepSeek-R1-Distill sizes ship as recipes:</p><ul><li>Qwen 1.5B / 7B / 14B / 32B</li><li>Llama 8B / 70B</li></ul><p>Plus Qwen3-Coder 30B, Qwen3-30B-A3B reasoning (MoE), and Phi-4 reasoning.</p><h2 id=\"small-edge-mobile\">Small / edge / mobile</h2><ul><li><strong>SmolLM2</strong> — 135M / 360M / 1.7B</li><li><strong>Qwen2.5</strong> — 0.5B / 1.5B / 3B</li><li><strong>Gemma 2</strong> — 2B</li><li><strong>Phi-3.5-mini</strong> — 3.8B</li><li><strong>Llama-3.2</strong> — 1B / 3B</li></ul><h2 id=\"domain-specialists\">Domain specialists</h2><ul><li><strong>Medical</strong> — BioMistral 7B, Meditron 7B</li><li><strong>Code</strong> — CodeLlama 13B / 70B, Magicoder 6.7B</li><li><strong>Math</strong> — Mathstral 7B</li><li><strong>Finance</strong> — Llama-2-13b-finance starter</li><li><strong>Mega-scale</strong> — Nemotron-4 340B (NVIDIA)</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/recipes\">Recipes</a> — how to list, search and use them, with 171 recipes at v0.77.0</li><li><a href=\"__DOCS_BASE__/recipe-catalog\">Recipe catalog</a> — every recipe, with its base model, size and quantization</li><li><a href=\"__DOCS_BASE__/multimodal\">Vision &amp; Audio</a></li></ul><nav><a href=\"__DOCS_BASE__/recipe-catalog\"><span>Previous</span><span>Recipe catalog</span></a><a href=\"__DOCS_BASE__/migration\"><span>Next</span><span>Migration</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

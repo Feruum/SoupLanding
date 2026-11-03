@@ -1,0 +1,105 @@
+{
+  "slug": "eval-design",
+  "title": "soup eval design — derive evals from your training data",
+  "description": "soup eval design — derive a goal-conditioned eval suite from your data via TF-IDF salience + goal-keyword dispatch (json/code/math → rlvr, classify → exact_match, extract → regex, default → judge). soup eval discover surfaces canaries via farthest-first Jaccard clustering + 25% prefix memorization probes. soup eval lock SHA-256 pins the suite. soup eval gate-install writes a pre-push hook that runs the soup eval against command on the run named in SOUP_CANDIDATE_RUN_ID and skips itself when that variable is unset. New in v0.55.0.",
+  "source": "https://trysoup.dev/docs/eval-design",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "106d8fd5fc9aeac763430da6a4b914686972050d85e34c374918a92971459ed1",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-eval-design",
+      "title": "soup eval design"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-discover-canaries",
+      "title": "soup eval discover — canaries"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-lock-pin-the-suite",
+      "title": "soup eval lock — pin the suite"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-coverage-gap-analysis",
+      "title": "soup eval coverage — gap analysis"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-gate-install-git-regression-gate",
+      "title": "soup eval gate-install — git regression gate"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-against-the-check-the-hook-runs",
+      "title": "soup eval against — the check the hook runs"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\"><code>soup eval design</code> — derive evals from your training data</h1><p>Before v0.55 you wrote your eval suite by hand. Now Soup drafts one from your data.</p><h2 id=\"soup-eval-design\"><code>soup eval design</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval design data.jsonl --goal \"polite customer support chat\" --num-dimensions 5"
+    },
+    {
+      "kind": "html",
+      "html": "<p>How it works:</p><ol><li><strong>TF-IDF salience</strong> picks up to <code>num_dimensions</code> (default 5) salient terms over the dataset. 10,000-row DoS-capped subsample.</li><li><strong>Goal-keyword dispatch</strong> maps each dimension to a scorer: <code>json</code> / <code>code</code> / <code>math</code> → <code>rlvr</code> (verifiable reward), <code>classify</code> → <code>exact_match</code>, <code>extract</code> → <code>regex</code>, and everything else → <code>judge</code>.</li><li>Output: a frozen <code>EvalDesign</code> (JSON) with one <code>EvalDimension</code> per row.</li></ol><p>Scorer allowlist: <code>{exact_match, regex, judge, rlvr}</code>.</p><h2 id=\"soup-eval-discover-canaries\"><code>soup eval discover</code> — canaries</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval discover data.jsonl --num-clusters 5 --per-cluster 3"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Three sets:</p><ul><li><strong>Held-out canaries</strong> — prompts from each cluster of your own data, found by greedy farthest-first Jaccard-distance clustering (<code>_CLUSTER_SUBSAMPLE = 10_000</code>).</li><li><strong>Adjacent-skill probes</strong> — rows from the rarest clusters of your own data, used as forgetting probes. They are rarer themes inside your data, not neighbors from outside it.</li><li><strong>Memorization probes</strong> — 25%-prefix truncation. If the trained model can continue the rest of a training row from its prefix, it memorized.</li></ul><p>Per-group cap: <code>_MAX_CANARIES_PER_GROUP = 1024</code>. The canary set is written to <code>evals/canaries.json</code> by default (<code>--output</code> changes it).</p><p>Every canary is drawn from the file you pass in. &quot;Held-out&quot; therefore means held out of the <strong>evaluation</strong>, not out of training: if you want them held out of training too, remove those rows from the training file yourself.</p><h2 id=\"soup-eval-lock-pin-the-suite\"><code>soup eval lock</code> — pin the suite</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval lock my-design.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Locks the design as a <code>SHA-256</code>-checksummed <code>eval_suite</code> artifact via <code>canonicalise_design_bytes</code> (canonical-JSON for stable hashes across runs), written to <code>evals/locked.json</code> unless you pass <code>-o</code>. It is <strong>not</strong> registered anywhere by default: pass <code>--attach-to-registry &lt;id-or-name&gt;</code> to attach the frozen <code>LockedSuite</code> (path / sha256 / dimension_count) to a v0.26 registry entry. If that attach fails the command prints a warning and still exits 0.</p><h2 id=\"soup-eval-coverage-gap-analysis\"><code>soup eval coverage</code> — gap analysis</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval coverage my-design.json --task reasoning"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Checks the locked design against the v0.54.0 <code>TASK_CATEGORIES</code> taxonomy and the <code>_RECOMMENDED_SCORERS</code> allowlist (e.g. <code>reasoning → (rlvr, judge)</code>, <code>format_conversion → (regex, rlvr)</code>). Returns a <code>CoverageReport</code> with concrete gap recommendations. <code>--task</code> is required and is one of <code>factual_lookup</code>, <code>style_shaping</code>, <code>format_conversion</code>, <code>reasoning</code>, <code>tool_use</code>, <code>summarization</code> or <code>classification</code>; anything else exits 2.</p><h2 id=\"soup-eval-gate-install-git-regression-gate\"><code>soup eval gate-install</code> — git regression gate</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval gate-install --baseline run-id-7f3a"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Writes <code>.git/hooks/pre-push</code> (atomic, POSIX <code>0o755</code>). <code>--suite</code> names the locked suite (default <code>evals/locked.json</code>), <code>--hook-path</code> writes somewhere else, and <code>--force</code> overwrites an existing hook; without it an existing file is refused, and so is a symlink at the hook path. The hook is a thin wrapper around <code>soup eval against</code>, and three things about it are easy to miss:</p><ol><li><strong>It does nothing unless <code>SOUP_CANDIDATE_RUN_ID</code> is set.</strong> With the variable unset the hook prints <code>SOUP_CANDIDATE_RUN_ID not set; skipping regression gate.</code> and exits 0, so the push goes through ungated. Set the variable in the environment that runs <code>git push</code> (a CI job, for instance) before you rely on the hook.</li><li><strong>It does not run an eval.</strong> With the variable set it runs <code>soup eval against &lt;baseline&gt; --candidate $SOUP_CANDIDATE_RUN_ID --suite &lt;suite&gt; --json-only</code>, which compares metric series that are <strong>already recorded in the experiment tracker</strong> for the two runs. The locked suite is only checked to exist and parse; a missing or unparseable suite, or a run with no recorded series, blocks the push. A regression makes the hook exit 2 and print <code>[soup] pre-push gate blocked: regression vs &lt;baseline&gt;</code>; any other non-zero exit of <code>soup eval against</code> (a usage error, 3, or a runtime error, 1) is passed through and printed as <code>[soup] pre-push gate error: configuration or usage error (exit N)</code>. Before v0.76.0 the hook turned every non-zero exit into 1.</li><li><strong>It checks one metric, <code>task_accuracy</code>.</strong> <code>soup eval against</code> takes one <code>--metric</code> per call and the hook passes none, so every other metric is checked only if you call <code>soup eval against --metric ...</code> yourself. <code>task_accuracy</code> reads that metric&#x27;s own recorded series and, when a run has none, the <code>custom</code> result that <code>soup eval custom --run-id</code> writes. The verdict is a paired-bootstrap interval (<code>paired_bootstrap_ci</code>, <code>n_samples</code> bounded to <code>[100, 100_000]</code>) compared against the built-in <code>GateThresholds</code> defaults, and <code>decide_regression</code> is direction-aware through <code>_METRIC_DIRECTION</code>: higher-is-better for every metric except <code>p95_latency_ms</code>, which is lower-is-better. A run that recorded one aggregate result instead of a per-row series is compared by its point delta: <code>--json-only</code> then carries <code>&quot;ci_degenerate&quot;: true</code> and <code>null</code> bounds, and the panel prints <code>confidence interval unavailable (one aggregate result)</code>.</li></ol><p>The hook script is rendered via <code>render_pre_push_hook</code> with <code>shlex.quote</code> for every interpolated path — no shell injection.</p><h2 id=\"soup-eval-against-the-check-the-hook-runs\"><code>soup eval against</code> — the check the hook runs</h2><p>The hook above is a wrapper. This is the command inside it, and you can run it by hand any time you want to compare two runs without pushing anything.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval against <baseline-run-id> --candidate <candidate-run-id>"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It reads the per-row metric series for both runs from the experiment tracker, runs the same <code>decide_regression</code> on the paired delta, and <strong>exits 0 when there is no regression and 2 when there is</strong>, so it drops into any CI step, not only a git hook. A bad <code>--metric</code>, a <code>--suite</code> that is missing, outside the working directory or invalid, or a run with no recorded series exits 3, and 1 is left for a tracker that cannot return a per-row series. Before v0.76.0 a regression was exit 1, so a script that tests for 1 now passes a regression: see <a href=\"__DOCS_BASE__/exit-codes#what-moved-in-v0-76-0-and-the-ci-step-that-now-passes-silently\">Exit codes</a>.</p><div><table><thead><tr><th>Flag</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--candidate</code></td><td>(required)</td><td>The run whose metrics are compared against the baseline.</td></tr><tr><td><code>--metric</code></td><td><code>task_accuracy</code></td><td>One of <code>task_accuracy</code>, <code>refusal_rate</code>, <code>format_validity</code>, <code>p95_latency_ms</code>, <code>custom</code>, <code>aider_polyglot</code>, <code>judge:&lt;model&gt;</code> or <code>benchmark:&lt;lm-eval-task&gt;</code>. <code>benchmark:</code> refuses the training columns <code>loss</code>, <code>val_loss</code>, <code>val_reward</code>, <code>lr</code>, <code>grad_norm</code>, <code>speed</code>, <code>gpu_mem</code> and <code>epoch</code>. An unknown name exits 3 before the tracker is opened.</td></tr><tr><td><code>--n-samples</code></td><td><code>1000</code></td><td>Paired-bootstrap samples, bounded to <code>[100, 100000]</code>.</td></tr><tr><td><code>--seed</code></td><td><code>0</code></td><td>Deterministic seed, so the verdict is reproducible.</td></tr><tr><td><code>--suite</code></td><td>(none)</td><td>A locked suite from <code>soup eval lock</code>, validated as a gate precondition. A missing or unparseable suite <strong>blocks</strong> the check rather than skipping it.</td></tr><tr><td><code>--json-only</code></td><td>off</td><td>One JSON verdict line instead of the rendered panel.</td></tr></tbody></table></div><p>The <code>--suite</code> behaviour is the part worth knowing: the generated pre-push hook passes the locked suite through, so a suite that has gone missing fails the gate instead of quietly turning it off. An unset <code>SOUP_CANDIDATE_RUN_ID</code> still skips the whole check, suite included; see the hook section above.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/quant-check\">Quant-check</a> — same idea, but for quant-induced regression</li><li><a href=\"__DOCS_BASE__/eval-gate\">Eval-gated training</a> — halt training when quality drops</li><li><a href=\"__DOCS_BASE__/registry\">Registry</a> — where <code>eval_suite</code> and <code>canaries</code> artifacts live</li><li><a href=\"__DOCS_BASE__/eval-depth\">Eval depth (v0.65)</a> — 4 deeper optional probes (behavior, capability, checklist, irt-subset) that stack on top of v0.55 dimensions</li><li><a href=\"__DOCS_BASE__/post-train-xrays\">Post-train x-rays (v0.66)</a> — 4 mechanistic-interpretability probes (sae-diff, sleeper, interference, pack); failure-mode coverage 7 → 11</li></ul><nav><a href=\"__DOCS_BASE__/eval-gate\"><span>Previous</span><span>Eval-Gated Training</span></a><a href=\"__DOCS_BASE__/eval-depth\"><span>Next</span><span>Eval Depth</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

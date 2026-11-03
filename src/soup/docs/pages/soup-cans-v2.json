@@ -1,0 +1,115 @@
+{
+  "slug": "soup-cans-v2",
+  "title": "Soup Cans v2 + Live LR Finder (v0.33.0)",
+  "description": "Soup CLI v0.33.0: live soup can run / soup can publish, in-process LR finder loop, spike-recovery hint file, VRAM grad-accum advisory, auto-reexec under accelerate, registry artifact attach, best-effort RLVR isolation (Linux unshare on Python 3.12+, macOS sandbox-exec; both fall back silently where the OS refuses).",
+  "source": "https://trysoup.dev/docs/soup-cans-v2",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "9cefb0df220792d1f65123a83f18b580fe5e682c9cdd696cbd56a4d225225a06",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-cans-v2-soup-can-run-soup-can-publish",
+      "title": "Soup Cans v2 — soup can run + soup can publish"
+    },
+    {
+      "level": 2,
+      "id": "live-find-lr-training-loop",
+      "title": "Live --find-lr training loop"
+    },
+    {
+      "level": 2,
+      "id": "spike-recovery-hint-file",
+      "title": "Spike-recovery hint file"
+    },
+    {
+      "level": 2,
+      "id": "vram-grad-accum-advisory-live",
+      "title": "VRAM grad-accum advisory (live)"
+    },
+    {
+      "level": 2,
+      "id": "auto-reexec-under-accelerate",
+      "title": "Auto-reexec under accelerate"
+    },
+    {
+      "level": 2,
+      "id": "registry-artifact-attach",
+      "title": "Registry artifact attach"
+    },
+    {
+      "level": 2,
+      "id": "v0-28-features-expanded-to-dpo-pretrain-trainers",
+      "title": "v0.28 features expanded to DPO + Pretrain trainers"
+    },
+    {
+      "level": 2,
+      "id": "rlvr-os-level-isolation",
+      "title": "RLVR OS-level isolation"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Soup Cans v2 + Live LR Finder (v0.33.0)</h1><p>v0.33 graduates several v0.27–v0.32 stubs into live functionality and ships meaningful follow-ups across the whole stack.</p><h2 id=\"soup-cans-v2-soup-can-run-soup-can-publish\">Soup Cans v2 — <code>soup can run</code> + <code>soup can publish</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Run a .can end-to-end: extract → train → optional deploy\nsoup can run my-recipe.can --yes\nsoup can run my-recipe.can --yes --deploy --env-capture env.txt\n\n# Publish to HF Hub as a dataset\nsoup can publish my-recipe.can --hf-hub user/my-recipe"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup can run</code> requires explicit <code>--yes</code> (mandatory consent — auto-downloads data + auto-trains). Manifest format bumped 1 → 2 (additive: new <code>deploy_targets</code> field). Both v1 and v2 cans still load.</p><p><strong>Security</strong> — extract dir is containment-checked, GGUF rglob result for ollama deploy is realpath+commonpath checked against extract dir to prevent symlink escape, subprocess <code>TimeoutExpired</code> after 24h cap returns <code>rc=124</code> (coreutils convention). <code>soup can publish</code> validates <code>repo_id</code>, resolves the HF token via env / cache files, commit messages first-line + 200-char capped (matches v0.29 push policy).</p><p><strong>Since v0.77.0 a failed run cleans up its extraction</strong> (#1464, #1960). When a later step fails (an <code>--env-capture</code> path outside the working directory or in a missing directory, a deploy target with no <code>*.gguf</code>, a training subprocess error), <code>soup can run</code> removes the directory it extracted the can into instead of leaving it in the system temp directory. A directory you named with <code>--extract-dir</code>, and a run whose training ended with a nonzero exit, are left in place.</p><h2 id=\"live-find-lr-training-loop\">Live <code>--find-lr</code> training loop</h2><p>The v0.32 stub curve is replaced with a real in-process LR-sweep training loop. NaN/Inf loss terminates the sweep early so <code>diverged_at</code> is honest.</p><p><strong>Since v0.76.0 a sweep that cannot run is a refusal, not a synthetic curve.</strong> If the config does not load, the model or dataset cannot be loaded, or <code>torch</code> is not installed, <code>soup train --find-lr</code> names the cause, exits 1 and writes no report. Run on the v0.76.0 CLI without <code>torch</code>: <code>--find-lr: live sweep unavailable (No module named &#x27;torch&#x27;); no LR report was written.</code>, exit 1, and no <code>lr_finder.json</code>. Through v0.75.2 it printed <code>writing synthetic curve</code>, wrote a placeholder report and exited 0, so a <code>recommended_lr</code> from such a run described no model and no data (#1203). The live sweep also honours <code>--trust-remote-code</code> now; it used to load the model with a hardcoded <code>False</code> (#1449). The rest of the sweep&#x27;s rules, such as how few rows it accepts, are on <a href=\"__DOCS_BASE__/training-stability\">Training stability</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --find-lr --find-lr-output ./lr_finder.json"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"spike-recovery-hint-file\">Spike-recovery hint file</h2><p>Loss-spike recovery now writes a <code>spike_recovery.json</code> hint with the decayed LR for re-launch:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"attempts\": 1, \"max_attempts\": 3, \"loss_at_spike\": 9.41, \"previous_lr\": 0.0002, \"recommended_lr\": 0.0001, \"should_recover\": true}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The values above are illustrative; the keys are the ones the callback writes. <code>recommended_lr</code> is <code>previous_lr</code> multiplied by <code>training.loss_spike_recovery_lr_decay</code> (default 0.5), and <code>should_recover</code> is true while <code>training.loss_spike_recovery_max_attempts</code> (default 3) is not yet used up. Since v0.77.0 the callback reads the <code>attempts</code> count back from an existing file in the same output directory when a relaunched run hits its first spike, so the attempt budget holds across relaunches and <code>should_recover</code> turns false once it is spent (#808, #1971); at v0.76.0 nothing read the file back. Nothing else reads it: it is still a hint for a wrapper script, not a rewind.</p><p>Live optimizer-state rewind and live DataLoader rebuild remain follow-ups (HF Trainer / TRL upstream constraints).</p><h2 id=\"vram-grad-accum-advisory-live\">VRAM grad-accum advisory (live)</h2><p>When VRAM pressure crosses the threshold, the advisory now prints a concrete recommended <code>(batch, accum)</code> pair preserving effective batch:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "Grad-accum advisory: peak 7.8 of 8.0 GB (97%) crossed the pressure threshold; recommend (batch_size, grad_accum_steps) (4, 4) -> (2, 8). Restart training with the new pair to take effect."
+    },
+    {
+      "kind": "html",
+      "html": "<p>The numbers in that line are illustrative. One-shot per run; doesn&#x27;t fire when CUDA is unavailable, and it only advises: the running job is not changed. <strong>Since v0.76.0 the pressure is measured against the card the run uses</strong> (peak and total are read from the same CUDA device; there is no <code>soup.yaml</code> key to override the total, only Python code that builds the callback itself can). Through v0.75.2 the monitor assumed a 24 GB card, so on a 4 to 20 GB card it could never fire and on a 40 to 80 GB card it fired early (#1620). The line format above was read from the callback&#x27;s code at the v0.76.0 tag, not produced by a run.</p><h2 id=\"auto-reexec-under-accelerate\">Auto-reexec under <code>accelerate</code></h2><p><code>soup train --gpus N</code> now auto-reexecs under <code>accelerate launch</code> instead of just printing the command. Critical flags (<code>--fsdp</code>, <code>--deepspeed</code>, <code>--resume</code>, <code>--wandb</code>, <code>--tensorboard</code>, <code>--yes</code>) are forwarded as separate argv elements. Use <code>--no-reexec</code> to opt out and just print the command. Multi-node launches (<code>--nodes</code>, <code>--node-rank</code>, <code>--master-addr</code>, <code>--master-port</code>) are on the <a href=\"__DOCS_BASE__/multi-gpu\">Multi-GPU</a> page, and on Windows <code>soup train --gpus N</code> returns the launcher&#x27;s exit code.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --gpus 4               # auto-reexec\nsoup train --config soup.yaml --gpus 4 --no-reexec   # print command only"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Trust the printed command from v0.73.3 onward, and not before.</strong> It used to be built from a second, hand-maintained list of &quot;what the user typed&quot;, and that list was short, so flags fell off it silently: following the hint literally trained <strong>without <code>--fsdp</code></strong>, and the run succeeded, which is why nothing ever pointed back at the hint. The printed copy was deleted rather than patched, and the hint is now derived from the same argv the auto-reexec would have used, so the two cannot drift again. Four more flags survive it now: <code>--name</code>, <code>--replay</code>, <code>--replay-ratio</code> and <code>--replay-seed</code>.</p><h2 id=\"registry-artifact-attach\">Registry artifact attach</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Attach an eval JSON to an existing registry entry\nsoup eval custom --tasks evals/sanity.jsonl --model ./output \\\n  --attach-to-registry chat-llama:v1\n\n# Auto-attach exported artifact to registry\nsoup export --model ./output --format gguf --registry-id chat-llama:v1"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>eval_results</code> and <code>tensorrt</code> are now valid artifact kinds. Since v0.76.0 <code>soup export --registry-id</code> records the files of more export formats than GGUF; the format list is on the <a href=\"__DOCS_BASE__/export\">Export</a> page. <code>lookup_entry_by_output_dir</code> emits <code>ResourceWarning</code> when its 1000-row scan limit is hit (no silent miss).</p><h2 id=\"v0-28-features-expanded-to-dpo-pretrain-trainers\">v0.28 features expanded to DPO + Pretrain trainers</h2><p><code>use_cut_ce</code>, <code>quantization_aware: &quot;fp8&quot;</code>, <code>kernel_auto_compose</code>, and <code>activation_offloading</code> now work on DPO and Pretrain trainers (in addition to SFT from v0.28). At v0.33, GRPO/KTO/ORPO/SimPO/IPO/PPO/RewardModel/Embedding still errored at config-load with a precise multi-trainer message. <strong>Since closed in v0.35:</strong> all eight load now, and the allowlist is thirteen tasks (see <a href=\"__DOCS_BASE__/multi-trainer-speed-memory\">Multi-trainer speed &amp; memory</a>). &quot;Work&quot; here means the key is accepted and wired in: <code>use_cut_ce</code> still only takes effect when the third-party package imports, see <a href=\"__DOCS_BASE__/training-speed-memory#cut-cross-entropy\">Cut Cross-Entropy</a>. (Since closed in v0.76.0 for one of the four: <code>kernel_auto_compose: true</code> is refused at config load, because the selector timed the same already-loaded model for every candidate and never applied the combination it printed; set <code>use_liger</code> and/or <code>use_flash_attn</code> explicitly instead. <code>quantization_aware: true</code> (the int8 spelling) is refused too; <code>quantization_aware: fp8</code> is the FP8 training this paragraph means. Whether <code>use_cut_ce</code> engages on transformers 5.x was not tested.)</p><h2 id=\"rlvr-os-level-isolation\">RLVR OS-level isolation</h2><p>GRPO&#x27;s <code>code_exec</code> reward gains real OS-level sandboxing on top of the v0.25 RLIMIT/socket-patch baseline:</p><ul><li><strong>Linux</strong> — best-effort <code>os.unshare(CLONE_NEWUSER|CLONE_NEWNET|CLONE_NEWPID)</code>, which exists only on Python 3.12 or newer. On an older Python, or on a hardened kernel (<code>unprivileged_userns_clone=0</code>), it falls back silently to RLIMIT + socket-patch.</li><li><strong>macOS</strong> — <code>sandbox-exec</code> wrapper with default-deny profile. <code>(allow mach-lookup)</code> narrowed to a 3-name allowlist (SecurityServer / notification_center / opendirectoryd.libinfo) to prevent DNS/NSURLSession bypass.</li><li><strong>Windows</strong> — no OS-level isolation, and no RLIMIT either (resource limits are POSIX only). What remains is a scrubbed environment, an ephemeral working directory and the Python-level socket patch, which generated code can bypass.</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/soup-cans\">Soup Cans</a> — pack, fork, run, publish</li><li><a href=\"__DOCS_BASE__/training-stability\">Training stability</a> — LR finder + spike recovery</li><li><a href=\"__DOCS_BASE__/multi-gpu\">Multi-GPU</a> — auto-reexec</li><li><a href=\"__DOCS_BASE__/registry\">Registry</a> — artifact attach</li></ul><nav><a href=\"__DOCS_BASE__/soup-cans\"><span>Previous</span><span>Soup Cans</span></a><a href=\"__DOCS_BASE__/observability\"><span>Next</span><span>Observability &amp; Dev UX</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

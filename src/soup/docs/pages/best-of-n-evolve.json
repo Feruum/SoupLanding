@@ -1,0 +1,77 @@
+{
+  "slug": "best-of-n-evolve",
+  "title": "Best-of-N & Evol-Instruct (v0.71.31)",
+  "description": "Best-of-N & Evol-Instruct (v0.71.31) — build training data with an LLM judge in the loop. soup data best-of-n samples N completions from a base model and a judge picks the winner as an SFT row (with --emit-pairs, winner-vs-loser DPO pairs too), BOND-lite rejection sampling; soup data evolve grows instruction diversity via WizardLM depth/breadth mutation. SSRF-validated judge/provider URLs, cwd-contained atomic writes. Part of the v0.71.31 judge-in-the-loop suite; no competitor (Unsloth, Axolotl, LLaMA-Factory, OpenPipe) ships it as one CLI suite.",
+  "source": "https://trysoup.dev/docs/best-of-n-evolve",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "ccc13dd0baed97632afd7b2e0e7a1e7950f201dce9300468b25c77d0c807fd2a",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-data-best-of-n-rejection-sampling-bond-lite",
+      "title": "soup data best-of-n — rejection sampling (BOND-lite)"
+    },
+    {
+      "level": 3,
+      "id": "sampling-from-a-provider-and-finishing-what-you-started-v0-74-0",
+      "title": "Sampling from a provider, and finishing what you started (v0.74.0)"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-evolve-evol-instruct-wizardlm",
+      "title": "soup data evolve — Evol-Instruct (WizardLM)"
+    },
+    {
+      "level": 2,
+      "id": "security",
+      "title": "Security"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Best-of-N &amp; Evol-Instruct (v0.71.31)</h1><p>Two <code>soup data</code> subcommands that put an LLM judge in the loop to build training data, the data side of the v0.71.31 <a href=\"__DOCS_BASE__/online-dpo\">judge-in-the-loop suite</a>.</p><blockquote><p>We have not found this as an integrated CLI suite elsewhere.</p></blockquote><h2 id=\"soup-data-best-of-n-rejection-sampling-bond-lite\">soup data best-of-n — rejection sampling (BOND-lite)</h2><p>Sample N completions from a base model, let a judge score each one, keep the winner as a clean SFT row. With <code>--emit-pairs</code> it also writes winner-versus-loser DPO pairs, so one pass bootstraps both an SFT set and a preference set.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data best-of-n --base HuggingFaceTB/SmolLM2-135M-Instruct \\\n    --prompts prompts.jsonl --n 8 --judge ollama://llama3.1 \\\n    -o best_of_n.jsonl --emit-pairs pairs.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<div><table><thead><tr><th>Flag</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--base</code></td><td>the default path</td><td>Local model to sample from (loads locally; bounded by your GPU). Give this or <code>--provider</code>.</td></tr><tr><td><code>--provider</code></td><td>off</td><td>v0.74.0. <code>ollama</code> or <code>vllm</code>: draw the candidates from a running raw-completion endpoint instead of loading a model. <code>anthropic</code> is refused by name, because its Messages API has no raw-completion endpoint.</td></tr><tr><td><code>--model</code></td><td>required with <code>--provider</code></td><td>Provider-side model id, recorded in <code>_best_of_n</code> provenance next to the provider.</td></tr><tr><td><code>--base-url</code></td><td>loopback</td><td>Provider endpoint, SSRF-validated.</td></tr><tr><td><code>--prompts</code></td><td>required</td><td>Prompt JSONL (cwd-contained, symlink-rejected).</td></tr><tr><td><code>--judge</code></td><td>required for the online workflow</td><td>Judge URL, SSRF-validated. Not accepted with <code>--export-candidates</code> or in the offline phase, which construct no judge.</td></tr><tr><td><code>--n</code></td><td><code>8</code></td><td>Candidates per prompt (<code>2..64</code>).</td></tr><tr><td><code>-o</code>, <code>--output</code></td><td>required</td><td>SFT output JSONL; each row carries a <code>_best_of_n</code> provenance object (<code>n</code>, <code>winner_idx</code>, <code>judge_model</code>, <code>scores</code>).</td></tr><tr><td><code>--emit-pairs</code></td><td>off</td><td>Also write winner-vs-loser DPO pairs to this path.</td></tr><tr><td><code>--temperature</code></td><td><code>1.0</code></td><td>Sampling temperature (<code>0..2</code>).</td></tr><tr><td><code>--max-new-tokens</code></td><td><code>256</code></td><td>Tokens per candidate (<code>1..4096</code>).</td></tr><tr><td><code>--seed</code></td><td><code>0</code></td><td>Sampling seed.</td></tr><tr><td><code>--plan-only</code></td><td>off</td><td>Print the plan and exit without sampling.</td></tr><tr><td><code>--revision</code></td><td>off</td><td>Pin the revision of the local <code>--base</code> model, as the two-phase example below does.</td></tr><tr><td><code>--manifest</code></td><td><code>&lt;output&gt;.manifest.json</code></td><td>Where the commit manifest is written (last, after the outputs).</td></tr></tbody></table></div><p>Judging is pointwise (one judge call per candidate, argmax), so cost scales with <code>--n</code>. Each judge request is retried twice on a 429, a 5xx or a transport error, honouring <code>Retry-After</code>. Prompt rows are validated with line-numbered errors instead of being silently dropped, each accepted row records its <code>source_line</code>, and a non-finite or boolean judge score is rejected before a winner is picked (v0.74.0).</p><p><strong>A judge that stops answering stops the run (v0.76.0, #1522).</strong> Once three requests in a row have spent their retries unanswered, <code>best-of-n</code> prints one message naming the judge URL and how many prompts were not judged, then <code>Best-of-N stopped after i/N prompts.</code> with the <code>--resume</code> instruction and the checkpoint path, and exits 1. The prompts already done stay in the journal, so a resume continues from there once the judge is back. A reply of any kind, a 4xx included, resets the count. This is from the code and changelog; it was not run here, because no judge endpoint was available.</p><p><strong><code>--output</code> must not be one of the inputs (v0.77.0).</strong> An <code>--output</code> or <code>--emit-pairs</code> path that is the same file as <code>--prompts</code> is refused before anything runs (<code>--output &#x27;p.jsonl&#x27; is the same file as --prompts &#x27;p.jsonl&#x27;; choose a different --output</code>, exit 2, <code>--plan-only</code> included). In upstream&#x27;s words, before this release four commands could overwrite an input with their output, <code>soup data best-of-n</code> among them (#2018).</p><h3 id=\"sampling-from-a-provider-and-finishing-what-you-started-v0-74-0\">Sampling from a provider, and finishing what you started (v0.74.0)</h3><p>The candidates no longer have to come from a model you load. <code>--provider ollama|vllm --model &lt;id&gt; [--base-url &lt;url&gt;]</code> draws them from a running raw-completion endpoint through the same SSRF-validated seam <code>soup data evolve</code> uses. The local-only flags are refused in provider mode rather than silently ignored.</p><p>A run that dies partway no longer starts over. Sampling is journalled per prompt (<code>--checkpoint</code>, defaulting beside the output), <code>--resume</code> continues from the last committed group, and the outputs are published manifest-last, so an interruption never leaves a partial SFT or DPO file behind. A resume binds the prompt source lines and the exact local model content, so it refuses to continue against changed inputs instead of quietly mixing two runs.</p><p>For an air-gapped or two-phase workflow, split sampling from judging:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Phase 1, where the GPU is: sample only, construct no judge.\nsoup data best-of-n --base Qwen/Qwen2.5-7B-Instruct --revision <commit> \\\n    --prompts prompts.jsonl --n 8 --export-candidates candidates.jsonl\n\n# Phase 2, anywhere: materialize the outputs from verified judgments,\n# with no model load and no network.\nsoup data best-of-n --candidate-artifact candidates.jsonl \\\n    --judgments verified.jsonl -o best_of_n.jsonl --emit-pairs pairs.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>verified.jsonl</code> holds one JSON object per candidate group, copying <code>prompt_id</code> and <code>group_digest</code> from <code>candidates.jsonl</code>, with one score per candidate (so the <code>--n 8</code> above needs eight):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"prompt_id\": \"...\", \"group_digest\": \"...\", \"winner_idx\": 2, \"scores\": [0.1, 0.4, 0.9, 0.3, 0.2, 0.5, 0.6, 0.1], \"verifier\": {\"name\": \"my-checker\", \"version\": \"offline-v1\"}}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Anything that can write that line can be the judge: a person, a deterministic program or a CI job. The offline phase fails closed before writing anything on a missing or duplicate prompt id, a changed group digest, an invalid winner index, a score-count mismatch, a non-finite score, or a winner that disagrees with the scores. It writes <code>&lt;output&gt;.manifest.json</code> (or the <code>--manifest</code> path) last, binding the SHA-256 and row count of each output; that manifest is the commit marker, so a consumer should open exactly the files it lists and never glob neighbouring JSONL. <code>--resume</code> and <code>--checkpoint</code> are rejected here because nothing is sampled: after a late write failure, keep the two inputs and rerun the same command. The online recovery journal (<code>&lt;output&gt;.checkpoint.jsonl</code>) contains dataset content, so protect it like the dataset.</p><blockquote><p><strong>Breaking, if you script it:</strong> <code>--export-candidates --seed N</code> seeds each prompt independently as of v0.74.0, so a resumed run reproduces the same candidates. That changes the output of an existing <code>--export-candidates --seed N</code> command.</p></blockquote><h2 id=\"soup-data-evolve-evol-instruct-wizardlm\">soup data evolve — Evol-Instruct (WizardLM)</h2><p>Grow instruction diversity by mutating seed prompts, completing the synthetic-data suite (Magpie, Forge, Persona, evolve). <code>depth</code> deepens an instruction (adds constraints, concretizes, adds reasoning steps); <code>breadth</code> creates a new sibling instruction in the same domain.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data evolve --input seeds.jsonl --provider ollama --model llama3.1 \\\n    --strategy depth --rounds 2 -o evolved.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<div><table><thead><tr><th>Flag</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--input</code></td><td>required</td><td>Seed instructions JSONL.</td></tr><tr><td><code>--provider</code></td><td>required</td><td><code>ollama</code> or <code>vllm</code> (the raw-completion providers; <code>anthropic</code> is rejected).</td></tr><tr><td><code>--model</code></td><td>required</td><td>Generator model id.</td></tr><tr><td><code>--strategy</code></td><td><code>depth</code></td><td><code>depth</code> (deepen) or <code>breadth</code> (diversify).</td></tr><tr><td><code>--rounds</code></td><td><code>1</code></td><td>Evolution rounds (<code>1..5</code>).</td></tr><tr><td><code>-o</code>, <code>--output</code></td><td>required</td><td>Evolved output JSONL.</td></tr><tr><td><code>--max-tokens</code></td><td><code>512</code></td><td>Generation budget (<code>1..16384</code>).</td></tr></tbody></table></div><p>Each round evolves every live instruction and drops empty, unchanged, or meta-prompt-echo outputs; if a round eliminates everything, the previous generation carries forward.</p><h2 id=\"security\">Security</h2><p>Both write atomically (<code>mkstemp</code> + <code>os.replace</code>) with cwd containment re-validated to close a symlink-swap window; since v0.77.0 a judge reply is bounded at 1 MiB and a provider generation reply (the <code>--provider</code> candidates of <code>best-of-n</code>, and <code>evolve</code>) at 8 MiB of decoded content, checked while it streams, refused before it is parsed and never logged (#1929); every judge / provider URL is SSRF-validated (since v0.75.2 an IP address in a private, link-local or reserved range is refused on <code>https</code> as well as <code>http</code>, so name a LAN server by hostname; since v0.76.0 a host written only as numbers that is not a valid IPv4 address, such as <code>10.0.0.256</code> or <code>4294967296</code>, is refused as well; <a href=\"__DOCS_BASE__/private-addresses-refused\">what v0.75.2 refuses</a>); <code>--base</code> loads with <code>trust_remote_code=False</code> (probe + warn); dataset-derived text is escaped before it is echoed. Prompts / seeds are capped at 100,000 rows.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/online-dpo\">Online DPO</a> — train on-policy against the same judge.</li><li><a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> — decide SHIP with a pairwise judge win-rate.</li><li><a href=\"__DOCS_BASE__/data-forge\">Data Forge &amp; quality moat</a> and <a href=\"__DOCS_BASE__/data-engineering-pro\">Data engineering pro</a> — the rest of the synthetic-data and quality surface.</li></ul><nav><a href=\"__DOCS_BASE__/data-moat-ii\"><span>Previous</span><span>Data Moat II</span></a><a href=\"__DOCS_BASE__/soup-ship\"><span>Next</span><span>Ship Verdict</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

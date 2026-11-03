@@ -1,0 +1,69 @@
+{
+  "slug": "autopilot",
+  "title": "Autopilot",
+  "description": "Soup Autopilot picks task, quantization, PEFT rank, batch size, LR, and epochs from your model, data, and GPU. New in v0.25.0.",
+  "source": "https://trysoup.dev/docs/autopilot",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "e31ac3de1cb009be84696b9a2159e107d373e2515b34836b8e1b3f3d1fbd8af3",
+  "headings": [
+    {
+      "level": 2,
+      "id": "quick-start",
+      "title": "Quick start"
+    },
+    {
+      "level": 2,
+      "id": "inputs",
+      "title": "Inputs"
+    },
+    {
+      "level": 2,
+      "id": "what-autopilot-decides",
+      "title": "What Autopilot decides"
+    },
+    {
+      "level": 3,
+      "id": "a-config-an-older-autopilot-wrote",
+      "title": "A config an older Autopilot wrote"
+    },
+    {
+      "level": 2,
+      "id": "example-output",
+      "title": "Example output"
+    },
+    {
+      "level": 2,
+      "id": "safety",
+      "title": "Safety"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Autopilot</h1><p><code>soup autopilot</code> is the zero-config entry point added in v0.25.0. You pass a model, a dataset, and a goal. Autopilot profiles the dataset, model, and GPU, then emits a <code>soup.yaml</code> with every hyperparameter chosen and justified.</p><h2 id=\"quick-start\">Quick start</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup autopilot \\\n  --model meta-llama/Llama-3.1-8B \\\n  --data chats.jsonl \\\n  --goal chat \\\n  --gpu-budget 24GB"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"inputs\">Inputs</h2><p><code>--model</code>, <code>--data</code> and <code>--goal</code> are required when stdin is not a terminal: a missing one is a usage error (<code>Missing option &#x27;--model&#x27; / &#x27;-m&#x27;.</code>, exit 2). In a terminal (since v0.76.0) Autopilot asks for whichever you left out: <code>Base model (HF model id):</code>, <code>Dataset path (JSONL):</code>, and a goal prompt that defaults to <code>chat</code>. A blank model or dataset exits 1. There is no way to pass a task: choosing one is what Autopilot is for.</p><div><table><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--model</code> / <code>-m</code></td><td>Any HuggingFace repo or local path (required; prompted in a terminal)</td></tr><tr><td><code>--data</code> / <code>-d</code></td><td>JSONL dataset (alpaca / sharegpt / chatml / dpo / kto / tool-calling) (required; prompted in a terminal)</td></tr><tr><td><code>--goal</code> / <code>-g</code></td><td><code>chat</code> · <code>reasoning</code> · <code>code</code> · <code>classification</code> · <code>tool-calling</code> · <code>alignment</code> · <code>domain-adapt</code> (required; prompted in a terminal, default <code>chat</code>)</td></tr><tr><td><code>--gpu-budget</code></td><td>VRAM budget (defaults to detected GPU)</td></tr><tr><td><code>--output</code> / <code>-o</code></td><td>Config path (default: <code>./soup.yaml</code>)</td></tr><tr><td><code>--dry-run</code></td><td>Print decisions without writing <code>soup.yaml</code></td></tr><tr><td><code>--yes</code> / <code>-y</code></td><td>Skip the confirmation prompt</td></tr></tbody></table></div><h2 id=\"what-autopilot-decides\">What Autopilot decides</h2><ol><li><strong>Task</strong> — maps goal → SFT / DPO / GRPO / pretrain, including the tool-calling format where appropriate. Those four are the whole range: the seven goals above map to <code>sft</code> (chat, code, classification, tool-calling), <code>grpo</code> (reasoning), <code>dpo</code> (alignment) and <code>pretrain</code> (domain-adapt).</li><li><strong>Quantization</strong> — chooses <code>none</code>, <code>8bit</code> or <code>4bit</code> from the model size against your VRAM budget: <code>none</code> at 5 GB or more per billion parameters, <code>8bit</code> from 3 GB, <code>4bit</code> from 1.2 GB, and an error below that. A base that is already quantized (GPTQ, AWQ and similar) keeps its own format instead. A detected <code>mxfp4</code> base is budgeted as the bf16 model it loads (2 bytes per parameter), and Autopilot refuses a <code>--gpu-budget</code> below that.</li><li><strong>PEFT</strong> — picks LoRA r=8/16/32 from dataset size, and turns on DoRA when the data is large and the VRAM headroom allows it. It does not select VeRA, and it does not turn LoRA off. DoRA stays off on a GPTQ, AWQ, AQLM or EETQ base, because peft cannot apply DoRA to those layers (v0.76.0, #1466).</li><li><strong>Batch size × grad_accum</strong> — estimates the per-device batch size from VRAM, then sets gradient accumulation to <code>32 // batch</code> (at least 1), so the effective batch is about 32.</li><li><strong>Learning rate</strong> — scales with rank and quantization (e.g. LoRA r=16 → 2e-4, 4bit → ×0.8).</li><li><strong>Epochs</strong> — 5 → 3 → 2 → 1 depending on dataset size.</li><li><strong><code>max_length</code></strong> — the dataset&#x27;s p95 token length times 1.1, rounded down, at least 256 and clamped to the model context.</li><li><strong>Perf flags</strong> — for the goals that train with SFT, turns on FlashAttention and Liger Kernel only when the GPU is Ampere or newer (compute capability 8.0 or higher) <strong>and the package is installed</strong> (<code>flash-attn</code>, or <code>soup-cli[liger]</code>); when the card qualifies but a package is missing, the Decisions panel names it and the install command. Before v0.76.0 it wrote both flags without checking, so <code>soup train</code>, <code>--dry-run</code> included, then refused the file Autopilot had just written. It also turns on <code>gradient_checkpointing</code> when <code>max_length</code> is above 8192 or the VRAM headroom (the budget minus 2 GB per billion parameters) is positive but under 4 GB. Otherwise it writes <code>gradient_checkpointing: false</code>, and since v0.77.0 that value reaches the GRPO trainer, so a <code>reasoning</code> config trains with checkpointing off where TRL&#x27;s own default (on) used to apply; set <code>training.gradient_checkpointing: true</code> to keep the memory you had. It does not choose a backend: <code>backend: mlx</code> is something you set yourself.</li><li><strong>Training intelligence</strong> — not written since v0.76.0. Through v0.75.2 Autopilot wrote <code>forgetting_detection</code>, <code>checkpoint_intelligence</code> and <code>early_stop_on_regression</code> as <code>true</code>, and <code>soup train</code> then printed &quot;set but not enforced during training in this build&quot;; it now leaves all three off and no longer prints them, because nothing enforces them. A config generated by an older Autopilot still carries the <code>true</code> values and still prints that note. For a check that does run, add <code>--gate</code> (see <a href=\"__DOCS_BASE__/training-intelligence\">Training intelligence</a>).</li></ol><p>Autopilot prints its decisions in a Rich panel before it writes anything, and <code>--dry-run</code> stops there. The panel lists the values it chose, not a reason for each one, and it prints no time or VRAM estimate.</p><h3 id=\"a-config-an-older-autopilot-wrote\">A config an older Autopilot wrote</h3><p>Autopilot writes the full schema dump, defaults included, so a <code>soup.yaml</code> from an older release carries the defaults of that release. <strong>One of them stops the load at v0.77.0:</strong> configs written on v0.75 and earlier carry <code>data.remove_unused_columns: true</code>, and since v0.77.0 <code>soup train</code> refuses it (<code>data.remove_unused_columns: true never had an effect (no trainer reads it; the trainers that set it pass false). Delete the line. Refused as of Soup v0.77.</code>, exit 1). Delete the line, or set it to <code>false</code>. Run <code>soup doctor --config soup.yaml</code> on an old file before you start a run: it exits 2 on a refusal, so fix that setting and run it again until it prints no error.</p><h2 id=\"example-output\">Example output</h2><p>The command prints a summary panel (dataset, model, hardware, goal) and then the decisions. Here is the second one for a 15,000-row chat dataset, an 8B model, <code>--gpu-budget 24GB</code> and an Ampere-or-newer GPU with both kernel packages installed (on a card that qualifies but lacks the packages, the two kernel lines read <code>off (flash-attn not installed; pip install flash-attn --no-build-isolation to enable)</code> and <code>off (liger-kernel not installed; pip install &quot;soup-cli[liger]&quot; to enable)</code>, and on a card below compute capability 8.0 they read <code>False</code>):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "╭───── Autopilot Decisions ─────╮\n│ Quantization: 8bit            │\n│ PEFT: LoRA r=32, alpha=64     │\n│ Batch size: 1 x grad_accum 32 │\n│ Learning rate: 0.0001         │\n│ Epochs: 2                     │\n│ Max length: 2002              │\n│ Flash Attention: True         │\n│ Liger Kernel: True            │\n╰───────────────────────────────╯\nConfig written: /home/you/project/soup.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"safety\">Safety</h2><ul><li>Dataset and output paths are resolved and constrained to the working directory (no path traversal).</li><li>GPU budget is bounded to 1GB–1TB; there is no time budget: <code>--gpu-budget</code> is the only budget the command accepts.</li><li>Model names are validated against HuggingFace Hub naming rules.</li><li>Model code is never executed during analysis — Autopilot uses HF Hub metadata only.</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/training\">Training methods</a></li><li><a href=\"__DOCS_BASE__/backends\">Backends</a> — including MLX</li><li><a href=\"__DOCS_BASE__/training-intelligence\">Training intelligence</a> — the forgetting-detection and checkpoint options, and which of them are enforced</li><li><a href=\"__DOCS_BASE__/recipes\">Recipes</a> — start here if you don&#x27;t need Autopilot</li></ul><nav><a href=\"__DOCS_BASE__/multimodal\"><span>Previous</span><span>Vision &amp; Audio</span></a><a href=\"__DOCS_BASE__/mlx-backend\"><span>Next</span><span>Apple Silicon MLX</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

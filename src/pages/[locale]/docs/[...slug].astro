@@ -1,0 +1,9 @@
+---
+import DocumentationPage from '../../../soup/DocumentationPage.astro'
+import { getDocSlugs } from '../../../soup/docs/documents'
+import { soupLocales } from '../../../soup/locales'
+export function getStaticPaths() {
+  return Object.keys(soupLocales).filter(code => code !== 'en').flatMap(locale => getDocSlugs().map(slug => ({ params: { locale, slug } })))
+}
+---
+<DocumentationPage language={Astro.params.locale!} slug={Astro.params.slug!} />

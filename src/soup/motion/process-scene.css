@@ -1,0 +1,268 @@
+.pixel-process {
+  --pp-cycle: 5.4s;
+  --pp-ease: cubic-bezier(0.77, 0, 0.175, 1);
+  --pp-line: color-mix(in srgb, var(--fg) 55%, transparent);
+  --pp-paper: var(--bg, #0a0a0a);
+  position: relative;
+  isolation: isolate;
+  color: var(--fg);
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  direction: ltr;
+}
+.pp-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  shape-rendering: crispEdges;
+}
+.pp-art text {
+  fill: color-mix(in srgb, var(--fg) 92%, transparent);
+  font: 13px var(--font-mono);
+}
+.pp-art .pp-tiny {
+  font-size: 10px;
+}
+.pp-art .pp-bright {
+  fill: var(--fg);
+}
+.pp-art .pp-verdict-text {
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+.pp-art path,
+.pp-art rect {
+  vector-effect: non-scaling-stroke;
+}
+.pp-registration {
+  fill: none;
+  stroke: var(--pp-line);
+  stroke-width: 1;
+}
+.pp-surface {
+  fill: var(--pp-paper);
+  stroke: var(--pp-line);
+  stroke-width: 1.5;
+}
+.pp-rule {
+  fill: none;
+  stroke: var(--pp-line);
+  stroke-width: 1.5;
+}
+.pp-chip-outline {
+  fill: var(--pp-paper);
+  stroke: var(--accent-light);
+  stroke-width: 2;
+}
+.pp-hot,
+.pp-eval-sweep {
+  fill: var(--accent-light);
+}
+.pp-hot-stroke {
+  fill: none;
+  stroke: var(--accent-light);
+  stroke-width: 3;
+}
+.pp-inverse {
+  fill: none;
+  stroke: var(--pp-paper);
+  stroke-width: 1;
+}
+.pp-weight {
+  fill: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+.pp-adapter {
+  fill: var(--accent-light);
+}
+.pp-adapter:nth-child(3n) {
+  fill: color-mix(in srgb, var(--accent-light) 55%, var(--fg));
+}
+.pp-layer-top {
+  fill: var(--pp-paper);
+  stroke: var(--pp-line);
+  stroke-width: 1.5;
+}
+.pp-layer-side {
+  fill: color-mix(in srgb, var(--accent) 26%, var(--pp-paper));
+  stroke: var(--pp-line);
+  stroke-width: 1;
+}
+.pp-layer-activation {
+  fill: var(--accent);
+  fill-opacity: 0.48;
+  stroke: var(--accent-light);
+  stroke-width: 2;
+  opacity: 0;
+}
+.pp-art .pp-layer-label {
+  font-size: 10px;
+}
+.pp-art .pp-token-code {
+  fill: #0a0a0a;
+  font-size: 11px;
+  font-weight: 700;
+}
+.pp-signal,
+.pp-backward {
+  fill: none;
+  stroke: var(--accent-light);
+  stroke-width: 5;
+  stroke-dasharray: 14 86;
+  opacity: 0;
+}
+.pp-transport {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 24px 16px;
+}
+.pp-progress {
+  display: block;
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  background: var(--pp-line);
+}
+.pp-progress > i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+}
+.pp-transport button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  color: var(--accent-light);
+  border: 1px solid var(--pp-line);
+  background: var(--pp-paper);
+  cursor: pointer;
+  transition:
+    transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 120ms ease;
+}
+.pp-transport button svg {
+  fill: currentColor;
+}
+.pp-transport button:active {
+  transform: scale(0.95);
+}
+.pp-transport button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.pp-transport button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pp-transport button:hover {
+    border-color: var(--accent);
+  }
+}
+
+/* Default geometry is the finished frame; process-timeline.ts animates from it. */
+.pp-packet,
+.pp-scan {
+  opacity: 0;
+}
+.pp-bin {
+  opacity: 0.7;
+}
+.pp-train-flow {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 20px;
+  color: var(--accent-light);
+  font: 11px/1.5 var(--font-mono);
+}
+.pp-compact .pp-train-flow {
+  display: flex;
+}
+.pp-train-flow code {
+  color: var(--fg);
+  font: inherit;
+}
+.pp-compact .pp-art {
+  min-height: 195px;
+}
+.pp-compact .pp-transport {
+  padding: 0 8px 8px;
+  gap: 12px;
+}
+.pp-compact .pp-transport button {
+  width: 32px;
+  height: 32px;
+}
+.pp-compact[data-process-kind='train'] .pp-train-io {
+  display: none;
+}
+.pp-compact[data-process-kind='train'] .pp-registration {
+  display: none;
+}
+.workflow-panel > .pixel-process {
+  border-bottom: 1px solid var(--line);
+  padding-top: 8px;
+}
+.workflow-panel:has(> .pixel-process) .terminal-body {
+  padding-top: 18px;
+  padding-bottom: 18px;
+  min-height: 0;
+}
+.workflow-panel:has(> .pixel-process) .terminal-meta {
+  margin-bottom: 12px;
+}
+.workflow-panel:has(> .pixel-process) .terminal-description {
+  min-height: 0;
+  padding-block: 18px;
+}
+.workflow-panel:has(> .pixel-process) .terminal-cursor {
+  display: none;
+}
+.zero-run-visual > .pixel-process {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+@media (min-width: 761px) {
+  .workflow-section .workflow-layout {
+    grid-template-columns: minmax(180px, 0.55fr) minmax(0, 1.65fr);
+    gap: 36px;
+  }
+}
+@media (max-width: 480px) {
+  .pixel-process:not(.pp-compact)[data-process-kind='train'] .pp-art {
+    width: 164%;
+    max-width: none;
+    margin-inline: -32%;
+  }
+  .pixel-process[data-process-kind='train'] .pp-train-io,
+  .pixel-process[data-process-kind='train'] .pp-registration {
+    display: none;
+  }
+  .pixel-process[data-process-kind='train'] .pp-train-flow {
+    display: flex;
+  }
+}
+.soup-zero .zero-workspace[data-workspace-static] *,
+.workflow-panel[data-workflow-static] .terminal-body pre {
+  animation: none !important;
+}
+.pp-transport button:focus-visible:active {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce), print {
+  .pixel-process .pp-transport button {
+    transition: none;
+  }
+  .pixel-process .pp-progress {
+    display: none;
+  }
+}

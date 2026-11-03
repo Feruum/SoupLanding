@@ -1,0 +1,110 @@
+{
+  "slug": "fine-tune-gemma-3-qlora",
+  "title": "Fine-tune Gemma 3 with QLoRA (single GPU)",
+  "description": "Fine-tune Google Gemma 3 12B with QLoRA (4-bit) on a single 16GB GPU using Soup CLI. Config, training, and GGUF export.",
+  "source": "https://trysoup.dev/docs/fine-tune-gemma-3-qlora",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "0ed98e558b24f32de878f583de85eeefeb6e48d54a5ed62dddf8c0643b8dba3e",
+  "headings": [
+    {
+      "level": 2,
+      "id": "why-qlora",
+      "title": "Why QLoRA?"
+    },
+    {
+      "level": 2,
+      "id": "1-install",
+      "title": "1. Install"
+    },
+    {
+      "level": 2,
+      "id": "2-config",
+      "title": "2. Config"
+    },
+    {
+      "level": 2,
+      "id": "before-you-train",
+      "title": "Before you train"
+    },
+    {
+      "level": 2,
+      "id": "3-train",
+      "title": "3. Train"
+    },
+    {
+      "level": 2,
+      "id": "4-merge-and-export",
+      "title": "4. Merge and export"
+    },
+    {
+      "level": 2,
+      "id": "common-issues",
+      "title": "Common issues"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Fine-tune Gemma 3 with QLoRA (single GPU)</h1><p>QLoRA combines 4-bit base model quantization with LoRA adapters, which is the setup used to fit <strong>Gemma 3 12B</strong> on a single 16 GB GPU (RTX 4080, A4000). Soup publishes no measured peak for this config; <code>soup profile --config gemma3.yaml --gpu rtx4080</code> prints an analytical estimate for your card.</p><h2 id=\"why-qlora\">Why QLoRA?</h2><ul><li>The frozen base weights take about a quarter of the memory of 16-bit weights</li><li>The QLoRA paper reports that it preserves 16-bit fine-tuning task performance on the tasks it measured; Soup has not measured that for Gemma 3</li><li>Works on consumer hardware</li></ul><h2 id=\"1-install\">1. Install</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train,fast]\""
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p>Since v0.71.0 the base <code>soup-cli</code> package is a light, PyTorch-free CLI. <code>[train]</code> adds the training stack; <code>[fast]</code> adds Unsloth on top. Installing <code>[fast]</code> alone cannot train. Since v0.77.0 Soup needs Python 3.11 to 3.13 (<code>&gt;=3.11,&lt;3.14</code>); on Python 3.10, pip keeps installing v0.76.x.</p></blockquote><h2 id=\"2-config\">2. Config</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: google/gemma-3-12b-it\ntask: sft\nbackend: unsloth            # root-level, NOT under training\n\ndata:\n  train: train.json\n  format: alpaca\n  max_length: 2048          # sequence length lives under data\n\ntraining:\n  quantization: 4bit        # the key is quantization, not quant\n  epochs: 3\n  lr: 2.0e-4                # the key is lr, not learning_rate\n  batch_size: 1\n  gradient_accumulation_steps: 16\n  gradient_checkpointing: true   # since v0.77.0 the default false turns Unsloth's off\n  lora:\n    r: 16                   # LoRA turns on when r > 0; there is no enabled flag\n    alpha: 16\n    use_rslora: true\n    target_modules: [q_proj, k_proj, v_proj, o_proj]\n\noutput: ./runs/gemma3"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Note the key flags:</strong></p><ul><li><code>quantization: 4bit</code> — 4-bit NF4 quantization of base model (the key is <code>quantization</code>; <code>quant</code> is not a field, and since v0.75.0 it is refused as an unknown key; v0.74.0 only reported it). It applies to <code>task: sft</code>. On the tasks whose trainer never quantises the base (<code>distill</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>prm</code>, <code>moe_lora_routing</code>, <code>unlearn</code> and <code>asr</code>) an explicit <code>4bit</code> or <code>8bit</code> (or <code>load_in_8bit: true</code>) is refused at load since v0.77.0: <code>training.quantization: 4bit has no effect on task=&#x27;reranker&#x27;: its trainer never quantises the base, so no run can honour it. Delete the line or set quantization: none. Refused as of Soup v0.77.</code> v0.76 loaded it with a warning and treated it as <code>none</code> (#795)</li><li><code>use_rslora: true</code> — rank-stabilized LoRA (v0.21.0+), better for larger models. <strong>On <code>backend: unsloth</code> it is applied only since v0.77.0</strong> (#1853, #1899): through v0.76.x the flag loaded and was never read there, so a run with this config trained plain-LoRA scaling (<code>alpha / r</code>) with nothing said. Results from such a run change on v0.77.0; drop the flag to keep the old behaviour</li><li><code>gradient_checkpointing: true</code> — since v0.77.0 the Unsloth backend honours this key (#1981). Through v0.76.x it always used Unsloth&#x27;s own checkpointing kernel; now the schema default <code>false</code> turns checkpointing off, so the config sets <code>true</code> to keep it</li><li><code>batch_size: 1</code> with <code>gradient_accumulation_steps: 16</code> — effective batch of 16 on tight VRAM</li></ul><h2 id=\"before-you-train\">Before you train</h2><p>Run <code>soup doctor --config gemma3.yaml</code> first. Since v0.76.0 many more settings are refused when the config loads, each naming the field and what to change, so a config that loaded on an older release can stop loading. <code>soup doctor --config</code> prints the error and exits 2 without loading a model (it stops at the first cross-field refusal, so fix that setting and run it again until it prints no error), and since v0.77.0 it no longer prints <code>All checks passed!</code> above a refusal. Several things v0.76 only warned about are refused at v0.77.0, for example a staged field (validated, read by nothing) set away from its default, which stops the load with a line ending <code>refused as of v0.77. Delete the line.</code>, and the deprecated <code>data.remove_unused_columns: true</code>. See <a href=\"__DOCS_BASE__/config-refusals\">Config refusals</a>.</p><h2 id=\"3-train\">3. Train</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config gemma3.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>In a script or CI job, pass <code>--yes</code>: since v0.77.0 <code>soup train</code> with its stdin piped or redirected and no <code>--yes</code> exits 3 instead of waiting at the confirmation prompt.</p><p>Monitor VRAM with <code>nvidia-smi</code> in another terminal. The peak depends on <code>data.max_length</code> and the batch size, and no peak is published here for this config; if it does not fit your card, see the out-of-memory note below.</p><h2 id=\"4-merge-and-export\">4. Merge and export</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Dequantize, merge LoRA, save a full fp16 model (the default --save-format)\nsoup merge --adapter ./runs/gemma3 --output ./gemma3-merged\n\n# Or export directly to GGUF q4_k_m\nsoup export --model ./runs/gemma3 --format gguf --quant q4_k_m"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"common-issues\">Common issues</h2><p><strong>OOM during backward pass?</strong> Reduce <code>data.max_length</code> to 1024, and check that gradient checkpointing is on (the config above sets it; since v0.77.0 leaving it out turns it off):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  gradient_checkpointing: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Loss spikes?</strong> Enable loss watchdog (v0.24.0+):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  loss_watchdog: true          # a bool, not a block\n  loss_watchdog_threshold: 2.0 # spike factor vs the running mean (default 3.0)\n  loss_watchdog_patience: 5"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/export-to-gguf-ollama\">Export to GGUF and Ollama</a></li><li><a href=\"__DOCS_BASE__/backends\">Training backends</a></li></ul><nav><a href=\"__DOCS_BASE__/fine-tune-qwen-3\"><span>Previous</span><span>Fine-tune Qwen 3 on a custom dataset</span></a><a href=\"__DOCS_BASE__/export-to-gguf-ollama\"><span>Next</span><span>Export to GGUF and deploy on Ollama</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

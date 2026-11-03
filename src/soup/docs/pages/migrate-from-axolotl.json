@@ -1,0 +1,92 @@
+{
+  "slug": "migrate-from-axolotl",
+  "title": "Migrate from Axolotl to Soup CLI",
+  "description": "Migrate from Axolotl to Soup CLI with one command. Field mapping for QLoRA configs and side-by-side Mistral 7B example.",
+  "source": "https://trysoup.dev/docs/migrate-from-axolotl",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "b30bd1a8205fe29193ee4a134a268fc829239c23f1fd9f2b6333f948088cbc53",
+  "headings": [
+    {
+      "level": 2,
+      "id": "one-line-migration",
+      "title": "One-line migration"
+    },
+    {
+      "level": 2,
+      "id": "field-mapping",
+      "title": "Field mapping"
+    },
+    {
+      "level": 2,
+      "id": "example-conversion",
+      "title": "Example conversion"
+    },
+    {
+      "level": 2,
+      "id": "if-you-migrated-before-v0-77-0",
+      "title": "If you migrated before v0.77.0"
+    },
+    {
+      "level": 2,
+      "id": "if-you-migrated-before-v0-76-0",
+      "title": "If you migrated before v0.76.0"
+    },
+    {
+      "level": 2,
+      "id": "what-you-gain",
+      "title": "What you gain"
+    },
+    {
+      "level": 2,
+      "id": "dry-run",
+      "title": "Dry-run"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Migrate from Axolotl to Soup CLI</h1><p><strong>Axolotl</strong> is a popular fine-tuning framework. Soup CLI can import Axolotl configs directly with <code>soup migrate</code>.</p><h2 id=\"one-line-migration\">One-line migration</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup migrate --from axolotl path/to/axolotl_config.yml"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"field-mapping\">Field mapping</h2><div><table><thead><tr><th>Axolotl</th><th>Soup CLI</th></tr></thead><tbody><tr><td><code>base_model</code></td><td><code>base</code> (a root-level string, not <code>base.model</code>)</td></tr><tr><td><code>datasets[0].path</code></td><td><code>data.train</code></td></tr><tr><td><code>datasets[0].type</code></td><td><code>data.format</code></td></tr><tr><td><code>sequence_len</code></td><td><code>data.max_length</code> (sequence length lives under <code>data</code>, not <code>training</code>)</td></tr><tr><td><code>val_set_size</code></td><td><code>data.val_split</code>, and <code>0</code> when the key is absent, because axolotl trains on every row by default (since v0.77.0; through v0.76.1 the split was dropped and Soup&#x27;s default of 0.1 applied)</td></tr><tr><td><code>micro_batch_size</code></td><td><code>training.batch_size</code></td></tr><tr><td><code>gradient_accumulation_steps</code></td><td><code>training.gradient_accumulation_steps</code></td></tr><tr><td><code>num_epochs</code></td><td><code>training.epochs</code></td></tr><tr><td><code>adapter: lora</code> / <code>qlora</code></td><td><code>training.lora.r</code> (+ <code>training.quantization: 4bit</code> for qlora)</td></tr><tr><td>no <code>adapter</code></td><td><code>training.lora.r: 0</code> and <code>training.quantization: none</code>, a full fine-tune, with a warning. Only <code>sft</code> and embedding runs can do this: any other task exits 1</td></tr><tr><td><code>lora_r</code> / <code>lora_alpha</code></td><td><code>training.lora.r</code> / <code>training.lora.alpha</code></td></tr><tr><td><code>lora_target_linear: true</code></td><td><code>training.lora.target_modules: all-linear</code> (since v0.77.0; through v0.76.1 it gave <code>auto</code>, which adapts two of the seven projections on Llama). <code>lora_target_modules</code> is copied as written</td></tr><tr><td><code>load_in_4bit: true</code></td><td><code>training.quantization: 4bit</code> (the key is <code>quantization</code>, not <code>quant</code>)</td></tr><tr><td><code>load_in_8bit: true</code></td><td><code>training.quantization: 8bit</code></td></tr><tr><td>neither <code>load_in_4bit</code> nor <code>load_in_8bit</code>, and <code>adapter: lora</code></td><td><code>training.quantization: none</code>, written explicitly</td></tr><tr><td><code>rl:</code></td><td><code>task</code>: <code>dpo</code>, <code>ipo</code>, <code>kto</code>, <code>orpo</code> and <code>simpo</code> give the task of the same name, <code>grpo</code> and <code>gdpo</code> give <code>grpo</code>. Any other value exits 1</td></tr><tr><td><code>flash_attention: true</code></td><td><code>training.use_flash_attn: true</code> for <code>sft</code> and <code>tts</code> only. For any other task the importer drops it with a warning, because Soup refuses <code>use_flash_attn</code> there</td></tr></tbody></table></div><h2 id=\"example-conversion\">Example conversion</h2><p><strong>Axolotl:</strong></p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base_model: mistralai/Mistral-7B-v0.3\nload_in_4bit: true\nadapter: qlora\ndatasets:\n  - path: tatsu-lab/alpaca\n    type: alpaca\nsequence_len: 2048\nmicro_batch_size: 2\ngradient_accumulation_steps: 8\nnum_epochs: 3\nlearning_rate: 0.0002\nlora_r: 16\nlora_alpha: 32\nflash_attention: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Soup CLI (equivalent config; <code>soup migrate</code> leaves <code>backend</code> at its default and writes <code>use_flash_attn: true</code> and, since v0.77.0, <code>val_split: 0.0</code>, so add <code>backend: unsloth</code> yourself):</strong></p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: mistralai/Mistral-7B-v0.3\ntask: sft\nbackend: unsloth            # root-level, NOT under training\n\ndata:\n  train: tatsu-lab/alpaca\n  format: alpaca\n  max_length: 2048          # sequence length lives under data\n  val_split: 0.0            # the source has no val_set_size: axolotl trains on every row\n\ntraining:\n  quantization: 4bit        # the key is quantization, not quant\n  epochs: 3\n  lr: 2.0e-4                # the key is lr, not learning_rate\n  batch_size: 2\n  gradient_accumulation_steps: 8\n  use_flash_attn: true\n  lora:\n    r: 16                   # LoRA turns on when r > 0; there is no enabled flag\n    alpha: 32"
+    },
+    {
+      "kind": "html",
+      "html": "<p>With <code>backend: unsloth</code>, add <code>training.gradient_checkpointing: true</code> if you want Unsloth&#x27;s checkpointing (the importer writes none: an axolotl <code>gradient_checkpointing</code> key is not mapped and is named in the not-migrated warning): since v0.77.0 the Unsloth backend honours the key, and the default <code>false</code> turns checkpointing off (#1981).</p><p>Since v0.77.0 every source key the importer does not map is listed in one <code>N axolotl key(s) not migrated</code> warning (#1807, #1901). If the source sets <code>sample_packing</code>, the importer warns and does not map it; set <code>training.packing</code> (or <code>training.multipack</code>) by hand. An <code>adapter</code> other than <code>lora</code> or <code>qlora</code> has no Soup equivalent: the importer warns and writes LoRA.</p><h2 id=\"if-you-migrated-before-v0-77-0\">If you migrated before v0.77.0</h2><p>Regenerate and diff (#1807, #1901): through v0.76.1 the importer dropped <code>val_set_size</code>, so Soup&#x27;s <code>val_split: 0.1</code> held out a tenth of the rows where axolotl trains on every row by default, and it turned <code>lora_target_linear: true</code> into <code>target_modules: auto</code>, two of the seven projections on Llama.</p><h2 id=\"if-you-migrated-before-v0-76-0\">If you migrated before v0.76.0</h2><p>Check the <code>soup.yaml</code> you generated, because the importer changed what it writes. Upstream&#x27;s changelog lists what was wrong or has changed:</p><ul><li>An unquantized source wrote no <code>quantization</code> line, so Soup loaded it as 4-bit QLoRA, and a source with no adapter got LoRA <code>r=64</code> instead of a full fine-tune (#1215, #1302). An Axolotl config that sets <code>load_in_4bit</code> or <code>adapter: qlora</code> was not affected.</li><li><code>rl: orpo</code>, <code>ipo</code> and <code>simpo</code> became <code>task: sft</code> with no warning. They now map to their own tasks, and an <code>rl:</code> value with no Soup task exits 1 naming it (#1254).</li><li><code>flash_attention: true</code> was mapped to <code>use_flash_attn</code> for every task. Only <code>sft</code> and <code>tts</code> read it, and since v0.76.0 the loader refuses it on any other task, so a non-SFT <code>soup.yaml</code> from an older importer that carries it no longer loads; the importer now drops it with a warning there (#806, #983).</li></ul><p>If your source was bf16 or a full fine-tune, or used one of those <code>rl:</code> values, the run you got may not have been the run you meant. Regenerate and diff. Details for all three importers are on <a href=\"__DOCS_BASE__/migration#when-the-task-is-not-a-plain-sft-or-dpo-v0-76-0\">Migration</a>.</p><h2 id=\"what-you-gain\">What you gain</h2><ul><li>One CLI for train / chat / eval / serve / export instead of separate tools</li><li>Native Unsloth backend (automatic 2–5× speedup on supported models)</li><li>GGUF / Ollama / vLLM / SGLang export and serving built-in</li><li>Loss watchdog, curriculum learning, sample packing, freeze training</li></ul><h2 id=\"dry-run\">Dry-run</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup migrate --from axolotl axolotl.yml --dry-run"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The importer checks its result with Soup&#x27;s own config loader before it writes anything, so the file it hands back loads. Run <code>soup doctor --config soup.yaml</code> on it before you train: it shows the loader&#x27;s errors and warnings, and a clean report is not a guarantee that every key takes effect.</p><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/migrate-from-llamafactory\">Migrate from LLaMA-Factory</a></li><li><a href=\"__DOCS_BASE__/training\">Training methods</a></li></ul><nav><a href=\"__DOCS_BASE__/migrate-from-llamafactory\"><span>Previous</span><span>Migrate from LLaMA-Factory to Soup CLI</span></a><a href=\"__DOCS_BASE__/multi-gpu-deepspeed\"><span>Next</span><span>Multi-GPU training with DeepSpeed ZeRO-3</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

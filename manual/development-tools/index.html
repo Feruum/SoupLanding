@@ -1,0 +1,130 @@
+<!doctype html>
+<!-- Generated content source; rendered for visitors by the React site. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Development Tools</title></head>
+<body><main>  <div class="manual manual--chapter">
+    <div class="manual__sidebar">
+      <nav class="manual__toc" aria-label="Chapters">
+        <ol>
+          <li><a href="/manual/">Welcome to Omarchy!</a></li>
+          <li><a href="/manual/getting-started/">Getting Started</a></li>
+          <li><a href="/manual/coming-from-mac-or-windows/">Coming From Mac or Windows</a></li>
+          <li><a href="/manual/navigation/">Navigation</a></li>
+          <li><a href="/manual/the-top-bar/">The Top Bar</a></li>
+          <li><a href="/manual/themes/">Themes</a></li>
+          <li><a href="/manual/hotkeys/">Hotkeys</a></li>
+          <li><a href="/manual/unified-clipboard-history/">Unified Clipboard &amp; History</a></li>
+          <li><a href="/manual/reminders/">Reminders</a></li>
+          <li><a href="/manual/notices/">Notices</a></li>
+          <li><a href="/manual/text-extraction-dictation/">Text Extraction &amp; Dictation</a></li>
+          <li><a href="/manual/screenshots-recording/">Screenshots &amp; Recording</a></li>
+          <li><a href="/manual/toggles-idle-screensaver/">Toggles, Idle &amp; the Screensaver</a></li>
+          <li><a href="/manual/omarchy-cli/">Omarchy CLI</a></li>
+          <li><a href="/manual/terminal/">Terminal</a></li>
+          <li><a href="/manual/neovim/">Neovim</a></li>
+          <li><a href="/manual/ai/">AI</a></li>
+          <li><a href="/manual/development-tools/" aria-current="page">Development Tools</a></li>
+          <li><a href="/manual/shell-tools/">Shell Tools</a></li>
+          <li><a href="/manual/shell-functions/">Shell Functions</a></li>
+          <li><a href="/manual/tuis/">TUIs</a></li>
+          <li><a href="/manual/guis/">GUIs</a></li>
+          <li><a href="/manual/browsers/">Browsers</a></li>
+          <li><a href="/manual/commercial-apps-services/">Commercial apps/services</a></li>
+          <li><a href="/manual/web-apps/">Web Apps</a></li>
+          <li><a href="/manual/gaming/">Gaming</a></li>
+          <li><a href="/manual/filling-out-pdfs/">Filling out PDFs</a></li>
+          <li><a href="/manual/windows-vm/">Windows VM</a></li>
+          <li><a href="/manual/other-packages/">Other Packages</a></li>
+          <li><a href="/manual/updates/">Updates</a></li>
+          <li><a href="/manual/dotfiles/">Dotfiles</a></li>
+          <li><a href="/manual/shell-plugins/">Shell Plugins</a></li>
+          <li><a href="/manual/monitors/">Monitors</a></li>
+          <li><a href="/manual/keyboard-mouse-trackpad/">Keyboard, Mouse, Trackpad</a></li>
+          <li><a href="/manual/networking/">Networking</a></li>
+          <li><a href="/manual/system-sleep/">System sleep</a></li>
+          <li><a href="/manual/hardware-authentication/">Hardware authentication</a></li>
+          <li><a href="/manual/fonts/">Fonts</a></li>
+          <li><a href="/manual/backgrounds/">Backgrounds</a></li>
+          <li><a href="/manual/prompt/">Prompt</a></li>
+          <li><a href="/manual/branding/">Branding</a></li>
+          <li><a href="/manual/common-tweaks/">Common tweaks</a></li>
+          <li><a href="/manual/making-your-own-theme/">Making your own theme</a></li>
+          <li><a href="/manual/mac-support/">Mac support</a></li>
+          <li><a href="/manual/troubleshooting/">Troubleshooting</a></li>
+          <li><a href="/manual/faq/">FAQ</a></li>
+          <li><a href="/manual/system-snapshots/">System snapshots</a></li>
+          <li><a href="/manual/security/">Security</a></li>
+          <li><a href="/manual/omarchy-on/">Omarchy on...</a></li>
+          <li><a href="/manual/dual-boot-install/">Dual Boot Install</a></li>
+          <li><a href="/manual/unattended-installs/">Unattended Installs</a></li>
+        </ol>
+      </nav>
+    </div>
+
+    <article class="manual__content">
+      <h1>Development Tools</h1>
+<h2 id="alternative-editors">Alternative Editors <a class="manual__heading-link" href="#alternative-editors" aria-label="Link to this section">#</a></h2>
+
+<p>Omarchy ships with <a href="https://neovim.io/">Neovim</a> by default, but if you’d like something a bit more mainstream and familiar, you can run the Omarchy Menu (<code>Super + Space</code>) and see the options under <em>Install &gt; Editor</em>. We have VSCode, Cursor, Zed, Sublime Text, Helix, Vim, and Emacs listed there. If you don’t find what you’re looking for, checkout <em>Install &gt; Package</em>, and see if it isn’t in an Arch package (and if not, try <em>Install &gt; AUR</em> to check the AUR).</p>
+
+<p>The original <code>vi</code> editor is also available out of the box. Run <code>vi filename</code> to edit a file in the terminal.</p>
+
+<p>Theme matching is offered for <code>VSCode</code>, <code>Cursor</code>, <code>VSCodium</code>, and <code>Helix</code>.</p>
+
+<p>You can set the system-wide default editor under <code>Setup &gt; Defaults &gt; Editor</code>.</p>
+
+<h2 id="environment">Environment <a class="manual__heading-link" href="#environment" aria-label="Link to this section">#</a></h2>
+
+<p>Omarchy supports setting up a whole host of development environments through the <em>Install &gt; Development</em> section of the Omarchy Menu (<code>Super + Space</code>). You’ll of course find <em>Ruby on Rails</em>, but also all three major runtimes for JavaScript (Node.js, Bun, Deno), as well as popular PHP frameworks like Laravel and Symfony. Oh, and there’s Go, Rust, Python, Java, Elixir (with Phoenix), .NET, OCaml, Zig, Clojure, and Scala too. It’s a very broad selection!</p>
+
+<p>The majority of these environments are managed by <a href="https://mise.jdx.dev/">Mise</a>. It’s a tool that lets you install and run multiple versions of a programming language on the same machine. It’s like rbenv or rvm for Ruby or virtualenv for Python, but it works for a bunch of different environments.</p>
+
+<p>To install, say, Ruby, you’d run <code>mise use -g ruby</code>, which will both install Ruby and set it as the global default. Or, if your project has a .ruby-version file, you can just run <code>mise i</code> in the root of that project.</p>
+
+<h2 id="preinstalled-cli-tools">Preinstalled CLI tools <a class="manual__heading-link" href="#preinstalled-cli-tools" aria-label="Link to this section">#</a></h2>
+
+<p>Omarchy makes tools such as <code>gh</code>, <code>uv</code>, and most <a href="../ai/">coding agents</a> available through <a href="https://mise.jdx.dev/dev-tools/shims.html#lazy-tools">mise’s lazy installation</a>. The first time you run one, mise installs it. Later runs reuse the installed version; they do not check for an update on every launch.</p>
+
+<p>You can also inspect the defaults or install them ahead of time:</p>
+
+<pre><code class="language-bash">mise ls --current              # List the tools configured for this directory
+mise install gh               # Install one tool now
+mise install --include-lazy    # Install all configured tools, including lazy tools
+</code></pre>
+
+<p>Run <code>omarchy update</code> to update installed tools with the rest of Omarchy. The <code>mup</code> alias updates mise-managed tools only. To add another tool to your own configuration, use <code>mise use -g &lt;tool&gt;</code>.</p>
+
+<p>Python setup also installs <code>uv</code> through mise. Removing the Python development environment leaves <code>uv</code> available as an independent tool.</p>
+
+<h3 id="using-your-own-installation">Using your own installation <a class="manual__heading-link" href="#using-your-own-installation" aria-label="Link to this section">#</a></h3>
+
+<p>mise’s commands come before <code>~/.local/bin</code> on <code>PATH</code>, so a tool you installed yourself, for example with Claude Code’s or Cursor’s own installer, still runs mise’s copy. Apps launched from the desktop also find mise’s commands before system packages, so an app that runs <code>gh</code> gets mise’s copy even if you installed <code>github-cli</code> with pacman, and mise installs that copy the first time. To use yours instead, disable mise’s copy in <code>~/.config/mise/config.toml</code>. For example, if you installed Cursor CLI yourself:</p>
+
+<pre><code class="language-toml">[settings]
+disable_tools = ["cursor-agent"]
+</code></pre>
+
+<p>If you already have a <code>[settings]</code> table, add the entry there; extend an existing <code>disable_tools</code> list rather than replacing it. Make sure your installation is on <code>PATH</code>. Use the mise tool name, which can differ from its command: <code>oh-my-pi</code> provides <code>omp</code>, for example. The default-agent launcher also prefers a user-installed Cursor or Muse in <code>~/.local/bin</code>.</p>
+
+<h3 id="removing-and-restoring-defaults">Removing and restoring defaults <a class="manual__heading-link" href="#removing-and-restoring-defaults" aria-label="Link to this section">#</a></h3>
+
+<p><em>Remove Preinstalls</em> has mise skip Omarchy’s tool declarations for your user, by adding them to <code>ignored_config_paths</code> in <code>~/.config/mise/miserc.toml</code>. <em>Restore Preinstalls</em> removes that line again. Tools you declare yourself, in your own config or in a project’s <code>mise.toml</code>, keep working either way. If you choose a default agent or set up Python after removing the preinstalls, that tool is added to your own config. Both apply only to your user; other users on the machine keep their own choice.</p>
+
+<h2 id="docker">Docker <a class="manual__heading-link" href="#docker" aria-label="Link to this section">#</a></h2>
+
+<p><a href="https://www.docker.com/">Docker</a> hardly needs any introduction. It allows you to run isolated containers, and Omarchy installs everything needed to run it well, including Docker itself and <a href="https://docs.docker.com/compose/">Docker Compose</a>.</p>
+
+<p>By default your user is <em>not</em> in the <code>docker</code> group. That group is effectively passwordless root — anything in it can <code>docker run -v /:/host</code> and take over the machine — so a single rogue script or dependency running as you would otherwise be one command away from root. So on the command line you run Docker with <code>sudo</code> (<code>sudo docker ps</code>, <code>sudo docker compose up</code>), and the graphical tools that talk to the daemon — the Windows VM — ask for authorization when they need it. If you want the convenience of a groupless setup back and understand the tradeoff, enable it from <strong>Setup &gt; Security &gt; Sudoless Docker</strong> (or run <code>omarchy-setup-security-sudoless-docker</code>), which adds you to the <code>docker</code> group after a warning; then plain <code>docker</code> and the <code>d</code> alias work without <code>sudo</code> again.</p>
+
+<p>You can setup the common databases for local development in Docker using <em>Install &gt; Development &gt; Docker DB</em> in the Omarchy menu.</p>
+
+<h2 id="github-cli">GitHub CLI <a class="manual__heading-link" href="#github-cli" aria-label="Link to this section">#</a></h2>
+
+<p><a href="https://cli.github.com/">GitHub CLI</a> is available as <code>gh</code> for working with repositories, issues, and pull requests from the terminal. Run <code>gh auth login</code> to install it on first use and authenticate, then <code>gh repo clone org/repo</code> to clone a repository. Run <code>gh --help</code> to explore its commands.</p>
+
+<p>For a terminal interface to pull requests, run <code>ghui</code>; mise installs it on first use too. <a href="https://github.com/jesseduffield/lazygit">Lazygit</a> is preinstalled for working with Git itself.</p>
+
+    </article>
+  </div>
+</main></body>
+</html>

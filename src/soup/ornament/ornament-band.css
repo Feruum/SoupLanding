@@ -1,0 +1,51 @@
+.oyu-band {
+  overflow: hidden;
+  width: 100%;
+  padding-block: 12px;
+  color: var(--accent, #c0512d);
+  opacity: 0.34;
+  pointer-events: none;
+  user-select: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+}
+.oyu-band-track {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  width: max-content;
+  min-width: 100%;
+  animation: oyu-band-breathe 12s ease-in-out infinite alternate;
+}
+.oyu-band pre {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-mono, monospace);
+  font-size: 3px;
+  line-height: 3px;
+  letter-spacing: 0;
+  white-space: pre;
+  direction: ltr;
+}
+@keyframes oyu-band-breathe {
+  from {
+    transform: translateX(-8px);
+    opacity: 0.65;
+  }
+  to {
+    transform: translateX(8px);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oyu-band-track {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}

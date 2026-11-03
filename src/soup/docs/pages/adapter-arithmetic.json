@@ -1,0 +1,59 @@
+{
+  "slug": "adapter-arithmetic",
+  "title": "Adapter algebra (v0.71.34)",
+  "description": "Adapter algebra (v0.71.34) — soup adapters arithmetic \"coder + 0.5*math - toxic\" --adapter name=path -o out/ applies task arithmetic (arXiv:2212.04089) to LoRA deltas: add to blend skills, scale to dial one down, negate to subtract one. Because a LoRA stores factors whose product is the delta (ΔW = B@A), a naive coefficient scales the delta by c², making negation a no-op; Soup splits the coefficient as √|c| across the factors and carries the sign so ΔW scales linearly (verified: ||ΔW(2·a)||/||ΔW(a)|| = 2.000). That exactness is on the self (diagonal) term, so single-adapter scale/negate is exact while a multi-adapter sum also carries cross-terms. As of v0.72.0 mixed ranks are exact rather than refused: stacking the A factors and the scaled B factors reproduces the sum of deltas by construction, and --rank N truncates with an SVD only if you want a fixed output rank. Same-base check (--allow-cross-base), backdoor-scan gate (--allow-unscanned), hand-written parser with no eval. Honest scope: the mechanism (the delta really negates) is proven; the behavioural outcome, e.g. whether subtracting a toxicity adapter measurably reduces toxicity on a real safety eval, is not yet benchmarked.",
+  "source": "https://trysoup.dev/docs/adapter-arithmetic",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "ca4df662a8bc43f31044f5313a6b2d3f2e6ed77f153109ecc16caa11c68f347e",
+  "headings": [
+    {
+      "level": 2,
+      "id": "why-the-coefficient-math-matters",
+      "title": "Why the coefficient math matters"
+    },
+    {
+      "level": 2,
+      "id": "mixed-ranks-are-now-exact-v0-72-0",
+      "title": "Mixed ranks are now exact (v0.72.0)"
+    },
+    {
+      "level": 2,
+      "id": "what-it-refuses",
+      "title": "What it refuses"
+    },
+    {
+      "level": 2,
+      "id": "honesty",
+      "title": "Honesty"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Adapter algebra (v0.71.34)</h1><p><code>soup adapters arithmetic</code> applies task arithmetic (<a href=\"https://arxiv.org/abs/2212.04089\">arXiv:2212.04089</a>) to LoRA deltas. You <strong>add</strong> to blend two skills, <strong>scale</strong> to dial one down, and, the differentiator, <strong>negate</strong> to subtract one. The output is a single loadable adapter.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters arithmetic \"coder + 0.5*math - toxic\" \\\n    --adapter coder=./coder-lora \\\n    --adapter math=./math-lora \\\n    --adapter toxic=./toxic-lora \\\n    -o ./blended"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Names in the expression map to adapter directories via the repeatable <code>--adapter name=path</code>. Exit 0 = ok, 1 = refusal (a bad expression, an unknown name, a path outside the working directory, or an expression whose terms cancel to zero), 2 = a mistyped or missing option, which is Click&#x27;s code. The output directory holds a normal <code>adapter_model.safetensors</code> and <code>adapter_config.json</code>, so <a href=\"__DOCS_BASE__/adapter-check\"><code>soup adapters check</code></a> reads it like any other adapter (v0.76.0): <code>alive</code> means the blend moved away from zero, not that the blend is good.</p><h2 id=\"why-the-coefficient-math-matters\">Why the coefficient math matters</h2><p>A LoRA does not store its delta directly; it stores two factors whose product is the effective weight change, <code>ΔW = B @ A</code>. Scale both factors by a coefficient <code>c</code> and the delta scales by <code>c²</code>, which quietly breaks the whole idea: <code>- toxic</code> (c = -1) would square to +1 and become a <strong>no-op</strong> instead of a removal.</p><p>Soup splits the coefficient as the square root of its absolute value across the two factors and carries the sign, so the delta scales <strong>linearly</strong>: negation flips it, <code>0.5*</code> halves it, <code>2*</code> doubles it. The live check on two real rank-8 adapters: <code>||ΔW(2·a)|| / ||ΔW(a)|| = 2.000</code> exactly, where the old <code>c²</code> bug gives 4.0.</p><blockquote><p>Be precise about how far that exactness goes: it holds on the <strong>self (diagonal) term</strong>, so scaling or negating a <strong>single</strong> adapter is exact. A <strong>multi-adapter sum</strong> (like the example above) also carries <strong>cross-terms</strong> between the adapters, which this element-wise combine does not cancel.</p></blockquote><h2 id=\"mixed-ranks-are-now-exact-v0-72-0\">Mixed ranks are now exact (v0.72.0)</h2><p>Mixed-rank inputs used to be <strong>refused</strong> with a &quot;harmonize rank&quot; message. As of <strong>v0.72.0</strong> they are handled <strong>exactly</strong>, not approximated.</p><p>The reason it is exact is structural rather than numerical. A LoRA delta is <code>ΔW = B @ A</code>, so stacking the <code>A</code> factors of the inputs on top of each other and the coefficient-scaled <code>B</code> factors side by side gives a single adapter whose product <strong>is</strong> the sum of the individual deltas, by construction. Concatenation loses nothing; there is no approximation step to be wrong about. The output simply carries the summed rank.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# rank-8 and rank-16 adapters in one expression: no longer a refusal\nsoup adapters arithmetic \"coder + 0.5*math\" \\\n  --adapter coder=./coder-r8 --adapter math=./math-r16 -o ./blended\n\n# ask for a fixed output rank instead of the concatenated one\nsoup adapters arithmetic \"coder + 0.5*math\" \\\n  --adapter coder=./coder-r8 --adapter math=./math-r16 --rank 16 -o ./blended"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--rank N</code> truncates the concatenated result with an <strong>SVD</strong>, which is where an approximation does enter, deliberately and only when you ask for it: you are choosing a smaller adapter over an exact one. Without <code>--rank</code>, nothing is discarded.</p><p>Ranks are no longer a reason to refuse. Genuinely incompatible <strong>layer shapes</strong> still are.</p><h2 id=\"what-it-refuses\">What it refuses</h2><div><table><thead><tr><th>Guard</th><th>Behaviour</th></tr></thead><tbody><tr><td>Mixed ranks</td><td>Handled exactly by concatenation since v0.72.0; <code>--rank N</code> truncates with an SVD if you want a fixed output rank</td></tr><tr><td>Different base models</td><td>Refused; <code>--allow-cross-base</code> overrides</td></tr><tr><td>A FAIL-scanned input</td><td>Refused by the backdoor-scan gate; <code>--allow-unscanned</code> skips it</td></tr><tr><td>Paths outside the working dir, symlinks</td><td>Rejected</td></tr></tbody></table></div><p>The combine is signed and un-normalized. Same-rank inputs combine element-wise; mixed-rank inputs combine by concatenation, which is exact by construction (v0.72.0).</p><p>The expression parser is hand-written. There is no <code>eval</code>, so an adapter name can never become code.</p><h2 id=\"honesty\">Honesty</h2><p>What is proven is the <strong>mechanism</strong>: the delta really does negate, and the scaling ratio is exact to 2.000 on real adapters. What is <strong>not</strong> benchmarked is the behavioural outcome, so treat <code>- toxic</code> as &quot;subtract that adapter&#x27;s delta&quot;, not as a certified safety control. Whether subtracting a toxicity adapter measurably reduces toxicity on a real safety eval is an open question upstream calls proof-of-mechanism. Measure it on your own eval before you rely on it.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle</a> — diff, merge (linear / TIES / DARE / SVD / CMA-ES), bisect, PR, lock.</li><li><a href=\"__DOCS_BASE__/adapters\">Adapters</a> — the git-for-LoRA surface this builds on.</li><li><a href=\"__DOCS_BASE__/adapter-check\">Is the adapter alive</a> — <code>soup adapters check</code> on the blended output.</li><li><a href=\"__DOCS_BASE__/supply-chain-security\">Supply-chain security</a> — the backdoor scan the gate reuses.</li><li><a href=\"__DOCS_BASE__/lisa\">LISA</a> — the other half of the v0.71.34 release.</li></ul><nav><a href=\"__DOCS_BASE__/adapter-lifecycle\"><span>Previous</span><span>Adapter Lifecycle</span></a><a href=\"__DOCS_BASE__/mcp-server\"><span>Next</span><span>MCP Server</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

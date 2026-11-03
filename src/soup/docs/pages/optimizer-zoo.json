@@ -1,0 +1,83 @@
+{
+  "slug": "optimizer-zoo",
+  "title": "Optimizer Zoo (v0.41.0)",
+  "description": "24 optimizers on a closed allowlist in Soup CLI (v0.41.0, cut from 32 in v0.76.0): the HF-native and bitsandbytes-backed names, APOLLO, lomo/adalomo, grokadamw and schedule_free, with adamw_hf and muon building only on the MLX backend. badam, adam_mini, dion, came_pytorch, adamw_apex_fused and the TorchAO ao_adamw names are refused at config load. training.lr_groups was read by nothing and is refused at load since v0.77.0 when set. LoftQ init. LLaMA Pro block expansion. load_in_8bit/16bit aliases.",
+  "source": "https://trysoup.dev/docs/optimizer-zoo",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "be675db4a3a5586e7b9a229eb2672862db05a5c7be9d305e07d290a3afb7d40b",
+  "headings": [
+    {
+      "level": 2,
+      "id": "supported-optimizers",
+      "title": "Supported optimizers"
+    },
+    {
+      "level": 3,
+      "id": "refused-since-v0-76-0",
+      "title": "Refused since v0.76.0"
+    },
+    {
+      "level": 2,
+      "id": "per-module-lr-groups-refused-since-v0-77-0",
+      "title": "Per-module LR groups (refused since v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "loftq-quantization-aware-lora-init",
+      "title": "LoftQ quantization-aware LoRA init"
+    },
+    {
+      "level": 2,
+      "id": "llama-pro-block-expansion",
+      "title": "LLaMA Pro block expansion"
+    },
+    {
+      "level": 2,
+      "id": "mixture-of-depths-use-mod",
+      "title": "Mixture-of-Depths: use_mod"
+    },
+    {
+      "level": 2,
+      "id": "where-neftune-and-relora-apply-v0-77-0",
+      "title": "Where NEFTune and ReLoRA apply (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "friendly-load-in-x-aliases",
+      "title": "Friendly load_in_X aliases"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Optimizer Zoo (v0.41.0)</h1><p>A closed allowlist of <strong>24</strong> optimizers: HF-native (8), bitsandbytes-backed (8), the v0.41 additions that still work (6), and two that only the MLX backend builds (<code>adamw_hf</code> and <code>muon</code>). So 22 are usable on the transformers and unsloth backends. The allowlist was 32 through v0.75.2; ten names were removed or restricted in v0.76.0 (below).</p><h2 id=\"supported-optimizers\">Supported optimizers</h2><p>HF-native (8): <code>adamw_torch</code>, <code>adamw_torch_fused</code>, <code>adamw_torch_xla</code>, <code>adamw_anyprecision</code>, <code>adafactor</code>, <code>sgd</code>, <code>adagrad</code>, <code>rmsprop</code>.</p><p>bitsandbytes-backed (8): <code>adamw_bnb_8bit</code>, <code>adamw_8bit</code>, <code>lion_8bit</code>, <code>lion_32bit</code>, <code>paged_adamw_8bit</code>, <code>paged_adamw_32bit</code>, <code>paged_lion_8bit</code>, <code>paged_lion_32bit</code>.</p><p>Still available from v0.41 (6):</p><ul><li><strong>APOLLO</strong> (<code>apollo_adamw</code>) — gradient-scaled training in low rank</li><li><strong>lomo</strong> / <strong>adalomo</strong> — low-memory optimization with optional adaptive scaling</li><li><strong>grokadamw</strong> — Grokfast-style AdamW</li><li><strong>schedule_free_adamw</strong> / <strong>schedule_free_sgd</strong></li></ul><p>MLX backend only (2): <code>adamw_hf</code> and <code>muon</code>. Both are refused at config load on <code>backend: transformers</code> and <code>backend: unsloth</code> (#1283); on <code>backend: mlx</code> they load.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  optimizer: adamw_bnb_8bit"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>validate_optimizer_name</code> rejects non-string / empty / null-byte / &gt;64-char inputs with actionable messages and lowercases for deterministic lookup. Unknown names fail at config-load.</p><h3 id=\"refused-since-v0-76-0\">Refused since v0.76.0</h3><p>Eight names the v0.41 release added, or that had always been listed, are refused at config load because transformers 5.x rejects them in <code>TrainingArguments</code> after the model has loaded (#1269): <code>badam</code>, <code>adam_mini</code>, <code>dion</code>, <code>came_pytorch</code>, <code>adamw_apex_fused</code> and the three TorchAO names <code>ao_adamw_fp8</code>, <code>ao_adamw_4bit</code>, <code>ao_adamw_8bit</code>. Through v0.75.2 a config naming one of them loaded and then died inside the trainer. The error names <code>adamw_torch</code>, <code>adamw_torch_fused</code>, <code>adamw_bnb_8bit</code> and <code>adafactor</code> as working alternatives.</p><p><code>loraplus_lr_ratio</code> cannot be combined with <code>apollo_adamw</code>, <code>lomo</code> or <code>adalomo</code> (#1210): LoRA+ builds its optimizer without the model, and transformers can only build those three from the model.</p><h2 id=\"per-module-lr-groups-refused-since-v0-77-0\">Per-module LR groups (refused since v0.77.0)</h2><p><code>training.lr_groups</code> is refused at load since v0.77.0 when it is set: <code>training.lr_groups is accepted but read by nothing; refused as of v0.77. Delete the line.</code> (#761; <code>soup train</code> exits 1 and <code>soup doctor --config</code> exits 2). No optimizer ever built parameter groups from it, so every parameter trained at <code>training.lr</code>; it had no reader at v0.75.2 either, so a page that said it routed learning rates by pattern was describing a feature that did not run, and v0.76 only warned. Deleting the key changes nothing about what trains. To train the LoRA A and B matrices at different rates use <code>training.loraplus_lr_ratio</code>.</p><p>What the schema checked while the key still loaded (through v0.76.x): at most 32 entries, each <code>lr</code> in (0, 1] and finite (NaN and ±inf rejected, bool rejected), duplicates rejected.</p><p>Each <code>pattern</code> must compile, and since v0.75.1 it is then checked <strong>structurally</strong>: the pattern is parsed, and nested or alternating repetition, backreferences and more than three unbounded repeats are refused. <strong>The check never runs the pattern.</strong> That is the whole point of the change, because the previous guard did run it, against a 128-character probe, which is exactly how a pattern like <code>(a+)+b</code> could hang config loading rather than be caught by it. A guard that executes untrusted input to decide whether executing it is safe is the vulnerability.</p><h2 id=\"loftq-quantization-aware-lora-init\">LoftQ quantization-aware LoRA init</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization: none       # required: PEFT LoftQ quantizes the base itself\n  lora:\n    init_strategy: loftq   # random | pissa | olora | loftq\n    loftq_iter: 5          # [1, 10]\n    loftq_bits: 4          # 2 | 4 | 8"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Builds the LoftQ config via peft (lazy import); incompatible with DoRA + VeRA. Through v0.75.2 <code>init_strategy</code>, <code>loftq_iter</code> and <code>loftq_bits</code> reached no trainer, so a run that set them trained plain random-init LoRA (see <a href=\"__DOCS_BASE__/lora-quality\">LoRA quality</a>). Since v0.76.0 (#1037) the strategy is checked at config load: <code>loftq</code> and <code>pissa</code> need <code>quantization: none</code> (the default <code>4bit</code> is refused, because both compute on the floating-point base weights), and any non-random <code>init_strategy</code> is refused on <code>backend: unsloth</code> and <code>backend: mlx</code>. <code>olora</code> still loads at <code>4bit</code>. See <a href=\"__DOCS_BASE__/lora-quality\">LoRA quality</a>.</p><h2 id=\"llama-pro-block-expansion\">LLaMA Pro block expansion</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization: none            # required with expand_layers\n  expand_layers: 4              # [1, 64]\n  freeze_trainable_layers: 4    # must equal expand_layers\n  lora:\n    r: 0                        # required since v0.77.0: a LoRA rank freezes the appended blocks again"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Schema landed in v0.41.0 and the block-expansion patch is applied by the SFT trainer. These rules are enforced at config load:</p><ul><li><strong><code>freeze_trainable_layers</code> must equal <code>expand_layers</code></strong> (#1409). It is a flag, not a count of layers: it freezes every parameter of the original model and trains only the appended blocks, and it does not select the top-N or bottom-N layers. Any other value, including 0 or a negative one, is refused. Without <code>expand_layers</code> the field is refused too (#1396).</li><li><strong><code>expand_layers</code> needs <code>quantization: none</code></strong> (#1237). Under the default <code>4bit</code> the zeroed residual projections of the appended blocks decode to -absmax rather than 0, so the new blocks are not identity.</li><li><strong>No LoRA rank (since v0.77.0, #1326, #1783).</strong> <code>get_peft_model</code> runs after the block expansion and freezes the appended blocks again, so under LoRA only adapters on the original layers trained while the appended blocks stayed the identity. Set <code>lora.r: 0</code> with <code>quantization: none</code>; any rank is refused at load, and the default <code>lora.r</code> is 64, so a config with no <code>lora</code> block is refused too.</li><li><strong>Scope:</strong> <code>task: sft</code>, <code>backend: transformers</code>, <code>modality: text</code>. <code>task: pretrain</code> is refused since v0.77.0 (#1813, #1875): its trainer runs the expansion, but it always attaches an adapter, which freezes the new blocks, and it has no <code>lora.r: 0</code> branch. Any other combination is refused, as before.</li></ul><p>Through v0.75.2 the field was read only for its sign: <code>1</code>, <code>2</code> and <code>4</code> all trained just the appended blocks, and <code>0</code> or a negative value silently trained the whole expanded model. (That held at <code>lora.r: 0</code>. With a LoRA rank, the default, only adapters on the original layers trained and the appended blocks stayed the identity, through v0.76.1; since v0.77.0 that combination is refused, #1783.) A config with <code>expand_layers: N</code> and a different <code>freeze_trainable_layers</code> trained something other than its author expected; see <a href=\"__DOCS_BASE__/training#re-run-this-v0-76-0\">Re-run this</a>. <strong>If you trained LLaMA Pro with a LoRA rank, on <code>task: sft</code> or <code>task: pretrain</code>, before v0.77.0, the appended blocks never trained: re-run it on <code>task: sft</code> with <code>lora.r: 0</code> and <code>quantization: none</code>.</strong> The example that stood on this page through v0.76.1 had no <code>lora</code> block, so it was such a config.</p><h2 id=\"mixture-of-depths-use-mod\">Mixture-of-Depths: use_mod</h2><p><code>training.use_mod: true</code> installs a per-layer top-k token router; <code>mod_capacity_factor</code> (default 0.125) is the share of tokens that get the residual update. It is validated on Llama, Qwen and Mistral (another architecture warns and skips the patch), and only some routes install the router. <strong>Since v0.77.0 every other route is refused at config load</strong>, naming <code>training.use_mod</code>, the task and what to change (#1752, #1757):</p><div><table><thead><tr><th>Config</th><th><code>use_mod: true</code></th></tr></thead><tbody><tr><td><code>task: sft</code>, <code>backend: transformers</code>, <code>modality: text</code>, no layer streaming, <code>lora.r</code> of 1 or more, no LISA, no <code>unfrozen_parameters</code></td><td>applied</td></tr><tr><td><code>task: tts</code> (transformers, <code>lora.r</code> of 1 or more; not <code>tts_family: sesame_csm</code>, which refuses it)</td><td>applied, through the SFT LoRA arm</td></tr><tr><td><code>task: pretrain</code>, <code>backend: transformers</code>, LoRA or LISA</td><td>applied</td></tr><tr><td>SFT with vision or audio, <code>stream_layers</code>, LISA, Spectrum or <code>lora.r: 0</code>; <code>backend: unsloth</code> or <code>mlx</code></td><td>refused</td></tr><tr><td>any other task</td><td>refused</td></tr></tbody></table></div><p>Through v0.76.1 the flag loaded on every route and only these installed a router, so such a run trained without one. Deleting the line from a refused config changes nothing about what trains. No speed or quality figure is published for it.</p><h2 id=\"where-neftune-and-relora-apply-v0-77-0\">Where NEFTune and ReLoRA apply (v0.77.0)</h2><p>Two more training-signal settings are now refused where they never acted:</p><ul><li><strong><code>training.neftune_alpha</code></strong> is applied by nine tasks: <code>sft</code>, <code>tts</code> (not with <code>tts_family: sesame_csm</code>, which refuses it), <code>dpo</code>, <code>ipo</code>, <code>kto</code>, <code>orpo</code>, <code>simpo</code>, <code>bco</code> and <code>preference</code>. On the 14 others it is refused at config load since v0.77.0, any value including <code>0.0</code> (#1883); through v0.76.1 it was accepted there and dropped. See <a href=\"__DOCS_BASE__/backends#neftune-noisy-embeddings\">NEFTune</a>.</li><li><strong><code>training.relora_steps</code></strong> is refused where trl reads the loss&#x27;s frozen reference from the policy&#x27;s own base weights: <code>dpo</code>, <code>ipo</code>, <code>kto</code>, <code>bco</code>, <code>grpo</code> with <code>grpo_beta</code> above 0, and a <code>preference</code> run whose loss or blend names <code>dpo</code>, <code>ipo</code> or <code>bco</code> (#1891), because every restart merges the adapter into the weights the reference is read from. See <a href=\"__DOCS_BASE__/lora-quality#relora\">ReLoRA</a>.</li></ul><h2 id=\"friendly-load-in-x-aliases\">Friendly load_in_X aliases</h2><p><code>load_in_8bit: true</code> remaps <code>quantization</code> → <code>8bit</code>. <code>load_in_16bit: true</code> remaps to <code>none</code>. Mutually exclusive. Combining either with an explicit Quant Menu format raises rather than silently overriding.</p><nav><a href=\"__DOCS_BASE__/preference-variety\"><span>Previous</span><span>Preference Variety</span></a><a href=\"__DOCS_BASE__/long-context\"><span>Next</span><span>Long Context</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

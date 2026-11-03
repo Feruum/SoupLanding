@@ -1,0 +1,11 @@
+---
+import SoupLanding from './SoupLanding'
+import SoupLayout from './SoupLayout.astro'
+import { getMessages } from './catalogue'
+import { getFooterGroups } from './locales'
+const { language = 'en' } = Astro.props
+const messages = await getMessages(language)
+---
+<SoupLayout language={language} title={`Soup — ${messages.heroTitle}`} description={messages.heroDescription}>
+  <SoupLanding language={language} messages={messages} footerGroups={getFooterGroups(language)} client:load />
+</SoupLayout>

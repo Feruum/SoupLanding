@@ -1,0 +1,137 @@
+{
+  "slug": "trace-ecosystem",
+  "title": "Trace Ecosystem (v0.63.0)",
+  "description": "Soup CLI v0.63.0 trace ecosystem — pull production traces from any SaaS, mine them, ship gates. soup ingest normalises Langfuse / LangSmith / Helicone / OpenPipe / OTel / OpenAI Stored Completions. soup prune-prompt binary-searches longest shared prefix. soup data active-sample max-entropy / pairwise disagreement. soup ab two-sided sequential A/B test (since v0.76.0 a normal-inverse-gamma Bayes factor with a confidence-sequence accept rule; --beta is retired and exits 2 since v0.77.0). soup drift-alarm KL alarm with SSRF-validated Slack/Discord webhooks. +219 tests, 10,035 total.",
+  "source": "https://trysoup.dev/docs/trace-ecosystem",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "bf95de101f99fd03cc8620a2a16520097ad42ce8dbdb77d72ade118fd071bf98",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-ingest-universal-trace-importer",
+      "title": "soup ingest — universal trace importer"
+    },
+    {
+      "level": 2,
+      "id": "live-pull-from-langfuse-v0-75-0",
+      "title": "Live pull from Langfuse (v0.75.0)"
+    },
+    {
+      "level": 2,
+      "id": "soup-prune-prompt-system-prompt-mining",
+      "title": "soup prune-prompt — system-prompt mining"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-active-sample-uncertainty-sampling",
+      "title": "soup data active-sample — uncertainty sampling"
+    },
+    {
+      "level": 2,
+      "id": "soup-ab-two-sided-sequential-a-b-test",
+      "title": "soup ab: two-sided sequential A/B test"
+    },
+    {
+      "level": 2,
+      "id": "soup-drift-alarm-kl-drift-watch-with-webhooks",
+      "title": "soup drift-alarm — KL drift watch with webhooks"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Trace Ecosystem (v0.63.0)</h1><p>Pull traces from any SaaS observability dashboard, mine prompts, sample the most uncertain rows, run sequential A/B with martingale-controlled Type-I error, and watch production for distributional drift — all from one CLI, all offline, no per-trace fees.</p><p>Five new top-level commands, every one of them LIVE in v0.63.0.</p><h2 id=\"soup-ingest-universal-trace-importer\"><code>soup ingest</code> — universal trace importer</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "cp ~/Downloads/langfuse_export.jsonl ./langfuse_export.jsonl\nsoup ingest --source langfuse --logs ./langfuse_export.jsonl \\\n  --output ./traces.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--logs</code> and <code>--output</code> must both resolve inside the current directory, so a path under <code>~/Downloads</code> is refused (exit 1, &quot;outside cwd&quot;) unless you happen to run from there. Copy the export into the project first, as above. Without <code>--output</code> the file is <code>traces.jsonl</code> in the current directory. Since v0.77.0 an <code>--output</code> that is the same file as <code>--logs</code> is refused before anything is written (<code>--output &#x27;...&#x27; is the same file as --logs &#x27;...&#x27;; choose a different --output</code>, exit 1); in upstream&#x27;s words, before this release four commands could overwrite an input with their output, <code>soup ingest</code> and <code>soup prune-prompt</code> among them (#2018).</p><p>Six sources at launch:</p><div><table><thead><tr><th>Source</th><th>Env var</th><th>Notes</th></tr></thead><tbody><tr><td><code>langfuse</code></td><td><code>LANGFUSE_PUBLIC_KEY</code> + <code>LANGFUSE_SECRET_KEY</code></td><td>Dashboard export, or a live pull (below)</td></tr><tr><td><code>langsmith</code></td><td><code>LANGSMITH_API_KEY</code></td><td>LangSmith API traces</td></tr><tr><td><code>helicone</code></td><td><code>HELICONE_API_KEY</code></td><td>Helicone observability</td></tr><tr><td><code>openpipe</code></td><td><code>OPENPIPE_API_KEY</code></td><td>OpenPipe production traces</td></tr><tr><td><code>otel</code></td><td><code>OTEL_EXPORTER_OTLP_HEADERS</code></td><td>OpenTelemetry OTLP</td></tr><tr><td><code>openai-stored</code></td><td><code>OPENAI_API_KEY</code></td><td>OpenAI Stored Completions</td></tr></tbody></table></div><p><strong>Langfuse needs a key pair, not one key.</strong> The hint this path printed used to name <code>LANGFUSE_KEY</code>, which is a variable Langfuse does not read at all; it names <code>LANGFUSE_PUBLIC_KEY</code> and <code>LANGFUSE_SECRET_KEY</code> as of v0.75.0. If you followed the old hint and got nowhere, that is why.</p><p>By default there are <strong>no network calls</strong>: you export from the SaaS dashboard, then <code>soup ingest</code> normalises the file. Langfuse is the one source Soup can also fetch for itself, with <code>--pull</code> (below). A PII warning prints once per invocation either way.</p><h2 id=\"live-pull-from-langfuse-v0-75-0\">Live pull from Langfuse (v0.75.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "export LANGFUSE_PUBLIC_KEY=pk-lf-...\nexport LANGFUSE_SECRET_KEY=sk-lf-...\n\nsoup ingest --source langfuse --pull --since 24h --output traces.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>No export step. <code>--pull</code> replaces <code>--logs</code> and reads Langfuse&#x27;s Observations API v2 directly, writing <strong>one row per <code>GENERATION</code> observation</strong> into the same <code>TraceRecord</code> schema the file path produces. A chat message list becomes a <code>prompt</code> by the rule the local parser applies to a <code>{&quot;messages&quot;: [...]}</code> export, so the two paths agree. Since v0.77.0 that rule keeps the context through the <strong>last user turn</strong> and drops anything after it (#1848): with no user or assistant turn before that last user turn (a system prompt plus one question included), the prompt is that user&#x27;s plain text; otherwise it is compact JSON of the <code>role</code> and <code>content</code> turns through the last user, so turn boundaries and roles survive. Text parts are joined with newlines, image and other non-text parts are dropped, and LangChain <code>human</code>, <code>ai</code> and <code>system</code> map to <code>user</code>, <code>assistant</code> and <code>system</code>. Through v0.76.1 every message&#x27;s content was joined by newlines, including the system prompt. <code>soup ingest</code>, <code>soup data from-traces</code> and the Langfuse pull all apply the new rule, so regenerate trace exports and preference pairs rather than mixing pre-0.77 prompts with new ones. An agent trace therefore yields one row per LLM call it made, and its spans and tool calls yield none. A row&#x27;s <code>trace_id</code> is the observation id.</p><div><table><thead><tr><th>Flag</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>--pull</code></td><td>off</td><td><code>--source langfuse</code> only</td></tr><tr><td><code>--since</code></td><td><code>7d</code></td><td><code>30m</code>, <code>24h</code>, <code>7d</code>; maximum <code>365d</code></td></tr><tr><td><code>--max-pages</code></td><td><code>100</code></td><td>Pages of 100 generations. Maximum 10,000</td></tr><tr><td><code>--allow-private-host</code></td><td>off</td><td>For a self-hosted Langfuse on a private, loopback or shared-address (<code>100.64.0.0/10</code>, which includes Tailscale) host. The shared-address range needs it as of v0.75.2, and so does the deprecated IPv6 site-local block <code>fec0::/10</code>. HTTPS is still required</td></tr></tbody></table></div><p><strong>Credentials never take a flag</strong>, so they never reach the audit log&#x27;s argv. They come from <code>LANGFUSE_PUBLIC_KEY</code> and <code>LANGFUSE_SECRET_KEY</code>, with <code>LANGFUSE_BASE_URL</code> or <code>LANGFUSE_HOST</code> for another region or a self-hosted instance (<code>LANGFUSE_BASE_URL</code> wins, matching the Langfuse SDK&#x27;s own precedence), and they are kept out of the output file, the console, debug logs, the audit log and error messages. A host URL with credentials embedded in it is refused, naming the two variables instead.</p><p>Every loop is bounded, and the bounds are the point:</p><ul><li><strong>HTTPS only</strong>, through the same SSRF validator <code>--slack-url</code> uses. <strong>Redirects are refused rather than followed with credentials attached.</strong></li><li><strong>30 s per request, enforced as a wall-clock deadline</strong> covering the connection and the whole response (v0.76.0). Before, the timeout reached the socket only, so a server that sent a byte before every timeout kept the call alive. The <strong>64 MiB per response</strong> cap is read in chunks, so the deadline is checked while bytes are still arriving.</li><li><strong>A repeated pagination cursor stops the pull</strong> with an error (<code>returned a pagination cursor it had already sent</code>). It used to run on to <code>--max-pages</code>.</li><li><strong>Only generations become rows.</strong> <code>type=GENERATION</code> is sent as a query parameter, and each observation&#x27;s own <code>type</code> is checked as well, because a server may ignore the parameter. Observations that are not generations are skipped and counted: <code>N observation(s) were not generations and were skipped.</code></li><li>Hitting <code>--max-pages</code> <strong>exits 1 and writes nothing</strong> rather than handing you a silently truncated dataset. Output streams to a staging file, so a failed pull leaves an earlier file at <code>--output</code> untouched.</li><li>HTTP 429 is retried up to five times honouring <code>Retry-After</code>, capped at 60 s.</li></ul><p>Generations with no input or no output are skipped and counted in the summary line, so a pull that matched nothing usable says so instead of writing an empty file. It uses the standard library over HTTPS, so there is no new dependency, and <strong>without <code>--pull</code> the pull code is never imported and no connection is opened</strong>.</p><p>One timing note worth acting on: it reads the <strong>v2 Observations</strong> endpoint because <code>/api/public/traces</code> leaves Langfuse Cloud on 16 November 2026.</p><p>LangSmith, Helicone, OpenPipe and OpenAI Stored Completions have no live pull yet. Export them and pass <code>--logs</code>.</p><p>Output schema (frozen <code>TraceRecord</code> with <code>MappingProxyType</code> metadata):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\n  \"trace_id\": \"trace_abc123\",\n  \"prompt\": \"What is the capital of France?\",\n  \"output\": \"The capital of France is Paris.\",\n  \"source\": \"langfuse\",\n  \"signal\": \"none\",\n  \"metadata\": {\"user_id\": \"user_789\", \"timestamp\": \"2026-05-20T...\"}\n}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Feeds directly into v0.26 <code>soup data from-traces</code> for preference-pair building.</p><h2 id=\"soup-prune-prompt-system-prompt-mining\"><code>soup prune-prompt</code> — system-prompt mining</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup prune-prompt --input ./traces.jsonl --output ./traces_pruned.jsonl --min-frequency 0.95"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Detects the longest shared system-prompt prefix across rows via <strong>binary search over up to 32 candidate lengths</strong> (v0.63 fixed an O(N²) early-exit bug from the prototype). Strips it from training data so the fine-tuned model internalizes the boilerplate instead of repeating it — OpenPipe&#x27;s signature trick.</p><p>Pass <code>--tokenizer &lt;model&gt;</code> and the prefix is found over <strong>token ids</strong> rather than characters. That is not a refinement: a character-level strip can cut a BPE multi-byte sequence in half when the shared prefix ends mid-token, and the tokenizer-aware mode finds the longest shared token-id prefix and decodes what remains. <code>--slack-url</code> and <code>--discord-url</code> post the result through the same SSRF-hardened webhook validator the rest of the CLI uses.</p><p>Two-pass file read; capped at 100k rows to prevent DoS. Since v0.77.0 <code>--output</code> must not be the same file as <code>--input</code>: <code>--output &#x27;p.jsonl&#x27; is the same file as --input &#x27;p.jsonl&#x27;; choose a different --output</code>, exit 1, before anything is written (#2018).</p><h2 id=\"soup-data-active-sample-uncertainty-sampling\"><code>soup data active-sample</code> — uncertainty sampling</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data active-sample --input ./prod_traces.jsonl --budget 200"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Two modes auto-detected from the JSONL schema:</p><ul><li><strong>Single score</strong> — max-entropy on <code>rm_score</code> (peaks at 0.5).</li><li><strong>Dual scores</strong> — pairwise disagreement on <code>rm_scores</code> list.</li></ul><p>Output is a drop-in eval prompt set for human judging.</p><h2 id=\"soup-ab-two-sided-sequential-a-b-test\"><code>soup ab</code>: two-sided sequential A/B test</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup ab --input ./ab_results.jsonl --metric judge_score \\\n  --alpha 0.05 --effect-size 0.1"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>This section describes the test as it is at v0.76.0, and v0.77.0 leaves the statistic unchanged.</strong> Through v0.75.2 <code>soup ab</code> ran an mSPRT, a Gaussian-mixture likelihood ratio read against Wald&#x27;s two boundaries, with <code>--beta</code> as the second error rate. That statistic, those boundaries and the <code>--beta 0.20</code> in the old example are gone: <code>--beta</code> is retired (below), and the sequential test is a different one.</p></blockquote><p>You can re-run <code>soup ab</code> after every new row and stop at the first <code>reject_h0</code> or <code>accept_h0</code>. The chance of a false <code>reject_h0</code>, and of a false <code>accept_h0</code>, each stays at most <code>--alpha</code> however often you look, unlike a naive repeated t-test, which inflates it. The statistic is a Bayes factor that averages over both the size of the difference and the unknown row-to-row spread (a normal-inverse-gamma mixture). It is two-sided, so a difference of either sign is equal evidence, and it has no fixed burn-in: the first 5 rows per arm set the scale and a verdict is possible from the 7th row per arm, but at the default <code>--alpha</code> a <code>reject_h0</code> that early needs a very large, clean difference (in a trial run for this page, differences of 4 and of 8 standard deviations at 7 rows per arm both still read <code>continue</code>). It rejects H0 once the Bayes factor reaches <code>1 / --alpha</code>. It accepts H0 when the confidence sequence for the difference, valid however often you look, lies inside <code>(-effect_size, +effect_size)</code>. The guarantee assumes roughly Gaussian rows. The accept rule is read from the same mixture, so <code>--alpha</code> bounds both a wrong <code>reject_h0</code> and a wrong <code>accept_h0</code>; to make <code>accept_h0</code> stricter, lower <code>--alpha</code>. Upstream&#x27;s two public records for this test are in the <a href=\"https://github.com/MakazhanAlpamys/Soup/tree/main/benchmarks\">benchmarks directory</a> (<code>gate-1265-ab-nig.md</code> and <code>gate-1418-ab-cs-accept.md</code>); they are simulated Gaussian rows, so read them as properties of the test, not of your metric.</p><p><strong><code>--beta</code> is refused since v0.77.0.</strong> Passing it prints <code>Error: --beta no longer does anything (#1418): ... Remove --beta; to make accept_h0 stricter, lower --alpha. Refused as of Soup v0.77.</code> and exits 2 before any row is read. Through v0.76.x it printed a warning and the run continued. Delete it from scripts.</p><p><code>--slack-url</code> and <code>--discord-url</code> go through the same SSRF-hardened validator the rest of the CLI uses, and the interesting half is when they stay quiet: the webhook fires only when the test actually <strong>decides</strong>, accepting or rejecting the null. A run that is still gathering evidence says nothing. The same pair is on <code>soup ingest</code>, <code>soup prune-prompt</code> and <code>soup data active-sample</code>. The request body is the verdict as a flat JSON object (<code>command</code>, <code>metric</code>, <code>decision</code>, <code>direction</code>, <code>log_likelihood_ratio</code>, <code>n_control</code>, <code>n_treatment</code>, <code>mean_control</code>, <code>mean_treatment</code>) with no <code>text</code> or <code>content</code> key, and delivery needs <code>httpx</code>. Whether a particular Slack or Discord hook accepts a body of that shape has not been checked here, and a failed delivery prints only <code>slack webhook: failed</code>.</p><p>Input rows (the numeric field must be named after <code>--metric</code>, here <code>judge_score</code>):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"arm\": \"control\", \"judge_score\": 7.4}\n{\"arm\": \"treatment\", \"judge_score\": 8.2}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Decisions: <code>reject_h0</code> / <code>accept_h0</code> / <code>continue</code>. A <code>reject_h0</code> carries a <strong><code>direction</code></strong>, <code>better</code> or <code>worse</code>, read through the metric&#x27;s polarity: <code>judge_score</code> is higher-is-better, and <code>latency</code> and <code>retry_rate</code> are lower-is-better. The <code>direction</code> row reads <code>n/a</code> on <code>accept_h0</code> and <code>continue</code>. On a 12-versus-12 fixture whose treatment mean was 0.46 against 0.72, the panel read <code>decision reject_h0</code>, <code>direction worse</code>, <code>prior_scale first 5 rows per arm</code>, <code>log_likelihood_ratio 5.0670</code>, and <code>Significant difference detected: the treatment is worse than control on judge_score (higher is better). Recommend rollback: keep serving the control.</code> The <code>log_likelihood_ratio</code> is the statistic of the reject rule; next to an <code>accept_h0</code> it can be anything below <code>log(1 / --alpha)</code>, so do not read it as the accept evidence. (v0.63 shipped a fix for a sign error in the then-current implementation; that implementation has since been replaced.)</p><p>Three metrics: <code>latency</code>, <code>judge_score</code>, <code>retry_rate</code>. Any other metric name exits 2, as does an <code>--alpha</code> outside (0, 1) or an <code>--effect-size</code> of 0 or less.</p><p>What the test needs from the file:</p><ul><li><code>arm</code> must be exactly <code>control</code> or <code>treatment</code> (<code>Control</code> is skipped). A row with any other arm, a non-numeric or non-finite value in the metric field, or invalid JSON is skipped without a message, and the metric name must match the field exactly: a latency file run with <code>--metric judge_score</code> finds no rows and exits 0.</li><li><strong>The first 5 rows of each arm set the scale and are not otherwise tested.</strong> <code>--effect-size</code> is in the metric&#x27;s own units, but the statistic needs it in standard deviations, so the pooled standard deviation of those rows converts it (the verdict table shows <code>prior_scale</code>). The reported means and counts still cover every row. If an arm&#x27;s first rows are all identical, more rows are held out until one differs. Order therefore matters. Until each arm has the 5 and then 2 more, the verdict is <code>continue</code> with <code>Not enough rows yet: the first 5 rows of each arm set the scale of --effect-size, and the test needs 2 more per arm after them</code>.</li><li><strong>A held-back <code>accept_h0</code>.</strong> If the first rows barely vary (a warm cache, or a judge that gives the same score early), <code>accept_h0</code> is withheld as <code>continue</code> while the tested rows spread more than 3 times as much as the held-out ones. Those rows are fixed, so <strong>more rows of the same kind never release the hold</strong>: the panel prints <code>Held back: the tested rows spread N times the held-out ones ...</code> and tells you to drop those rows or reorder the input so the first rows vary. A <code>reject_h0</code> is never held back. Thirty identical rows per arm stay <code>continue</code> with <code>Insufficient evidence</code>.</li><li><code>--effect-size</code> defaults to 0.1 <strong>in the metric&#x27;s own units</strong>, which is meaningless for a latency in milliseconds: a 100 ms versus 140 ms comparison at the default stayed <code>continue</code>, and decided <code>reject_h0</code> at <code>--effect-size 10</code>.</li><li><code>retry_rate</code> should be pre-aggregated per prompt: the test assumes roughly Gaussian values, so feed it per-prompt rates rather than a 0/1 per attempt.</li><li><strong>The exit code is 0 for every decision</strong>, <code>continue</code>, <code>reject_h0</code> and a <code>worse</code> treatment included, and there is no JSON output. Unlike <code>soup drift-alarm</code> (exit 3 on drift) it is not a CI gate by exit code; read the printed <code>decision</code> and <code>direction</code>, or use the webhook.</li></ul><h2 id=\"soup-drift-alarm-kl-drift-watch-with-webhooks\"><code>soup drift-alarm</code> — KL drift watch with webhooks</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup drift-alarm \\\n  --reference ./ft_output_dist.jsonl --live ./prod_output_dist.jsonl \\\n  --threshold 0.2 \\\n  --slack-url \"https://hooks.slack.com/services/T.../B.../...\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Rolls KL divergence between <strong>word-frequency snapshots</strong> of two JSONL files: model outputs from fine-tune time (<code>--reference</code>) and from production (<code>--live</code>). Each row is one model output; Soup splits it on whitespace and compares the two distributions (a word missing from one side gets a small epsilon, so the divergence stays finite). It surfaces both behavioral drift (&quot;model now outputs JSON&quot;) and vocabulary drift (&quot;same 20 phrases repeated&quot;). There is no pluggable tokenizer: whitespace splitting is the only mode, and the <code>soup drift-alarm</code> options are <code>--reference</code>, <code>--live</code>, <code>--threshold</code> (default 0.2), <code>--slack-url</code> and <code>--discord-url</code>. Both files must sit under the working directory.</p><p>Input rows (one per model output; the text may be under <code>output</code>, <code>response</code> or <code>text</code>):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"output\": \"The capital of France is Paris.\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Check <code>n_reference</code> and <code>n_live</code> in the panel.</strong> A row without one of those string fields is skipped silently. Since v0.77.0 a file with no readable row at all stops the command with exit 1, with no verdict panel and a message naming the file and the three keys (<code>reference file &#x27;x.jsonl&#x27; has 0 readable rows: each line must be a JSON object with its text under &#x27;output&#x27;, &#x27;response&#x27; or &#x27;text&#x27;. Nothing was compared, so no drift verdict is possible.</code>). A file with some readable rows still skips the others silently.</p><blockquote><p><strong>Re-run this (v0.77.0).</strong> Through v0.76.1, when either file yielded no usable rows, the command printed an <code>OK</code> panel with <code>KL: 0.0000</code> and <code>n_reference: 0</code> or <code>n_live: 0</code>, and exited 0, so a file of the wrong shape (for example per-token <code>{&quot;token&quot;: ..., &quot;log_prob&quot;: ...}</code> rows) looked like a healthy model. Nothing was compared in such a run: re-run any drift check whose panel showed a zero count (#1808, #1905).</p></blockquote><p>Optional Slack / Discord webhooks fire on drift and are <strong>SSRF-validated</strong>: plain HTTP is accepted only for loopback, HTTPS hosts are accepted, and private, link-local, cloud-metadata, shared-space (<code>100.64.0.0/10</code>) and deprecated site-local (<code>fec0::/10</code>) IP addresses are rejected on both schemes. Hostnames are not resolved. Exit code 3 on drift for cron-friendly automation.</p><h2 id=\"numbers\">Numbers</h2><p>+219 new tests in v0.63.0 (9816 → <strong>10035</strong>). Security: 1 CRITICAL (mSPRT sign error → Wald SPRT), 2 HIGH, 3 MEDIUM, 2 LOW. (That statistic was replaced again in v0.76.0; see <code>soup ab</code> above.)</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/soup-loop\">Soup loop</a> — the <code>HarvestFn</code> half of the v0.58 production flywheel is now powered by <code>soup ingest</code>.</li><li><a href=\"__DOCS_BASE__/trace-to-preference\">Trace-to-preference</a> — convert normalised traces into DPO / KTO pairs.</li><li><a href=\"__DOCS_BASE__/eval-design\">Eval design</a> — derive a goal-conditioned eval suite from the active-sampled prompts.</li></ul><nav><a href=\"__DOCS_BASE__/data-mix\"><span>Previous</span><span>Data Mixing</span></a><a href=\"__DOCS_BASE__/data-engineering-pro\"><span>Next</span><span>Data Engineering Pro</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

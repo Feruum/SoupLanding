@@ -1,0 +1,59 @@
+{
+  "slug": "seeds-and-reproducibility",
+  "title": "Seeds and reproducibility",
+  "description": "Seeds and reproducibility in Soup CLI. training.seed and training.data_seed are config keys, not CLI flags, and there is no --seed: seed covers weight initialisation of new parameters, data order and dropout, while the optional data_seed varies data order alone so initialisation stays fixed. Both default to unset rather than to 42, deliberately, because an unset seed has to reproduce two different historical defaults (42 for the trainer, 0 for the multipack sampler) and defaulting the field would have silently re-ordered every existing multipack run; an unset seed still resolves to 42 and a YAML true is refused by name rather than coerced to 1. Until v0.73.1 the key reached the supervised trainer and nothing else, so a seeded GRPO or DPO run was accepted, trained at 42, and said nothing, meaning replicates that differed only in their seed were the same run. It now reaches every wrapper and is applied before the model loads, because the adapter's own initialisation is drawn before the trainer's seeding used to happen; the values a run trains at are unchanged, what changed is when they arrive. What a seed does not buy you is stated plainly: it is not a determinism guarantee, since bit-exact reruns also need PyTorch's deterministic-algorithms switch which Soup does not set for you; a resident 4-bit run is still not bit-reproducible from a seed, diagnosed and not fixed; a streamed run is, at five runs to one adapter hash; and since v0.77.0 the MLX backend applies both, which it never did before. Why it matters for the release gate: three runs of one unchanged resident configuration moved two behavioural suites by 0.375 and 0.269 against a 0.05 regression threshold, so five of seven suites could cross the line on a re-run that changed nothing.",
+  "source": "https://trysoup.dev/docs/seeds-and-reproducibility",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "f871db12af63bfe6fcdcf8debfa8f1044a83d8c22515976ccc3b36f470b55649",
+  "headings": [
+    {
+      "level": 2,
+      "id": "the-two-keys",
+      "title": "The two keys"
+    },
+    {
+      "level": 2,
+      "id": "what-changed-in-v0-73-1-and-what-did-not",
+      "title": "What changed in v0.73.1, and what did not"
+    },
+    {
+      "level": 2,
+      "id": "what-a-seed-does-not-buy-you",
+      "title": "What a seed does not buy you"
+    },
+    {
+      "level": 2,
+      "id": "why-the-ship-gate-cares",
+      "title": "Why the ship gate cares"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Seeds and reproducibility</h1><p>Until v0.73.0 there was <strong>no way to set a seed at all</strong>. Every run trained at 42, the framework default, and the only variation between two runs of one config was row ordering plus whatever the GPU did differently that day.</p><p>That matters more than it sounds, because a project that reports &quot;arm A beat arm B by 0.006&quot; needs to know what one arm does against <strong>itself</strong>. Without a seed knob, the natural spread was missing its largest source, and every measurement quoted against it was weaker than it looked.</p><h2 id=\"the-two-keys\">The two keys</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  seed: 1234        # weight init of new parameters, data order, dropout\n  data_seed: 99     # optional: vary data order while holding init fixed"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Both are config keys, not CLI flags. There is no <code>--seed</code></strong>, and <code>soup train</code> takes no <code>--output</code> either, so for replicates write one config per seed, each with its own <code>output:</code>, and run <code>soup train --config</code> once per file:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# soup-seed-1.yaml (repeat for seeds 2 and 3; only seed and output differ)\nbase: HuggingFaceTB/SmolLM2-135M\ntask: sft\ndata:\n  train: ./train.jsonl\ntraining:\n  seed: 1\noutput: runs/seed-1"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><strong>Both default to unset</strong>, not to 42. That is deliberate rather than tidy: an unset seed has to reproduce two different historical defaults, 42 for the trainer and 0 for the multipack sampler, and defaulting the field to 42 would have silently re-ordered every existing multipack run.</li><li>An <strong>unset <code>seed</code> resolves to 42</strong>; an unset <code>data_seed</code> stays unset. The fields are optional precisely so the trainer can tell &quot;unset&quot; from &quot;explicitly 42&quot;.</li><li>Bounds are 0 to 2^32 - 1. <strong>Zero is legitimate.</strong> A YAML <code>true</code> is <strong>refused by name</strong> rather than coerced to 1.</li><li><code>data_seed</code> is forwarded to Accelerate&#x27;s dataloader configuration, which takes it from <code>accelerate</code> 1.1.0. Every supported install is already above that: the transformers 5.17 and trl 0.29 releases this was checked against require <code>accelerate</code> 1.1.0 and 1.4.0 respectively, and <code>[train]</code> requires <code>trl&gt;=0.29</code>, so on a working install it applies. Soup&#x27;s own declared floor, <code>accelerate&gt;=0.27.0</code>, is lower than what the rest of the stack allows.</li></ul><h2 id=\"what-changed-in-v0-73-1-and-what-did-not\">What changed in v0.73.1, and what did not</h2><p>In v0.73.0 the seed reached <strong>the supervised trainer and nothing else</strong>. A seeded GRPO or DPO run was accepted, trained at 42, and said nothing. Seventeen of eighteen task wrappers ignored it. Replicates that differed only in their seed were the same run.</p><p>It now reaches every wrapper, and it is applied <strong>before the model loads</strong>, because the adapter&#x27;s own initialisation is drawn before the trainer&#x27;s seeding used to happen.</p><blockquote><p><strong>The values a run trains at are unchanged. What changed is when they arrive.</strong> An unseeded run&#x27;s adapter and classification-head initialisation used to vary from process to process; it is now deterministic at 42.</p></blockquote><h2 id=\"what-a-seed-does-not-buy-you\">What a seed does not buy you</h2><p>This is the part worth reading before you design an experiment on top of it.</p><ul><li><strong>It is not a determinism guarantee.</strong> For bit-exact reruns you also need PyTorch&#x27;s deterministic-algorithms switch, and <strong>Soup does not set that for you</strong>.</li><li><strong>A resident 4-bit run is still not bit-reproducible from a seed.</strong> This is diagnosed and not fixed in the source. Never treat a resident quantised arm as reproducible.</li><li><strong>A streamed run is</strong> bit-reproducible: five runs, one adapter hash, zero movement on every behavioural suite. That asymmetry is real and is why the streamed arm is the control.</li><li><strong>The <code>mlx</code> backend applies both since v0.77.0</strong> (#1855). MLX SFT seeds <code>mx.random</code> (LoRA init and dropout) with <code>seed</code> before the adapter is built, and numpy&#x27;s global RNG (mlx-lm&#x27;s batch shuffle) with <code>data_seed</code>, or <code>seed</code> when that is unset, right before training. The native DPO, ORPO and SimPO loops seed <code>mx.random</code> and their batch order the same way, and KTO keeps dataset order on both backends. Upstream&#x27;s check is that two runs with the same seed reproduce each other&#x27;s losses; this site claims nothing beyond that. Through v0.76.1 MLX read neither field and said so on its <code>MLX backend ignores</code> line, so no MLX run reproduced, and one started then still cannot be. See <a href=\"__DOCS_BASE__/mlx-backend\">the MLX page</a>.</li><li>The multipack sampler still takes 0.</li><li><strong>Since v0.76.0 the rows a default <code>grpo</code>, <code>ppo</code> or <code>online_dpo</code> run trains on changed</strong>: those three ignore <code>data.val_split</code> and train on every row, so a seeded replicate of one of them draws from a larger set than it did on v0.75.2. See <a href=\"__DOCS_BASE__/training#validation-split-and-evaluation\">Training methods</a>.</li><li><strong><code>task: unlearn</code> builds no Trainer</strong>, so Soup&#x27;s own seeding call is the only place the seed lands there. Its RMU control direction follows <code>seed</code>, so two RMU replicates at different seeds really are different runs. An unset seed leaves that one draw at 0 rather than 42, for the same reason as the multipack sampler: it has been seeded 0 since RMU landed.</li></ul><h2 id=\"why-the-ship-gate-cares\">Why the ship gate cares</h2><p>The consequence is concrete, and it is the reason this page sits next to the release notes rather than in a corner.</p><p><strong>Three runs of one unchanged resident configuration moved two behavioural suites by 0.375 and 0.269, against a regression threshold of 0.05.</strong> Five of seven suites could cross the line on a re-run that changed nothing at all.</p><p>Two separate things follow, and they compose:</p><ol><li>Set a seed, so a replicate is a replicate.</li><li>Measure what your instrument can resolve before you call a delta real. That is <a href=\"__DOCS_BASE__/ship-gate-repairs\"><code>soup ship --noise-floor</code></a>, added in v0.73.2, and it exists because greedy decoding is not deterministic on a GPU either.</li></ol><p>Neither one alone is enough. A seed removes a source of variation you control; the noise floor sizes the one you do not.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/free-gpu-tier\">v0.73.1: the free GPU tier</a> — where the seed reached the rest of the trainers.</li><li><a href=\"__DOCS_BASE__/ship-gate-repairs\">v0.73.2: the release gate</a> — where the instrument got measured.</li><li><a href=\"__DOCS_BASE__/borrowed-hardware\">v0.73.0 Borrowed Hardware</a> — where the seed keys first shipped.</li><li><a href=\"__DOCS_BASE__/soup-ship\">The ship gate</a> — the verdict these numbers feed.</li></ul><nav><a href=\"__DOCS_BASE__/training-stability\"><span>Previous</span><span>Training Stability</span></a><a href=\"__DOCS_BASE__/multi-trainer-speed-memory\"><span>Next</span><span>Trainer Speed &amp; Memory</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

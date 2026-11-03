@@ -1,0 +1,155 @@
+{
+  "slug": "export",
+  "title": "Model Export",
+  "description": "Export models to GGUF (including the gguf-ud ladder), ONNX, TensorRT, TorchAO and BitNet / tq1_0; AWQ and GPTQ export were removed in v0.77.0 (they need v0.76.x with its [awq] or [gptq] extra), and the TensorRT-LLM path stops at a pre-check on current TensorRT-LLM releases. Deploy to Ollama with one command.",
+  "source": "https://trysoup.dev/docs/export",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "cc85ffc9fd847477fda503ea52dd2bb8a98cdfba5025e3e9bfbf15fdb53a9985",
+  "headings": [
+    {
+      "level": 2,
+      "id": "merge-lora-adapter",
+      "title": "Merge LoRA Adapter"
+    },
+    {
+      "level": 2,
+      "id": "gguf-llama-cpp-ollama",
+      "title": "GGUF (llama.cpp / Ollama)"
+    },
+    {
+      "level": 2,
+      "id": "onnx",
+      "title": "ONNX"
+    },
+    {
+      "level": 2,
+      "id": "tensorrt-llm",
+      "title": "TensorRT-LLM"
+    },
+    {
+      "level": 2,
+      "id": "torchao-post-training-quantization",
+      "title": "TorchAO post-training quantization"
+    },
+    {
+      "level": 2,
+      "id": "awq-and-gptq-export-removed-in-v0-77-0",
+      "title": "AWQ and GPTQ export (removed in v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "deploy-to-ollama-v0-18-0",
+      "title": "Deploy to Ollama (v0.18.0+)"
+    },
+    {
+      "level": 2,
+      "id": "push-to-huggingface-hub",
+      "title": "Push to HuggingFace Hub"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Model Export</h1><p>Export fine-tuned models to various formats for deployment.</p><h2 id=\"merge-lora-adapter\">Merge LoRA Adapter</h2><p>Merge a LoRA adapter with its base model into a standalone model:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Auto-detect base model from adapter_config.json\nsoup merge --adapter ./output --output ./merged\n\n# Specify base model and dtype\nsoup merge --adapter ./output --base meta-llama/Llama-3.1-8B --dtype bfloat16\n\n# Merge tensor by tensor, without loading the whole model into RAM (v0.77.0)\nsoup merge --adapter ./output --output ./merged --low-memory"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong><code>--low-memory</code> (v0.77.0) merges a plain LoRA adapter tensor by tensor</strong> straight from the base model&#x27;s <code>.safetensors</code> files instead of loading the whole model into RAM, so peak memory is about one shard, the largest <code>.safetensors</code> file. A base stored as a single <code>model.safetensors</code> is memory-mapped whole, so it saves little. Upstream states that the values are identical to the regular merge; the output keeps the base&#x27;s shard layout instead of one <code>model.safetensors</code>, and the tokenizer is saved from the adapter directory. It needs the default <code>--save-format fp16</code> (any other value exits 2 with <code>--low-memory only supports --save-format fp16</code>) and a plain LoRA adapter: DoRA, <code>modules_to_save</code>, rank or alpha patterns, adapters on the embeddings or <code>lm_head</code>, a LoRA bias, a base without <code>.safetensors</code> files and a base stored in a quantized dtype are refused before anything is written, with <code>Low-memory merge not possible: ... Run again without --low-memory.</code> (exit 1). The merge is written to a staging directory next to <code>--output</code> and moved into place only when complete, and an existing non-empty <code>--output</code> is not overwritten. A Hub-id base is fetched as its <code>.safetensors</code> and <code>.json</code> files through Soup&#x27;s own download wrapper, so, unlike the regular merge, it goes through the <a href=\"__DOCS_BASE__/hf-hub-integration#which-downloads-get-the-namespace-pin\">namespace pin</a> (#2006).</p><p><code>--save-format 4bit</code> writes a single bitsandbytes 4-bit merged checkpoint without a dequantize, merge, requantize cycle. <code>--save-format 4bit_forced</code> quantizes every linear module, including <code>lm_head</code>; through v0.75.2 transformers&#x27; default skip list left <code>lm_head</code> in full precision, so the &quot;forced&quot; checkpoint was not fully forced. A model with tied embeddings (<code>tie_word_embeddings=True</code>) cannot hold a 4-bit <code>lm_head</code> that shares the embedding weights, so <code>4bit_forced</code> refuses it by name once the fp16 merge has been staged and before the 4-bit reload (<code>Merge failed: ...</code>, exit 1); use <code>--save-format 4bit</code> for those (#1606).</p><h2 id=\"gguf-llama-cpp-ollama\">GGUF (llama.cpp / Ollama)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Export LoRA adapter (auto-merges with base, then converts)\nsoup export --model ./output --format gguf --quant q4_k_m\n\n# Different quantizations\nsoup export --model ./output --format gguf --quant q8_0\nsoup export --model ./output --format gguf --quant f16\n\n# Export a full (already merged) model\nsoup export --model ./merged --format gguf"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Supported quantizations: <code>q4_0</code>, <code>q4_k_m</code>, <code>q5_k_m</code>, <code>q8_0</code>, <code>f16</code>, <code>f32</code></p><p><strong>Phases, logs and dependencies (v0.77.0).</strong> A GGUF export prints a line for each phase it runs (toolchain lookup, dependency check, the adapter merge when there is one, conversion, and quantization when there is one). Two flags are new:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Stream the converter's and quantizer's output while they run\nsoup export --model ./output --format gguf --verbose\n\n# The environment manages its own packages: never run pip\nsoup export --model ./output --format gguf --no-install-deps --llama-cpp /path/to/llama.cpp"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--verbose</code> streams the converter&#x27;s and quantizer&#x27;s combined output as it arrives and keeps the last 100 lines for the failure summary; without it a successful run keeps the tools&#x27; logs quiet. <code>--no-install-deps</code> checks that <code>gguf</code>, <code>sentencepiece</code> and <code>protobuf</code> are installed and, if any is missing, exits 1 naming them, before merging an adapter or touching llama.cpp; it never runs pip. <strong>It does not stop the llama.cpp clone</strong>: with no <code>--llama-cpp</code>, <code>LLAMA_CPP_PATH</code> or existing <code>~/.soup/llama.cpp</code>, Soup still clones the pinned checkout, so pass <code>--llama-cpp &lt;dir&gt;</code> in a managed environment. Both flags apply to <code>--format gguf</code> only; with any other format, <code>gguf-ud</code> included, the command exits 2 (<code>--verbose require --format gguf.</code>) rather than ignoring them (#1777).</p><p><strong>An architecture the pinned converter cannot convert is refused before cloning, installing or converting (v0.77.0).</strong> The auto-cloned llama.cpp is pinned at tag <code>b5270</code>. For that default checkout Soup compares the model&#x27;s text architecture in <code>config.json</code> (<code>text_config.architectures</code> when it is set) with the list of architectures the <code>b5270</code> converter supports, and stops before cloning, installing anything or converting: <code>Architecture &#x27;&lt;name&gt;&#x27; is not supported for text conversion by default llama.cpp b5270. Select a compatible checkout with --llama-cpp &lt;dir&gt;.</code> (exit 1). An adapter is checked after its temporary merge, which is then removed. A checkout you supply (<code>--llama-cpp</code>, <code>LLAMA_CPP_PATH</code> or an existing <code>~/.soup/llama.cpp</code>) is asked for its own supported list instead, and when that answer is inconclusive the conversion decides. The <code>b5270</code> pin cannot convert Qwen3.5; moving the pin is open upstream (#1911, #1955).</p><p><strong>Checkpoints that declare MTP layers they do not hold (v0.77.0).</strong> When a model&#x27;s config declares <code>mtp_num_hidden_layers</code> but its safetensors headers carry no MTP tensors, as in a merged Qwen3.5 text model, Soup passes <code>--no-mtp</code> to the converter, and keeps real MTP tensors when they are present. Upstream records that such a merge used to export to a GGUF that would not load (#1912, #1957). The converter must advertise <code>--no-mtp</code>, and the default <code>b5270</code> pin does not, so this needs a newer checkout passed with <code>--llama-cpp</code>. Missing or malformed checkpoint metadata is refused rather than read as &quot;no MTP tensors&quot;.</p><p><strong>An adapter is merged onto the base commit its run recorded (v0.77.0).</strong> When <code>--model</code> is a LoRA adapter whose directory holds a <code>soup_run.json</code> with the Hub commit of the same base, the merge that <code>gguf</code>, <code>gguf-ud</code>, <code>onnx</code>, <code>tensorrt</code>, <code>bitnet</code> and <code>tq1_0</code> run first loads that commit and prints <code>Base revision: &lt;commit&gt; (recorded run)</code>; otherwise it prints <code>Base revision: unknown (legacy, local source or base override)</code> and loads the base as before.</p><p>Without <code>--output</code>, the file is named <code>&lt;model-name&gt;.&lt;quant&gt;.gguf</code> and written <strong>next to</strong> the model directory, not inside it: <code>--model ./output</code> with <code>--quant q4_k_m</code> produces <code>./output.q4_k_m.gguf</code>. Pass <code>--output ./my-model.q4_k_m.gguf</code> to choose the name. Since v0.76.0 the directory that will hold the output is created up front; through v0.75.2 a quantized export into a directory that did not exist yet crashed after the adapter had been merged, and the cleanup deleted the merged model (#1445).</p><p>Use with Ollama:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "echo 'FROM ./output.q4_k_m.gguf' > Modelfile\nollama create my-model -f Modelfile\nollama run my-model"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"onnx\">ONNX</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[onnx]\"\nsoup export --model ./output --format onnx\nsoup export --model ./output --format onnx --output ./model_onnx"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"tensorrt-llm\">TensorRT-LLM</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[tensorrt]\"\nsoup export --model ./output --format tensorrt\nsoup export --model ./output --format tensorrt --output ./model_trt"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>This path now checks itself before it does any work, and on a current TensorRT-LLM it stops there (v0.74.0).</strong> Soup shelled out to <code>python -m tensorrt_llm.commands.convert_checkpoint</code>, a module absent from every current TensorRT-LLM release: that package ships only <code>bench</code>, <code>build</code>, <code>eval</code>, <code>prune</code>, <code>refit</code> and <code>serve</code>, and checkpoint conversion now lives as a per-architecture <code>examples/&lt;arch&gt;/convert_checkpoint.py</code> script in NVIDIA&#x27;s source tree instead. Before v0.74.0 the export <strong>silently produced zero artifact bytes</strong>; it now fails immediately with a message naming the missing entry point, before the LoRA merge and the output directory are touched. If you exported to TensorRT on an earlier release, check the directory actually holds an engine. Installing <code>tensorrt_llm</code> can also downgrade a training environment&#x27;s <code>torch</code>, <code>transformers</code>, <code>numpy</code> and <code>datasets</code> pins, so keep it out of the environment you train in.</p></blockquote><h2 id=\"torchao-post-training-quantization\">TorchAO post-training quantization</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[qat]\"\nsoup export --model ./output --format torchao --quant-config quant.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--quant-config</code> is required with this format (without it the command exits 2). The YAML names one scheme in a top-level <code>scheme:</code> key and, for the schemes that take one, a <code>group_size</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "scheme: Int4WeightOnly\ngroup_size: 128"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The four schemes are <code>Int4WeightOnly</code>, <code>Int8DynActInt4</code>, <code>Float8DynActFloat8</code> and <code>NVFP4</code>. The names are Soup&#x27;s own and are case-sensitive; each is mapped to the torchao class that implements it. <code>group_size</code> is accepted for <code>Int4WeightOnly</code> and <code>Int8DynActInt4</code>, and the other two take no extra keys. Any other key is refused with the allowed list. The output goes to <code>&lt;model-name&gt;.torchao.&lt;scheme&gt;</code> next to the model unless you pass <code>--output</code>.</p><p><strong>The <code>[qat]</code> extra now requires <code>torchao&gt;=0.18.0</code></strong> (it was <code>0.4.0</code>), because 0.18.0 is the release the class locations were verified against; an older torchao is no longer accepted by the extra. Through v0.75.2, three of the four schemes (<code>Int8DynActInt4</code>, <code>Float8DynActFloat8</code> and <code>NVFP4</code>) asked torchao for classes it does not export, so they could not build a config at all, and the refusal told you to upgrade torchao when nothing newer existed (#826). Two of the four classes (<code>Int8DynActInt4</code> and <code>NVFP4</code>) currently live in torchao&#x27;s <code>prototype</code> namespace, which torchao does not promise to keep stable; Soup tries the public path first, and if a torchao release moves a class the error names every path it tried. <code>inner_k_tiles</code> was removed from the <code>Int4WeightOnly</code> keys because torchao&#x27;s config raises <code>TypeError</code> for it. The quantization step itself needs <code>transformers</code> and torchao and was not run for this page; the class mapping, floor and keys are read from the v0.76.0 code, and the flag handling (exit 2 without <code>--quant-config</code>, the scheme-name check) was run; the key allowlist is read from the code, because it runs after <code>transformers</code> is imported.</p><h2 id=\"awq-and-gptq-export-removed-in-v0-77-0\">AWQ and GPTQ export (removed in v0.77.0)</h2><p><code>soup export --format awq</code> and <code>--format gptq</code> were removed in v0.77.0, together with the <code>[awq]</code> and <code>[gptq]</code> extras and the <code>--bits</code>, <code>--group-size</code> and <code>--calibration-samples</code> options that only they used, because both upstream projects, AutoAWQ and AutoGPTQ, are archived (#1951). The command now stops before it reads the model:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "Unsupported format: awq\n--format awq was removed in v0.77.0.\nSupported: gguf, onnx, tensorrt, bitnet, tq1_0, torchao, gguf-ud"
+    },
+    {
+      "kind": "html",
+      "html": "<p>That is exit 1. A script that still passes <code>--bits</code>, <code>--group-size</code> or <code>--calibration-samples</code> exits 2 with <code>No such option</code>, and <code>soup quantize --to awq</code> or <code>--to gptq</code> exits 2 with <code>--to must be one of [&#x27;gguf&#x27;, &#x27;onnx&#x27;, &#x27;tensorrt&#x27;]</code>. <code>--calibration-data</code> remains for its other use, the calibration JSONL for the imatrix GGUF ladder of <code>--format gguf-ud</code>, which is now the only thing that reads it (see <a href=\"__DOCS_BASE__/quant-menu-ii\">Quant Menu II</a>). AWQ and GPTQ export need v0.76.x and its <code>[awq]</code> or <code>[gptq]</code> extra, for example <code>pip install &quot;soup-cli[awq]&lt;0.77&quot;</code>; upstream notes that both projects are archived and incompatible with <code>[train]</code>. v0.76.x supports Python 3.10 to 3.12 and receives security fixes only, until 0.78.0. You can also export from a separate environment with the upstream tools.</p><p>Training a LoRA on top of a checkpoint that is already AWQ- or GPTQ-quantized is a different feature and is unchanged: <code>training.quantization: awq</code> and <code>gptq</code> still load such a base (see <a href=\"__DOCS_BASE__/quant-menu\">Quant Menu</a>).</p><p><strong>History, for artifacts made by older releases.</strong> v0.76.0 deprecated both formats, with a yellow <code>Deprecated:</code> line, and upstream&#x27;s documentation for that line said the <code>[awq]</code> and <code>[gptq]</code> extras could not be installed next to <code>[train]</code>. <code>--calibration-data</code> became required for GPTQ in v0.74.0 and for AWQ in v0.75.0; before v0.75.0 a flagless AWQ export silently downloaded AutoAWQ&#x27;s large default calibration dataset, so the calibration inputs behind such an artifact were whatever that download contained. A GPTQ export written before v0.74.0 holds only its own <code>gptq_model-&lt;bits&gt;bit-&lt;group&gt;g.safetensors</code> shard, which <code>AutoModelForCausalLM.from_pretrained</code> does not look for, so it does not reload by the standard path; from v0.74.0 the directory also carried a standard <code>model.safetensors</code>.</p><h2 id=\"deploy-to-ollama-v0-18-0\">Deploy to Ollama (v0.18.0+)</h2><p>Deploy a GGUF model directly to your local Ollama instance:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Deploy a GGUF model\nsoup deploy ollama --model ./output.q4_k_m.gguf --name soup-my-model\n\n# Deploy with system prompt and parameters\nsoup deploy ollama --model ./model.gguf --name soup-chat \\\n  --system \"You are a helpful assistant.\" \\\n  --template chatml \\\n  --parameter temperature=0.7 \\\n  --parameter top_p=0.9\n\n# Export + deploy in one command\nsoup export --model ./output --format gguf --deploy ollama\n\n# List Soup-deployed models\nsoup deploy ollama --list\n\n# Remove a model\nsoup deploy ollama --remove soup-my-model"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Auto-detected chat templates: <code>chatml</code>, <code>llama</code>, <code>mistral</code>, <code>vicuna</code>, <code>zephyr</code> (or <code>auto</code> to infer from soup.yaml).</p><p><strong><code>soup export --deploy</code> is for the GGUF family only.</strong> <code>--deploy ollama</code> works with <code>gguf</code>, <code>gguf-ud</code>, <code>bitnet</code> and <code>tq1_0</code> (the last three since v0.76.0; they are described under <a href=\"__DOCS_BASE__/quant-menu-ii\">Quant Menu II</a> and <a href=\"__DOCS_BASE__/modality-ii\">Modality II</a>). For <code>onnx</code>, <code>tensorrt</code> and <code>torchao</code> it fails before any export work, with exit 1 and <code>--deploy is not supported for format &#x27;&lt;fmt&gt;&#x27;</code>, because Ollama cannot load those files. Any target other than <code>ollama</code> is refused as well, also with exit 1.</p><p><strong><code>--registry-id</code> records the export, whatever the format.</strong> <code>soup export --registry-id &lt;id&gt;</code> attaches the exported artifacts to a local <a href=\"__DOCS_BASE__/registry\">registry</a> entry; without it Soup tries to match the entry from the source model&#x27;s output directory. Since v0.76.0 this works for every format (<code>gguf</code>, <code>gguf-ud</code>, <code>bitnet</code>, <code>tq1_0</code>, <code>onnx</code>, <code>tensorrt</code>, <code>torchao</code>, and on v0.76.x also <code>awq</code> and <code>gptq</code>); through v0.75.2 only the plain <code>gguf</code> path recorded anything and the flag was accepted and ignored for the others (#1679). When an export produces a directory (multi-shard safetensors, ONNX data files, TensorRT engine files in <code>&lt;output&gt;/engine/*.engine</code>) every produced weight and engine file is attached, and the success line names them. Registration never decides the exit code: with no matching entry and no <code>--registry-id</code> nothing is recorded and nothing is printed, and a failed attach prints a yellow <code>Could not attach export to registry</code> warning while the command still exits 0, because the export itself succeeded.</p><p><strong>Naming and <code>--list</code>.</strong> <code>soup deploy ollama</code> needs both <code>--model</code> and <code>--name</code> and uses the name exactly as you give it. <code>soup export --deploy ollama</code> names the Ollama model <code>soup-&lt;model-name&gt;</code> unless you pass <code>--deploy-name</code>. <code>--list</code> is a filter over <code>ollama list</code> on the <code>soup-</code> name prefix (a <code>name:tag</code> form counts when its name part starts with <code>soup-</code>), so a model deployed with <code>--name my-model</code> exists in Ollama but does not appear in <code>soup deploy ollama --list</code>. <code>--remove &lt;name&gt;</code> has no such filter and removes any Ollama model by name, asking for confirmation unless you pass <code>--yes</code>.</p><h2 id=\"push-to-huggingface-hub\">Push to HuggingFace Hub</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup push --model ./output --repo your-username/my-model\nsoup push --model ./output --repo your-username/my-model --private"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Auto-generates a model card with training details.</p><nav><a href=\"__DOCS_BASE__/serving\"><span>Previous</span><span>Inference Server</span></a><a href=\"__DOCS_BASE__/registry\"><span>Next</span><span>Model Registry</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

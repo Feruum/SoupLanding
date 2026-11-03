@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "soup-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "astro",
+        "preview",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "3115"
+      ],
+      "port": 3115
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "slug": "eval-gate",
+  "title": "Eval-Gated Training",
+  "description": "Eval-gated training in Soup CLI v0.26.0. Declarative eval suites halt training on quality regression. Baselines from registry, file, or first epoch.",
+  "source": "https://trysoup.dev/docs/eval-gate",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "1a4fb577e6b58cedcffd9844c2dbb08e622f3384c77897b41e82aeb73222df0e",
+  "headings": [
+    {
+      "level": 2,
+      "id": "the-gate-file",
+      "title": "The gate file"
+    },
+    {
+      "level": 2,
+      "id": "enable-it",
+      "title": "Enable it"
+    },
+    {
+      "level": 2,
+      "id": "post-hoc-verdict",
+      "title": "Post-hoc verdict"
+    },
+    {
+      "level": 3,
+      "id": "a-suite-with-nothing-to-measure-is-refused-v0-77-0",
+      "title": "A suite with nothing to measure is refused (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "baselines",
+      "title": "Baselines"
+    },
+    {
+      "level": 3,
+      "id": "baseline-provenance-v0-74-0",
+      "title": "Baseline provenance (v0.74.0)"
+    },
+    {
+      "level": 2,
+      "id": "judge-url-allowlist",
+      "title": "Judge URL allowlist"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this-v0-77-0",
+      "title": "Re-run this (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Eval-Gated Training</h1><p>v0.26.0 adds declarative eval suites that run at epoch boundaries. If a task score falls below its threshold — or regresses against a baseline — training halts before you waste another epoch.</p><h2 id=\"the-gate-file\">The gate file</h2><p>Every entry in <code>tasks:</code> is one of three types: <code>custom</code>, <code>judge</code>, or <code>benchmark</code>. Each task has a <code>name</code> (used as the baseline key) and a numeric <code>threshold</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# evals/gate.yaml\nsuite: chat-quality\ntasks:\n  - type: custom\n    name: tool_calls\n    tasks: evals/tool_calls.jsonl\n    scorer: exact            # exact | contains | answer | regex | semantic\n    threshold: 0.70\n\n  - type: judge\n    name: chat_judge\n    prompts: evals/judge_prompts.jsonl\n    judge_model: ollama://llama3.1     # or https://... or http://localhost\n    threshold: 0.70   # judge scores normalise to [0,1] off the rubric scale, not raw 1-5\n\n  - type: benchmark\n    name: mmlu\n    benchmark: mini_mmlu\n    threshold: 0.60"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"enable-it\">Enable it</h2><p>Either inline in <code>soup.yaml</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  eval_gate:\n    enabled: true\n    suite: ./evals/gate.yaml\n    every_n_epochs: 1              # 1-100\n    regression_threshold: 0.05     # 0.0-1.0\n    baseline: previous             # registry://<id> | previous | a path\n    on_regression: stop            # stop | warn | continue"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Those six are the whole block. <code>baseline</code> accepts a registry id, the literal <code>previous</code>, or a path to a scores JSON; <code>on_regression</code> decides whether a regression halts the run, prints, or is recorded and ignored.</p><p>…or on the command line:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --gate ./evals/gate.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--gate</code> loads the suite before training starts and exits 1 if the file is missing, outside the working directory or invalid. Since v0.77.0 &quot;invalid&quot; includes a suite with no tasks and a suite that repeats a task name (<code>Invalid --gate suite: ...</code>, exit 1, also under <code>--dry-run</code>). A <code>training.eval_gate.suite</code> path written in <code>soup.yaml</code> gets no such check up front: if the suite cannot be loaded when training begins, the callback logs <code>eval gate: could not load suite</code> as a warning and the gate does not run for that run, so a typo there leaves the run ungated. That is also where the v0.77.0 suite refusals land on this path: a suite with no tasks or a repeated task name is logged as <code>could not load suite</code> and the run trains ungated, and a baseline with a non-finite score is logged as <code>eval gate: could not resolve baseline</code> and the gate runs against the thresholds alone (read in <code>monitoring/callback.py</code> at v0.77.0). Prefer <code>--gate</code>, or run <code>soup eval gate --suite</code> on the suite once before you train. Once a gate is running, a gate that fails to execute mid-run does stop training under <code>on_regression: stop</code>.</p><h2 id=\"post-hoc-verdict\">Post-hoc verdict</h2><p>Run the gate standalone against any model:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval gate --suite ./evals/gate.yaml --model ./output --baseline ./baseline.json\n# ✓ mmlu:        0.648 (baseline 0.643, +0.005) PASS\n# ✗ chat_judge:  0.62  (baseline 0.78, -0.16)   REGRESSION\n# → verdict: FAIL"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The command exits 0 when every task passes, <strong>2</strong> when a task fails or regresses, <strong>3</strong> when the suite, the baseline or a flag is unusable (a <code>--suite</code> that is missing or fails the schema, a <code>--baseline</code> that is missing or not valid JSON, a <code>--regression-threshold</code> outside 0.0 to 1.0, <code>--write-baseline</code> without <code>--model</code>, and since v0.77.0 a suite with no tasks, a suite that repeats a task name, and a baseline score that is not a finite number), and 1 when <code>--model</code> cannot be loaded or the suite file is not valid YAML. Since v0.76.1 a suite larger than 1 MiB, nested more than 100 levels deep or expanding past its alias allowance is unusable too and exits 3 (see <a href=\"__DOCS_BASE__/configuration#size-and-nesting-limits-v0-76-1\">Size and nesting limits</a>), with one line such as <code>Cannot load suite: eval-gate suite &#x27;suite.yaml&#x27; nests collections more than 100 levels deep; refusing</code>; a YAML syntax error still exits 1. The same suite given to <code>soup train --gate</code> exits 1 either way, with <code>Invalid --gate suite: ...</code>. Before v0.76.0 every one of those was 1, so <strong>a CI step that tests for exit 1 as &quot;the gate failed&quot; now passes a failing gate</strong>: test for 2, and see <a href=\"__DOCS_BASE__/exit-codes#what-moved-in-v0-76-0-and-the-ci-step-that-now-passes-silently\">Exit codes</a>. The suite needs a top-level <code>suite:</code> name, as in the example above; without it the load is refused (exit 3). <code>--baseline</code> / <code>-b</code> takes <code>registry://&lt;id&gt;</code> or a score JSON, and <code>--regression-threshold</code> (0.0 to 1.0, default 0.05) sets the allowed drop. Without <code>--model</code> it runs a smoke test with a stub generator that answers every prompt with an empty string, so scores are meaningless.</p><p>A task fails if its score is below its <code>threshold</code> or if it drops more than the configured regression threshold (default 0.05) below the supplied baseline.</p><p><strong>A task that could not be scored fails the gate closed, and the log no longer calls it a regression (v0.76.0).</strong> A task whose evaluation raises, such as an unreadable task file or a judge that stays unreachable, gets no score and counts as failed, and the training log reads <code>N task(s) could not be scored: &lt;name&gt;: &lt;error&gt;</code> instead of <code>N task(s) regressed</code>. A judge error prints the judge URL without any user-info, query string or fragment, so a base URL that carries a key does not reach the log.</p><h3 id=\"a-suite-with-nothing-to-measure-is-refused-v0-77-0\">A suite with nothing to measure is refused (v0.77.0)</h3><p>Through v0.76.1 several suites passed a gate without measuring anything. Since v0.77.0 each of these stops before any task runs, with exit 3:</p><div><table><thead><tr><th>Suite or baseline</th><th>v0.77.0</th></tr></thead><tbody><tr><td><code>tasks: []</code>, no <code>tasks:</code> key, or a misspelled key such as <code>task:</code> that leaves the list empty</td><td><code>Cannot load suite: eval-gate suite &#x27;s&#x27; field &#x27;tasks&#x27; must contain at least one task</code> (#1798, #1821)</td></tr><tr><td>Two tasks with the same <code>name</code> (the second score used to overwrite the first under the same baseline key)</td><td><code>Cannot load suite: eval-gate suite &#x27;s&#x27; repeats task name &#x27;a&#x27;</code> (#1824, #1893)</td></tr><tr><td>A baseline score that is not a finite number: <code>NaN</code>, <code>Infinity</code>, or a JSON overflow such as <code>1e999</code></td><td><code>Cannot resolve baseline: baseline file: score for &#x27;a&#x27; must be finite</code> (#1773, #1779); an integer too large for a float reads <code>... is out of range (must be finite)</code> (#1865, #1903). A baseline is also checked when it is written</td></tr></tbody></table></div><p>A judge task whose prompts file is empty is different: since v0.77.0 the task gets no score, its row reads <code>ERROR</code> with <code>No judge prompts found in &lt;file&gt; for task &#x27;&lt;name&gt;&#x27;</code>, and the gate fails with <strong>exit 2</strong> even at <code>threshold: 0.0</code> (#1928). On v0.76.1 that task scored 0.0 without judging anything. An empty <code>custom</code> tasks file fails the same way, as it already did at v0.76.1: the row reads <code>ERROR</code> with <code>No eval tasks found in &lt;file&gt;</code> and the gate exits 2.</p><p><strong>On v0.76.1 an empty suite and a misspelled <code>tasks</code> key printed <code>GATE PASSED</code> with exit 0 without running a task, a repeated task name let the second score overwrite the first under the same baseline key, and a <code>NaN</code> baseline let a regression pass silently</strong>, so a CI gate that has only ever passed may have measured nothing: read its suite.</p><h2 id=\"baselines\">Baselines</h2><ul><li><code>registry://&lt;id&gt;</code> — pulls eval results for the referenced <a href=\"__DOCS_BASE__/registry\">registry</a> entry, using the <strong>newest eval row for each benchmark</strong>, so re-measuring a benchmark replaces its old score (before v0.76.0 the oldest row won; a gate that read a <code>registry://</code> baseline measured more than once compared against the stale score)</li><li><code>./baseline.json</code> — a JSON map of <code>{task_name: score}</code></li><li>omitted — tasks are judged only against their <code>threshold</code></li></ul><h3 id=\"baseline-provenance-v0-74-0\">Baseline provenance (v0.74.0)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval gate --suite ./suite.yaml --model ./output --write-baseline ./baseline.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A written baseline now carries a provenance block, the Soup version and a scorer revision, alongside its scores. Reading one back <strong>warns once</strong> when the stamp is missing, which is what an older file looks like, or when the scorer revision has moved underneath it, and stays silent when it matches. That replaces the v0.73.2 warning, which recognised a stale baseline by a <strong>hardcoded list of suite names</strong> and therefore could only ever know about the one scoring change somebody remembered to add. A locked fingerprint fails the test suite if a bundled scorer&#x27;s output moves without its revision being bumped, so the stamp cannot quietly stop meaning anything. <strong>The revision is 7 at v0.77.0.</strong> It was 1 through v0.75.2 and 5 at v0.76.x (the tool-call, refusal-classifier, arithmetic and common-sense changes each bumped it); revision 6 &quot;prevents generation failures from earning credit&quot; (#1958), and revision 7 is <code>mini_mmlu</code>&#x27;s new 40 rows (#2113). A baseline stamped with any other revision warns once, naming the affected benchmarks when it comes from a registry entry, so a baseline written by v0.76 is not compared silently on the new scale: write it again. What changed is on the ship page, for <a href=\"__DOCS_BASE__/soup-ship#the-suites-were-re-shaped-again-and-the-scorer-revision-became-5-v0-76-0\">v0.76.0</a> and for <a href=\"__DOCS_BASE__/soup-ship#mini-mmlu-grows-to-40-and-the-scorer-revision-is-7-v0-77-0\">v0.77.0</a>.</p><blockquote><p><strong>The stamp tracks the bundled suites&#x27; scorers, and its warning does not say that your own <code>custom</code> tasks are affected.</strong> Two scorer changes in v0.76.0 move scores of your own <code>custom</code> tasks. A baseline recorded before v0.76.0 does print the generic scorer-revision (or unknown-provenance) warning, but the message names no scorer, so it does not tell you that <code>contains</code> changed. <code>contains</code> now requires the expected string to appear as a whole token (an ASCII alphanumeric run), so <code>14</code> no longer contains <code>4</code>; a gate baseline, a <code>registry://</code> row or a <code>soup eval custom --run-id</code> result recorded with the old substring test can be higher than the same outputs score now, so re-measure them. (<code>4</code> still matches inside <code>3.4</code>, and <code>contains</code> cannot read negation.) And <code>answer</code> is a new scorer: it compares the final answer the model states. In a gate suite a task whose <code>expected</code> states no single answer does not stop the load: that task fails with the reason in its row, the gate fails closed and <code>soup eval gate</code> exits 2. <code>soup eval custom</code> and <code>soup eval quant-check</code> refuse such a row when the tasks file is read. Regex-scored tasks reject structurally unsafe patterns before matching.</p><p><strong>v0.77.0 moves one more of your own scores.</strong> <code>tool_call_match</code> and <code>tool_call_args_subset</code> no longer credit a JSON number as a boolean (#1755, #1756): a model that answered <code>{&quot;enabled&quot;: 1}</code> where the task expected <code>{&quot;enabled&quot;: true}</code> used to score <code>1.0</code>. A <code>custom</code> task whose rows use either scoring can therefore score lower on v0.77.0 than its baseline did on the same outputs, and the stamp does not warn about it, so re-measure such a baseline.</p></blockquote><blockquote><p><strong>A judge-scored task was normalized against the wrong scale until v0.74.0.</strong> The gate divided the aggregate judge score by 10 while the default rubric runs 1 to 5, so a perfect 5.0 read as <strong>0.50</strong>, typical thresholds of 0.70 and 0.80 were impossible to satisfy, and a healthy run could be stopped by <code>on_regression: stop</code> for no reason. Normalization now derives the minimum and maximum from the rubric in use, clamps out-of-bounds values and handles a degenerate scale. If a judge-gated run of yours stopped early, that is worth re-checking.</p></blockquote><h2 id=\"judge-url-allowlist\">Judge URL allowlist</h2><p><code>judge_model</code> must use one of: <code>ollama://</code>, <code>https://</code>, or <code>http://</code> to <code>localhost</code>, <code>127.0.0.1</code> or <code>::1</code> (the last since v0.76.0). Any other scheme is rejected at load time — an SSRF guard on the eval path.</p><p><strong>Since v0.75.2 an <code>https://</code> URL that names a private, link-local, shared-space (<code>100.64.0.0/10</code>) or otherwise non-public IP address is rejected at load too</strong>, with <code>judge_model URL: private/link-local/reserved IP hosts are not allowed (SSRF protection)</code>. The check reads the host as an IP literal in any spelling (decimal, hex and abbreviated forms are caught, and so are non-ASCII digits); loopback still works, and plain <code>http://</code> stays limited to loopback (<code>localhost</code> and <code>127.0.0.1</code>, plus <code>::1</code> since v0.76.0). To use a judge on your own network, name it by <strong>hostname</strong> over HTTPS with a certificate valid for that name. Hostnames are not resolved, so a name that points at a private address is still accepted: the guard narrows which addresses a URL can name directly, it does not make internal services unreachable by name. There is no opt-in for the IP-literal case. See <a href=\"__DOCS_BASE__/private-addresses-refused\">what v0.75.2 refuses</a>.</p><p><strong>Since v0.76.0</strong> the refusal ends <code>; address the server by its hostname</code>, and a host written only as digits that is not a valid IPv4 address (<code>10.0.0.256</code>, <code>4294967296</code>) is refused as well, with <code>an all-numeric host that is not a valid IPv4 address is not allowed (SSRF protection)</code>. The refusal happens when the suite loads, so <code>soup eval gate</code> stops with exit 3, <code>soup train --gate</code> stops with exit 1 (<code>Invalid --gate suite</code>), and a <code>training.eval_gate</code> suite is skipped with a warning. Through v0.76.1 the judge&#x27;s HTTP response was read whole before it was parsed, with no size cap (#1819). Since v0.77.0 #1929 bounds judge replies to 1 MiB, counted after decoding and checked before the reply is parsed, and the reply text is then limited to 65,536 characters before it is read as scores; an oversized reply leaves the task unscored, so the gate fails closed. The endpoint is still whatever the suite names, so do not run a suite you do not trust.</p><p><strong>Which host you name decides whether your OpenAI key travels.</strong> An <code>https://</code> judge URL uses <code>OPENAI_API_KEY</code> <strong>only when its host is <code>api.openai.com</code></strong>; every other host is called as an OpenAI-compatible server without that key.</p><blockquote><p><strong>That was not true before v0.75.1, and the allowlist above is why it went unnoticed.</strong> Any <code>https://&lt;host&gt;/&lt;model&gt;</code> was classified as the OpenAI provider whatever the host was, so <code>OPENAI_API_KEY</code> was sent to it as a Bearer token (0.33.0 to 0.75.0) — from this gate, from <code>eval.ship.judge_model</code>, from <code>training.online_dpo_judge</code> and from the <code>soup data</code> judge options. A shared or committed config could name a host that simply collects the key. <strong>Rotate it if you ever pointed a judge anywhere else while it was set.</strong> The flip side is a behaviour change: a self-hosted judge that was relying on the key being forwarded must now be given one explicitly.</p></blockquote><h2 id=\"re-run-this-v0-77-0\">Re-run this (v0.77.0)</h2><p>These gate verdicts and baselines, produced before v0.77.0, did not measure what they said. The full list for the release is on <a href=\"__DOCS_BASE__/warnings-now-refused#re-run-this\">the v0.77.0 page</a>.</p><div><table><thead><tr><th>If you ran</th><th>What was wrong</th><th>What to do</th></tr></thead><tbody><tr><td><code>soup eval gate</code> (or <code>--gate</code>) on a suite with no tasks, a misspelled <code>tasks</code> key or a repeated task name, or against a <code>NaN</code> or <code>-1e999</code> baseline (#1798, #1821, #1824, #1893, #1773, #1779)</td><td>The gate passed a suite with no tasks; duplicate task names overwrote baseline evidence; a <code>NaN</code> or negative-infinite baseline let the gate pass</td><td>Fix the suite or the baseline and run the gate again</td></tr><tr><td>A gate with a judge task whose prompts file was empty (#1928)</td><td>The task scored 0.0 without judging anything</td><td>Give the task its prompts and run the gate again</td></tr><tr><td>A <code>custom</code> gate task whose rows use <code>tool_call_match</code> or <code>tool_call_args_subset</code> (#1755, #1756)</td><td>A JSON number was credited as a boolean; scores recorded before this change can be higher than the same outputs score now</td><td>Re-measure the baseline, then the gate</td></tr></tbody></table></div><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/registry\">Registry</a> — the typical baseline source</li><li><a href=\"__DOCS_BASE__/experiments\">Evaluation</a> — the broader eval platform</li></ul><nav><a href=\"__DOCS_BASE__/fine-tune-doctor\"><span>Previous</span><span>Fine-tune Doctor</span></a><a href=\"__DOCS_BASE__/eval-design\"><span>Next</span><span>soup eval design: derive evals from data</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

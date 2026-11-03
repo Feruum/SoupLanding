@@ -1,0 +1,91 @@
+{
+  "slug": "data-moat-ii",
+  "title": "Data Moat II (v0.71.36)",
+  "description": "Data Moat II (v0.71.36) — a semantic layer over your training data plus two tools for what a fine-tune forgets and leaks. soup data dedup --semantic removes reworded near-duplicates over embedding cosine that MinHash's shingling misses (measured 0.88 to 0.91 on rewordings), with the honest caveat that it is not a paraphrase detector: paraphrase cosines (0.49 to 0.76) overlap genuinely-distinct rows, so no threshold separates them and the default 0.8 stays conservative. soup data topics clusters the dataset and labels each cluster with c-TF-IDF terms plus a coverage table (82% code, 6% math) and a thin-topic warning. soup data canary insert|check is a Secret-Sharer memorization probe: insert K high-entropy secrets, train, then rank each secret's loss against never-inserted controls, with a binomial-tail verdict and exit 2 on MAJOR so CI can gate a leak. soup train --replay old.jsonl --replay-ratio 0.1 is continual-learning rehearsal that interleaves a seeded sample of an old dataset so a new task does not erase it (sft/pretrain only, proof-of-mechanism at 135M). Zero new dependencies (reuses transformers from [train]); also fixes the hardware-fit gate refusing to train locally-merged checkpoints.",
+  "source": "https://trysoup.dev/docs/data-moat-ii",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "04d2bf74a429e76317a859d73b90f5044914b7fa341d48811c7ad218dea24fcd",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-data-dedup-semantic-near-duplicates-over-meaning-not-shingles",
+      "title": "soup data dedup --semantic — near-duplicates over meaning, not shingles"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-topics-a-coverage-map-of-your-dataset",
+      "title": "soup data topics — a coverage map of your dataset"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-canary-insert-check-prove-what-the-model-memorized",
+      "title": "soup data canary insert|check — prove what the model memorized"
+    },
+    {
+      "level": 2,
+      "id": "soup-train-replay-rehearse-the-old-task-so-the-new-one-does-not-erase-it",
+      "title": "soup train --replay — rehearse the old task so the new one does not erase it"
+    },
+    {
+      "level": 2,
+      "id": "fixes-that-shipped-with-it",
+      "title": "Fixes that shipped with it"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Moat II (v0.71.36)</h1><p>A semantic layer over your training data, plus two tools for what a fine-tune <strong>forgets</strong> and <strong>leaks</strong>. Four commands: dedup the reworded duplicates MinHash misses, map which topics your data actually covers, plant canaries and later prove whether the model memorized them, and replay a slice of the old task so a new one does not erase it.</p><p>Zero new dependencies. The embedding kernel reuses <code>transformers</code> from the <code>[train]</code> extra (mean-pooled <code>all-MiniLM-L6-v2</code>, no <code>sentence-transformers</code>), so <code>dedup --semantic</code> and <code>topics</code> need <code>[train]</code> plus a one-time model download; plain MinHash <code>dedup</code> stays on the light core.</p><h2 id=\"soup-data-dedup-semantic-near-duplicates-over-meaning-not-shingles\"><code>soup data dedup --semantic</code> — near-duplicates over meaning, not shingles</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data dedup train.jsonl --semantic -o clean.jsonl\nsoup data dedup train.jsonl --semantic --threshold 0.85 --field text -o clean.jsonl\nsoup data dedup train.jsonl --semantic --embed-model sentence-transformers/all-mpnet-base-v2"
+    },
+    {
+      "kind": "html",
+      "html": "<p>MinHash shingling compares token sets, so a <strong>reworded</strong> duplicate reads as distinct. Semantic dedup compares embedding cosine instead and catches those: measured, rewordings score 0.88 to 0.91 cosine where MinHash scored them apart, while genuinely-distinct-but-similar instructions are kept.</p><blockquote><p><strong>Honest limit: this is not a paraphrase detector.</strong> Measured with <code>all-MiniLM-L6-v2</code>, paraphrase cosines (0.49 to 0.76) overlap genuinely-distinct rows (0.54 to 0.76). &quot;Add two numbers&quot; vs &quot;Multiply two numbers&quot; scores <strong>0.759</strong>, higher than the true paraphrase &quot;reverse a string&quot; / &quot;invert the order of characters&quot; at <strong>0.491</strong>, so no threshold separates them. Lowering <code>--threshold</code> to chase paraphrases deletes real training rows. The default <code>0.8</code> is deliberately conservative (max distinct-pair cosine measured was 0.759) and still strictly beats MinHash.</p></blockquote><h2 id=\"soup-data-topics-a-coverage-map-of-your-dataset\"><code>soup data topics</code> — a coverage map of your dataset</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data topics train.jsonl                    # 'auto' picks the cluster count\nsoup data topics train.jsonl --clusters 8 -o topics.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Clusters the dataset (k-means over the same embeddings), labels each cluster with its distinctive terms (c-TF-IDF), and prints a coverage table plus a warning for thin topics:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "82% code · 9% chat · 6% math · 2% sql · 1% legal\ntopic 'legal' is thin: 1% of rows — likely under-represented"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Since v0.76.0 the tokenizer behind the labels keeps digits and words in non-Latin scripts, which it used to discard (#1233), so those can now appear in a label. Only topics under 2% of the data are flagged (a 6% topic like <code>math</code> above is left alone). Labels are <strong>emergent term clusters, not a fixed taxonomy</strong>, and there is no automatic join to an eval-coverage suite; read the table as &quot;where my data concentrates&quot;, not as classification against an ontology.</p><h2 id=\"soup-data-canary-insert-check-prove-what-the-model-memorized\"><code>soup data canary insert|check</code> — prove what the model memorized</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# 1. insert K unique high-entropy secrets (keep the manifest OUT of your repo)\nsoup data canary insert train.jsonl -o canaried.jsonl --count 16 --manifest secrets.json\n\n# 2. train on canaried.jsonl as usual, then rank each secret's loss vs controls:\nsoup data canary check --manifest secrets.json --base ./my-model --adapter ./lora"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A Secret-Sharer memorization probe (<a href=\"https://arxiv.org/abs/1802.08232\">Carlini et al.</a>): insert K secrets, train, then check any model or adapter by ranking each secret&#x27;s loss against never-inserted controls drawn from the same space. Measured on SmolLM2-135M, a memorized set lands at percentile 0.0 (loss 1.7 to 2.5) against a clean model&#x27;s 4.1 to 6.2. The verdict is a <strong>binomial-tail test (α = 0.05) over the count</strong> of memorized canaries, and <strong>exit 2 on MAJOR</strong> lets CI gate a leak.</p><blockquote><p>The verdict is a binomial tail on purpose. The obvious rule, &quot;MAJOR if any single canary ranks in the bottom 1%&quot;, fires MAJOR on a <strong>clean</strong> model about 15% of the time at K = 16 (a CI gate crying wolf one run in seven); the count-based test drops that false-MAJOR rate to ~1.2% while still catching a partial leak of 2 of 10. &quot;No exposure&quot; is the sampled-control approximation, not full-space rank enumeration, so it is evidence of no memorization, not a proof. The manifest is the sensitive artifact and is written <code>0600</code> on POSIX.</p></blockquote><p>Flags worth knowing: <code>insert --seed N</code> (default 0) makes the canaries and the rows they go to reproducible, and <code>insert --format auto|alpaca|sharegpt|chatml</code> (default <code>auto</code>) picks the format they are written in (below). <code>check --controls N</code> (default 128) sets how many never-inserted controls each secret is ranked against, and <code>check --device auto|cpu|cuda</code> picks where the loss is computed. <code>check -o report.json</code> writes a report that <strong>embeds every secret</strong>, so treat it like the manifest: keep it out of the repo.</p><p><code>insert</code> writes the canaries in the dataset&#x27;s own format, so the loader keeps them. <code>--format auto</code> (the default) detects it from the first 100 rows, as <code>data.format: auto</code> does; <code>--format alpaca</code>, <code>sharegpt</code> or <code>chatml</code> names it. In each, the carrier is the prompt and the secret is the trained response. <strong>Every other format is refused before anything is written</strong>, naming the format and exiting 1: <code>dpo</code> and <code>kto</code> have no single supervised response, <code>plaintext</code> trains on raw text rather than the chat turn <code>check</code> scores, <code>tool-calling</code> puts a tool-schema system turn before the prompt, and the multimodal formats need a real image or audio file per row. An explicit <code>--format</code> that is not the file&#x27;s own is refused too. <code>-o</code> takes <code>.jsonl</code>, or <code>.json</code> for a JSON array that loads back.</p><p>Canaries are <strong>spread through the file</strong>, not appended: the file is cut into one equal stretch per canary and each canary goes to a random row of its own stretch (<code>--seed</code> fixes the rows), while the dataset&#x27;s own rows keep their order. The manifest records the format, the file&#x27;s row count and each canary&#x27;s <code>row</code> (counted from 0). <code>insert</code> also prints how many canaries the default <code>data.val_split</code> of 0.1 trains on. On a 200-row ChatML file with <code>--count 8 --seed 1</code> it printed <code>Inserted 8 chatml canaries: 200 -&gt; 208 rows</code> and <code>7 of 8 canaries are in the training split; the rest are in the held-out tail.</code> Set <code>data.val_split: 0</code> for a run where every canary must be trained on.</p><blockquote><p><strong>Re-run this: an earlier &quot;OK&quot; from <code>soup data canary check</code> may have measured nothing.</strong> Upstream&#x27;s changelog says two things about <code>insert</code> before v0.76.0. It &quot;wrote chatml canaries into every dataset, so on any other format the loader dropped all of them and <code>check</code> could only report OK&quot; (#1216). And it appended the canaries, while the loader holds out the file&#x27;s last rows as validation, so &quot;from 135 rows on every appended canary was held out, no model trained on it, and <code>soup data canary check</code> could only report OK&quot; (#1331). The 135 matches the default of 16 canaries and the default <code>val_split</code> of 0.1: 135 original rows plus 16 canaries is 151 rows, and the held-out tail is 16 of them. A clean verdict on a model trained from a canary file made by an earlier release is therefore not evidence of no memorization if the dataset was in a format other than ChatML, or had 135 or more rows with the default 16 canaries and the default <code>data.val_split</code> of 0.1. In a ChatML file under 135 rows at least some canaries were still in the training split, and with <code>data.val_split: 0</code> all of them were. Re-insert with v0.76.0, retrain, and check again.</p></blockquote><h2 id=\"soup-train-replay-rehearse-the-old-task-so-the-new-one-does-not-erase-it\"><code>soup train --replay</code> — rehearse the old task so the new one does not erase it</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config new_task.yaml --replay old_task.jsonl --replay-ratio 0.1"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Continual-learning rehearsal: interleave a seeded sample of an old dataset into training so a new task does not overwrite the old one. <code>--replay-ratio</code> is the fraction of the <strong>final</strong> mixed set (<code>n_replay = round(r/(1-r) · n_new)</code>), rows are <strong>interleaved rather than appended</strong>, an undersized pool reports the shortfall instead of repeating rows, and the mix touches <code>train</code> only, so validation stays pure new-task.</p><blockquote><p><strong>Honest scope: proof-of-mechanism.</strong> On SmolLM2-135M + LoRA, replay retained the old task 7% better than a no-replay control (the correct direction), but forgetting without it was only about +4%, i.e. mild, so the effect size at full fine-tuning or 7B+ is unproven on a 4 GB box. Replay v1 is <code>sft</code> / <code>pretrain</code> only and is incompatible with <code>packing</code> / <code>multipack</code>.</p></blockquote><h2 id=\"fixes-that-shipped-with-it\">Fixes that shipped with it</h2><ul><li><strong>The hardware-fit gate refused to train any locally-merged model.</strong> A <code>soup merge -o ./mymodel</code> output has no size marker in its name, so the size guesser returned its 7B default, predicted ~16 GB of VRAM, and refused, blocking the exact merge-then-train-from-merged flow that <code>--replay</code> serves. Local checkpoints are now measured from their safetensors header (0.135B actual versus 7.0B guessed). This is the third instance of that class after the v0.71.32 (Whisper) and v0.71.33 (<code>M</code> suffix) fixes, and all three were caught by a live smoke, never a unit test.</li><li><strong>Replay rows now get the same path-traversal validation as the primary dataset</strong> (a llava-shaped <code>{&quot;image&quot;: ...}</code> replay row previously bypassed the vision/audio guard).</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/data-tools\">Data Tools</a> — inspect, validate, convert, merge, and plain MinHash dedup.</li><li><a href=\"__DOCS_BASE__/data-engineering-pro\">Data Engineering Pro</a> — the dbt-shaped build DAG, <code>soup expect</code>, Magpie, brain-rot (Data Moat I).</li><li><a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> — the SHIP / DON&#x27;T-SHIP verdict a canary leak should block.</li><li><a href=\"__DOCS_BASE__/supply-chain-security\">Supply-chain security</a> — the other side of &quot;what leaves the model&quot;.</li></ul><nav><a href=\"__DOCS_BASE__/data-engineering-pro\"><span>Previous</span><span>Data Engineering Pro</span></a><a href=\"__DOCS_BASE__/best-of-n-evolve\"><span>Next</span><span>Best-of-N &amp; Evolve</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

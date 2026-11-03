@@ -1,0 +1,74 @@
+{
+  "slug": "rlvr",
+  "title": "RLVR — Reinforcement Learning from Verifiable Rewards",
+  "description": "RLVR training with verifiable math, code, and JSON-schema rewards via GRPO. No reward model, no human labels. New in v0.25.0.",
+  "source": "https://trysoup.dev/docs/rlvr",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "d9dada89655752c7eabe37c34040e3cfab46def285b0b662105fdf870e60d17a",
+  "headings": [
+    {
+      "level": 2,
+      "id": "enable-it",
+      "title": "Enable it"
+    },
+    {
+      "level": 2,
+      "id": "built-in-reward-functions",
+      "title": "Built-in reward functions"
+    },
+    {
+      "level": 3,
+      "id": "when-the-reward-is-a-judge-not-a-verifier-v0-77-0",
+      "title": "When the reward is a judge, not a verifier (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "generate-training-data",
+      "title": "Generate training data"
+    },
+    {
+      "level": 2,
+      "id": "how-the-answer-is-read",
+      "title": "How the answer is read"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "safety",
+      "title": "Safety"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">RLVR — Reinforcement Learning from Verifiable Rewards</h1><p>v0.25.0 adds deterministic reward signals for GRPO training on math, code, and JSON-schema tasks. No reward model, no human labels.</p><h2 id=\"enable-it\">Enable it</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: Qwen/Qwen3-8B\ntask: grpo\n\ndata:\n  train: math_problems.jsonl\n  format: chatml\n\ntraining:\n  reward_fn: verifiable\n  verifiable_domain: math   # math | code | json_schema\n  lr: 1e-5\n  epochs: 1\n  gradient_checkpointing: true   # since v0.77.0 the default false turns it off on GRPO\n  lora: { r: 16, alpha: 32 }"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>training.gradient_checkpointing</code> reaches the GRPO trainer since v0.77.0 (#797, #1778). With the default <code>false</code> a GRPO run now trains with checkpointing off, where TRL&#x27;s own default (on) used to apply, so a config that never set the key uses more activation memory than it did. Keep the line above to keep the memory you had; upstream&#x27;s shipped GRPO recipes now set it (#1923).</p><h2 id=\"built-in-reward-functions\">Built-in reward functions</h2><div><table><thead><tr><th>Domain</th><th>What it does</th><th>Sandbox</th></tr></thead><tbody><tr><td><code>math</code></td><td>Reads the final answer of the completion and of the gold with one parser (see <a href=\"#how-the-answer-is-read\">How the answer is read</a>), compares a numeric gold by value with tolerance and any other gold as normalised text</td><td>pure Python</td></tr><tr><td><code>code</code></td><td>Executes Python against expected outputs</td><td>best-effort sandbox: subprocess, 5 s timeout, 10 KB output cap, 512 MB address-space limit on POSIX. Network isolation is <strong>not</strong> guaranteed (see Safety)</td></tr><tr><td><code>json_schema</code></td><td>Validates output against a JSON Schema and scores completeness</td><td>pure Python</td></tr></tbody></table></div><p>All three live in <code>soup_cli/trainer/rewards.py</code> and are routed through the existing GRPO trainer.</p><h3 id=\"when-the-reward-is-a-judge-not-a-verifier-v0-77-0\">When the reward is a judge, not a verifier (v0.77.0)</h3><p>A task with no checkable answer can use <code>reward_fn: judge_rank</code> instead (#2047, #2117): one judge call per prompt scores all of its completions against each other, from 0 to 1. It is not verifiable: it needs <code>training.grpo_judge</code> (a judge URL, checked at load: plain <code>http</code> only to a loopback host, and no private, link-local or reserved IP literal) and <code>training.grpo_judge_max_calls</code>, which has no default, and a run that could make more judge calls than that is refused after the data loads and before the model does. It runs on <code>task: grpo</code> only, not on <code>backend: mlx</code>, not with <code>modality: vision</code>, and not beside <code>prm_reward</code> or a <code>rollout_backend</code>. <strong>Prompts and completions are sent to the judge host you configure</strong>, and a request the judge answers with 429 or a 5xx, or that times out, is retried up to twice inside each counted call, so the host can see up to three requests per counted call. No quality claim is made for it. The settings and limits are on <a href=\"__DOCS_BASE__/grpo-plus#llm-judge-ranking-reward-judge-rank-v0-77-0\">GRPO Plus</a>.</p><h2 id=\"generate-training-data\">Generate training data</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data generate \\\n  --prompt \"Math word problems, each with a single exact numeric answer\" \\\n  --provider ollama --count 500 --output verifiable.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--prompt</code> is required, and <code>--template</code> accepts only <code>code</code>, <code>conversation</code>, <code>qa</code>, <code>preference</code> and <code>reasoning</code>; there is <strong>no <code>verifiable</code> template</strong> and no flag that selects the verifiable helper (<code>--domain</code> exists, but it only picks the domain of the <code>reasoning</code> template). <code>soup_cli/data/templates/verifiable.py</code> builds problems with ground-truth answers you can verify at training time, but it is a library helper with no command-line selector.</p><p>As of v0.76.0, <code>--template reasoning</code> tells the generator how to end each solution so the gold can be read by these rewards: <code>math</code> rows end with a <code>#### &lt;number&gt;</code> line, <code>logic</code> and <code>code</code> rows with an <code>Answer: &lt;answer&gt;</code> line (#1349). Before that the prompt asked only for &quot;the final answer&quot;, and a gold such as <code>So there are 42 apples.</code> made <code>soup train</code> refuse the dataset before generation.</p><h2 id=\"how-the-answer-is-read\">How the answer is read</h2><p><em>Since v0.76.0 (#1226).</em> GRPO&#x27;s <code>accuracy</code> reward and the <code>math</code> domain read the completion and the gold with the same parser, so a spelling understood on one side is understood on the other. Before this, only the completion was parsed, and a reference such as <code>6*7=42\\n#### 42</code> was compared raw.</p><p>The answer is whichever of these the text states:</p><ol><li>The text after the last <code>####</code>.</li><li>The last <code>\\boxed{}</code>. A space before the brace and nested braces are allowed.</li><li>The text after <code>The answer is</code> or <code>Answer:</code> (also <code>**Answer**:</code>, and on the next line). The number is read from its own clause, so <code>The answer is 41 apples, not 42.</code> is 41, and <code>The answer is 42 because 6*7=42.</code> is 42.</li></ol><p>A completion that states none of these is scored by its last number. A phrase that names more than one distinct value is a hedge and scores 0.0 whatever the gold (<code>The answer is either 41 or 42.</code>).</p><p>Both sides are normalised the same way: <code>$</code> and <code>\\(...\\)</code> delimiters, trailing punctuation, thousands separators (<code>1,000</code>, <code>1{,}000</code>), the Unicode minus, <code>\\text{}</code> and similar wrappers, degree marks and the compact <code>\\frac12</code> spellings. A variable prefix is kept, so <code>x = 3</code> does not match <code>y = 3</code>. A numeric gold is compared by value; any other gold, such as <code>\\frac{14}{3}</code>, is compared as normalised text. <strong>Units are not stripped</strong> (<code>42 apples</code> does not match <code>42</code>) and <strong>nothing is evaluated</strong> (<code>\\frac{1}{2}</code> does not equal <code>0.5</code>).</p><p>Scoring: <code>accuracy</code> returns 1.0 or 0.0, with no partial credit. <code>math</code> returns 1.0 within the tolerance, 0.6 for a near-miss (within <code>max(100 x tolerance, 1e-2)</code>) and 0.0 otherwise; its near-miss band is unchanged.</p><p>A gold that states no single final answer is refused <strong>before generation</strong>, with its split, row and field and a count of the other such rows: a multi-line reference with no marked answer, a hedge, a <code>#### Solution</code> heading over a worked solution, or <code>x =</code> with nothing after it. When some golds are not numbers, validation prints how many are compared as text, so a dataset that mixes numeric and LaTeX answers (MATH-500, for example) loads. PPO&#x27;s <code>accuracy</code> and <code>math</code> rewards use the same scoring, but PPO&#x27;s data is not validated this way.</p><h2 id=\"re-run-this\">Re-run this</h2><div><table><thead><tr><th>If you trained</th><th>What was wrong</th><th>What to do</th></tr></thead><tbody><tr><td>GRPO with <code>reward_fn: accuracy</code>, or <code>verifiable</code> with <code>verifiable_domain: math</code>, on a dataset whose reference was an Alpaca <code>output</code> or a ShareGPT or ChatML turn such as <code>6*7=42\\n#### 42</code></td><td>The reference was compared raw, so every correct completion scored 0.0, every group had zero reward variance and GRPO got no signal, with no warning (#1226)</td><td>Re-run. A run whose logged reward sat at 0.0 learned nothing from the reward</td></tr><tr><td>GRPO with <code>reward_fn: accuracy</code></td><td>It paid 0.5 whenever the gold string appeared anywhere in the completion (<code>#### 420</code> for a gold of 42) (#1226)</td><td>Treat accuracy rewards from earlier versions as partly wrong credit; re-run if the task mattered</td></tr><tr><td>GRPO with <code>accuracy</code> or <code>math</code> on MATH-style golds written with <code>\\text{}</code>, a degree mark, <code>\\frac12</code> or a variable prefix such as <code>x = 7</code></td><td>A correct completion in one spelling scored 0.0 against a gold in another (#1346)</td><td>Re-run if the logged reward looked low for a model that was answering correctly</td></tr><tr><td><code>soup train --resume</code> on <code>task: grpo</code> with <code>grpo_beta</code> above 0, before v0.77.0</td><td>The resumed run &quot;restored the optimizer and the step counter and trained a freshly initialised adapter&quot; (#1768, #1797). <code>grpo</code> with <code>grpo_beta: 0</code> was not affected</td><td>Upstream: &quot;Re-run any dpo, ipo or grpo training that was resumed from a checkpoint.&quot;</td></tr><tr><td><code>training.relora_steps</code> on <code>task: grpo</code> with <code>grpo_beta</code> above 0, on v0.76.0 or v0.76.1</td><td>Every ReLoRA restart merged the trained adapter into the base weights trl reads the reference from, &quot;so from the first restart on the reference was the policy as of that step, without an error&quot; (#1835, #1891). Refused at load since v0.77.0</td><td>Remove <code>relora_steps</code> and train again</td></tr></tbody></table></div><h2 id=\"safety\">Safety</h2><ul><li><code>code_exec</code> is a <strong>best-effort sandbox, not an isolation boundary</strong>, and Soup says so in a warning panel the first time it runs. Each completion runs in a short-lived subprocess started with <code>python -I -S</code>, with a 5 s timeout, a 10 KB output cap, a throwaway working directory and a reduced environment. On Linux and macOS it also gets resource limits (512 MB address space, CPU time, file size, open files, processes); on Windows it gets none of those. There is no restricted-builtins mechanism.</li><li><strong>Network access is not blocked reliably.</strong> The guard is a Python-level socket patch, and generated code can bypass it through <code>os.system</code>, <code>subprocess</code> or <code>ctypes</code>. OS-level isolation is added only on Linux with Python 3.12 or newer (the <code>os.unshare</code> call, and only if the kernel allows unprivileged user namespaces; otherwise it falls back silently) and on macOS through <code>sandbox-exec</code>. Do not use <code>verifiable_domain: code</code> on a host that holds secrets or on untrusted data; run training in a container or VM with no network interface. <a href=\"__DOCS_BASE__/soup-cans-v2\">Soup Cans v2</a> describes the same isolation tiers.</li><li><code>math_verify</code> never uses <code>eval()</code> on model output. Answers are read by the shared answer parser described above and compared as numbers or as normalised text; nothing is evaluated.</li><li><code>verifiable_domain</code> is a Pydantic <code>Literal</code> so arbitrary strings can&#x27;t reach the dispatcher.</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/training\">Training methods</a> — GRPO</li><li><a href=\"__DOCS_BASE__/autopilot\">Autopilot</a> — <code>--goal reasoning</code> writes <code>task: grpo</code> and leaves <code>reward_fn</code> at its default of <code>accuracy</code>; set <code>reward_fn: verifiable</code> yourself to use RLVR</li></ul><nav><a href=\"__DOCS_BASE__/tool-calling\"><span>Previous</span><span>Tool-Calling</span></a><a href=\"__DOCS_BASE__/multi-gpu\"><span>Next</span><span>Multi-GPU Mastery</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

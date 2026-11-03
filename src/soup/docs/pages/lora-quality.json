@@ -1,0 +1,102 @@
+{
+  "slug": "lora-quality",
+  "title": "LoRA Quality — PiSSA, ReLoRA, Per-Pattern Rank, Surgical Patches (v0.39.0)",
+  "description": "PiSSA SVD init, ReLoRA merge-and-reinitialise cycles, per-target-module rank/alpha overrides, surgical patches for Gemma 4 and fused-MoE. 21-template YAML registry. New in v0.39.0.",
+  "source": "https://trysoup.dev/docs/lora-quality",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "4636b22da862ad52bae2de1206b2541776f93811efad65ccef37fccd1c533298",
+  "headings": [
+    {
+      "level": 2,
+      "id": "pissa",
+      "title": "PiSSA"
+    },
+    {
+      "level": 2,
+      "id": "relora",
+      "title": "ReLoRA"
+    },
+    {
+      "level": 2,
+      "id": "per-pattern-rank-alpha",
+      "title": "Per-pattern rank/alpha"
+    },
+    {
+      "level": 2,
+      "id": "freezing-layers-under-lora-v0-77-0",
+      "title": "Freezing layers under LoRA (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "rslora-on-mlx-and-unsloth-v0-77-0",
+      "title": "rsLoRA on MLX and Unsloth (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "lora-fa-frozen-a-lora",
+      "title": "LoRA-FA (frozen-A LoRA)"
+    },
+    {
+      "level": 2,
+      "id": "fast-lora-kernels-training-fast-lora-v0-77-0",
+      "title": "Fast-LoRA kernels: training.fast_lora (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "surgical-patches",
+      "title": "Surgical patches"
+    },
+    {
+      "level": 2,
+      "id": "template-registry",
+      "title": "Template registry"
+    },
+    {
+      "level": 2,
+      "id": "scope",
+      "title": "Scope"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">LoRA Quality — PiSSA, ReLoRA, Per-Pattern Rank, Surgical Patches (v0.39.0)</h1><p>Five PEFT-surface improvements that LlamaFactory and Axolotl maintain.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization: none              # required: the schema default is 4bit; PiSSA and ReLoRA need a float base\n  lora:\n    init_strategy: pissa          # 'random' (default), 'pissa', 'olora'\n    rank_pattern:                 # per-target-module rank override; keys are REGEXES\n    # Since v0.75.1 each key is length-capped at 512, compiled explicitly, and\n    # put through the same structural regex check as lr_groups, because peft\n    # matches every key as a regex against every module name in the model.\n      q_proj: 8\n      v_proj: 16\n    alpha_pattern:                # per-target-module alpha override\n      q_proj: 16\n  relora_steps: 500               # merge and re-initialise the adapter every 500 steps\n  relora_warmup_ratio: 0.1        # skip first 10% of training\n  relora_prune_ratio: 0.9         # deprecated: kept so old YAML loads, ignored\n  relora_reset_optimizer: true    # clear optimizer state after each restart"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"pissa\">PiSSA</h2><p>PiSSA initializes the LoRA pair from the <strong>SVD of the base weight</strong>, giving faster early convergence than random init at the cost of one extra SVD pass on the first epoch.</p><p><strong>If you set one of these before v0.76.0, the adapter you got was plain LoRA.</strong> Through v0.75.2 <code>lora.init_strategy</code> (<code>pissa</code>, <code>olora</code>, <code>loftq</code>), <code>lora.use_olora</code>, <code>lora.loftq_iter</code>, <code>lora.loftq_bits</code> and <code>lora.use_vera</code> were accepted by the schema and read by no trainer, so a run that set one trained an ordinary random-init LoRA, exit 0, normal loss curve. v0.76.0 sends every transformers trainer&#x27;s adapter through one builder: PiSSA, OLoRA and LoftQ change the base weight at attach time, and VeRA builds a PEFT <code>VeraConfig</code> instead of a LoRA one. Re-run to get the variant.</p><p>Since v0.76.0 (#1037) the strategy is checked when the config loads. <code>pissa</code> and <code>loftq</code> need <code>training.quantization: none</code>, because PEFT computes on the floating-point base weights: under the default <code>4bit</code> the config is refused with <code>training.lora.init_strategy=&#x27;pissa&#x27; requires training.quantization=&#x27;none&#x27;</code>. A non-random <code>init_strategy</code> and <code>use_vera</code> are refused on <code>backend: unsloth</code> and <code>backend: mlx</code>, which build their own adapters. <code>use_dora</code> is refused on <code>backend: unsloth</code>, and on <code>backend: mlx</code> except text SFT at <code>quantization: none</code> or <code>4bit</code>, which builds DoRA natively since v0.77.0 (see <a href=\"__DOCS_BASE__/mlx-backend#dora-on-mlx\">DoRA on MLX</a>). <code>olora</code> still loads at <code>4bit</code>.</p><p><code>init_strategy: olora</code> is also accepted; setting the legacy <code>use_olora: true</code> auto-aligns for back-compat.</p><h2 id=\"relora\">ReLoRA</h2><p>ReLoRA fires every N global steps. Each restart merges the LoRA update (<code>B @ A</code>, with PEFT scaling) into the frozen base weight, re-initialises <code>lora_A</code> (Kaiming) and <code>lora_B</code> (zeros), optionally clears the optimizer state of those adapter parameters (<code>relora_reset_optimizer</code>, default <code>true</code>), and re-warms the learning rate: the first post-restart step uses <code>1/(W+1)</code> of the target rate for a warmup of <code>W</code> steps, then rises by that increment to the full rate. Useful for very long training runs where the LoRA capacity saturates.</p><p><strong>ReLoRA is a behaviour break in v0.76.0 (#693).</strong> Through v0.75.2 it magnitude-pruned the adapter instead of restarting it, and <code>relora_prune_ratio</code> set how much; that key is now deprecated and ignored (a restart no longer prunes). If you ran with <code>relora_steps</code> before, you trained a different procedure than the one now described.</p><ul><li><code>relora_steps</code> <strong>requires an explicit <code>quantization: none</code></strong>, since a merge needs a writable float base; under the default <code>4bit</code> the config is refused. It is also refused with <code>lora.use_vera</code>, <code>lora.use_dora</code>, <code>stream_layers</code> and <code>use_fsdp2_compile</code>, and on <code>backend: mlx</code>.</li><li><strong>Since v0.77.0 it is refused where the loss has a frozen reference</strong> (#1835, #1891): on <code>dpo</code>, <code>ipo</code>, <code>kto</code> and <code>bco</code>, on <code>grpo</code> with <code>grpo_beta</code> above 0, and on a <code>preference</code> run whose loss or blend names <code>dpo</code>, <code>ipo</code> or <code>bco</code>. trl reads those references from the policy&#x27;s own base weights, and every ReLoRA restart merges the trained adapter into them, so upstream says &quot;from the first restart on the reference was the policy as of that step, without an error&quot;. <code>sft</code>, <code>orpo</code>, <code>simpo</code>, <code>grpo</code> with <code>grpo_beta: 0</code> and a <code>simpo</code> / <code>orpo</code> preference run keep ReLoRA. If you trained one of the refused shapes with <code>relora_steps</code> on v0.76.0 or v0.76.1 (the merging restart arrived in v0.76.0), re-run it without the key.</li><li>Restarts accumulate faithfully only on an fp32 base; a bf16 or fp16 base loses the merge delta to rounding.</li><li>The final output is a <strong>standalone dense model</strong>: Soup merges the active adapter into the accumulated in-memory base and saves it. Load or export that output directly; do not run <code>soup merge</code> on it.</li><li><code>--resume</code> and <code>--hf-resume</code> are refused when <code>relora_steps</code> is set, because intermediate checkpoints do not encode the accumulated restart state.</li></ul><p>ReLoRA is wired into the preference and RL trainers too; since v0.77.0 it is refused on the losses listed above.</p><h2 id=\"per-pattern-rank-alpha\">Per-pattern rank/alpha</h2><p>Map module name patterns to integer ranks. Useful in MoE configs where expert FFNs need lower rank than attention.</p><p>Caps: 256 keys × value 1024. <code>bool</code> rejected on values. Incompatible with <code>use_vera</code> (VeRA shares one rank). Since v0.76.0 (#923) the two pattern keys are applied by every trainer that attaches a LoRA adapter, <code>asr</code>, <code>classifier</code>, <code>distill</code>, <code>embedding</code>, <code>ppo</code>, <code>unlearn</code> and layer streaming included. Through v0.75.2 only SFT and pretraining built their adapter through the shared builder, so on <code>dpo</code>, <code>orpo</code>, <code>simpo</code>, <code>kto</code>, <code>bco</code>, <code>ipo</code>, <code>grpo</code>, <code>ppo</code>, <code>online_dpo</code>, <code>reward_model</code>, <code>embedding</code>, <code>classifier</code>, <code>distill</code> and <code>asr</code> the keys were ignored and the adapter was uniform-rank; re-run if you set them there. All of that is <strong>on <code>backend: transformers</code></strong>: <code>backend: mlx</code> (#1996) and <code>backend: unsloth</code> (#2153) build one scalar-rank adapter, and through v0.76.1 dropped both keys without a word, so the run trained a uniform-rank adapter. Since v0.77.0 they refuse the keys at config load (<code>training.lora.rank_pattern is not applied by backend: mlx ...</code>); an empty <code>{}</code> sets nothing and still loads. Upstream calls this a stop-gap until those trainers apply the patterns (MLX: tracked as #1996).</p><h2 id=\"freezing-layers-under-lora-v0-77-0\">Freezing layers under LoRA (v0.77.0)</h2><p><code>training.freeze_layers</code> / <code>freeze_ratio</code> with LoRA are applied since v0.77.0 (#1432, #2145): a frozen layer gets no adapter, so <code>freeze_layers: 16</code> with LoRA trains adapters only on the layers above the bottom 16. Through v0.76.1 the freeze was set before peft attached the adapter, which then put a trainable adapter on every targeted module in every layer, the frozen ones included, so the run trained more than it said. Such a config now trains fewer layers than before, which is what the option always documented, and its results change. The keys are read by <code>task: sft</code> (and <code>tts</code>) on the transformers text path without layer streaming, as before.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  freeze_layers: 16\n  lora:\n    r: 16\n    alpha: 32\n    target_modules: [q_proj, k_proj, v_proj, o_proj]   # a list: peft restricts a list by layer"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The adapter can follow the freeze only for a list of module names. Refused when the model is built, after the config loads (so <code>soup train --dry-run</code> does not catch it): a string <code>lora.target_modules</code> (a regex, or <code>all-linear</code>, including what <code>auto</code> resolves to on some architectures), a list target that resolves only outside a numbered decoder layer (such as <code>embed_tokens</code>; a top-level <code>lm_head</code> target is accepted), <code>lora.target_parameters</code>, <code>lora.use_vera</code>, and a plan that freezes every layer (#2201). Full fine-tuning (<code>lora.r: 0</code>) is unchanged.</p><h2 id=\"rslora-on-mlx-and-unsloth-v0-77-0\">rsLoRA on MLX and Unsloth (v0.77.0)</h2><p><code>lora.use_rslora: true</code> scales by <code>alpha / sqrt(r)</code> on every backend since v0.77.0. Through v0.76.1 <code>backend: mlx</code> and <code>backend: unsloth</code> loaded the flag and never read it, so an rsLoRA run there trained at the plain-LoRA scale <code>alpha / r</code>, an 8x smaller update at the default <code>r: 64, alpha: 16</code> (#1899). Such a config&#x27;s results change on v0.77.0: re-run if you wanted rsLoRA, or drop the flag to keep the old scale. See <a href=\"__DOCS_BASE__/backends#rslora-rank-stabilized-lora\">rsLoRA</a>.</p><h2 id=\"lora-fa-frozen-a-lora\">LoRA-FA (frozen-A LoRA)</h2><p><code>training.use_lorafa: true</code> (v0.76.0, #725) freezes the random LoRA A matrices and trains only the B matrices, using PEFT&#x27;s <code>create_lorafa_optimizer</code> (<a href=\"https://arxiv.org/abs/2308.03303\">arXiv:2308.03303</a>).</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  lr: 2e-4\n  use_lorafa: true\n  lora:\n    r: 64\n    alpha: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It needs <code>backend: transformers</code> and a LoRA adapter (<code>lora.r</code> of at least 1), and it applies to <code>sft</code>, <code>pretrain</code> and <code>embedding</code>. It is refused with <code>loraplus_lr_ratio</code> (LoRA+ tunes the A matrices that LoRA-FA freezes), <code>use_galore</code>, <code>lora.use_vera</code>, a non-AdamW <code>optimizer</code>, <code>lora.r: 0</code> and <code>backend: mlx</code>. It has not been validated under <code>stream_layers: true</code>.</p><p>Upstream&#x27;s only measurement is a micro-benchmark on a 2-layer, hidden-256 model (<a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.77.0/benchmarks/gate-725-lorafa-operating-point.md\">record</a>). <strong>It is not a total or peak VRAM saving, a throughput result or a quality claim</strong>, and this site quotes no figure from it; task quality and end-to-end throughput against standard LoRA are unmeasured.</p><h2 id=\"fast-lora-kernels-training-fast-lora-v0-77-0\">Fast-LoRA kernels: training.fast_lora (v0.77.0)</h2><p><code>training.fast_lora: true</code> runs a LoRA&#x27;s projections through Soup&#x27;s own autograd functions instead of peft&#x27;s modules: q/k/v with one shared input, gate/up/down as one SwiGLU block, and every other adapted Linear as a single projection (#792, #1973, by @ybai08). Setup prints what each kernel took over and refuses the run when none did. Off by default.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  fast_lora: true\n  quantization: 4bit      # or none\n  lora:\n    dropout: 0            # required: Soup's default is 0.05"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Scope, refused at load otherwise, with the reason: <code>task: sft</code>, <code>backend: transformers</code>, <code>modality: text</code>, <code>quantization</code> <code>none</code> or <code>4bit</code>, a LoRA (<code>lora.r</code> of at least 1) and <code>lora.dropout: 0</code> (peft gives every projection its own dropout, so q/k/v and gate/up would no longer share the one input the kernels read). It is also refused beside <code>use_liger</code>, DoRA, VeRA, <code>lora.target_parameters</code>, Spectrum&#x27;s <code>unfrozen_parameters</code>, LISA and <code>quantization_aware: fp8</code>. It runs on the resident and the layer-streamed SFT paths.</p><p><strong>What is verified, and what is not.</strong> Upstream&#x27;s statement: verified on CPU (float32 and float64 against peft) only; the bf16/fp16, NF4 and streamed-CUDA checks have not been run, and no speedup is claimed. No speed or memory figure is published here.</p><h2 id=\"surgical-patches\">Surgical patches</h2><ul><li><strong>Gemma 4</strong> <code>ClippableLinear</code> swap (auto-detected via word-boundary regex on model name)</li><li><strong>Fused-MoE 3-D expert</strong> <code>lora_dropout</code> strip</li></ul><p>Both auto-fire when the model name and architecture match. Both are gated and silent on unrelated models.</p><h2 id=\"template-registry\">Template registry</h2><p>The 21 built-in templates now live as <code>soup_cli/templates/*.yaml</code> with a <code>manifest.json</code> index. <code>soup init --template &lt;name&gt;</code> reads the YAML; the inline copies in <code>schema.py</code> stay as a back-compat fallback, deprecated in favour of the YAML registry.</p><p><code>load_template</code> containment-checks the resolved path against <code>_templates_dir()</code> so a tampered <code>manifest.json</code> cannot read files outside the package directory.</p><h2 id=\"scope\">Scope</h2><p>Wired into the SFT trainer + transformers backend in v0.39.0. ReLoRA is wired into the preference and RL trainers too, except on the losses v0.77.0 refuses it for (see <a href=\"#relora\">ReLoRA</a>). The MLX backend refuses <code>relora_steps</code>, the non-random <code>init_strategy</code> values and, since v0.77.0, <code>rank_pattern</code> / <code>alpha_pattern</code> at config load.</p><nav><a href=\"__DOCS_BASE__/multipack\"><span>Previous</span><span>Multipack: FFD Bin-Packing Sampler</span></a><a href=\"__DOCS_BASE__/preference-variety\"><span>Next</span><span>Preference Variety</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

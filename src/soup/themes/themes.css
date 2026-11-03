@@ -1,0 +1,230 @@
+@import './palettes.css';
+@import './omarchy-light.css';
+
+html[data-theme='soup'] {
+  color-scheme: dark;
+  --t-bg: #0a0a0a;
+  --t-bg-deep: #080808;
+  --t-surface: #12100f;
+  --t-surface-2: #191512;
+  --t-border-subtle: #292522;
+  --t-border-strong: #4b3b32;
+  --t-text: #ededed;
+  --t-text-secondary: #b4aaa3;
+  --t-text-muted: #8b7e74;
+  --t-brand: #c0512d;
+  --t-brand-soft: #c0512d1f;
+  --t-brand-ink: #fff;
+  --t-field-bg: #0a0a0a;
+  --t-field-dim: #37231c;
+  --t-field-mid: #713c2b;
+  --t-field-lit: #c0512d;
+  --t-field-hover: #e9a180;
+  --t-field-crest: #f7d4c4;
+}
+html[data-theme='white'] {
+  --bg: var(--t-bg);
+  --fg: var(--t-text);
+  --muted: var(--t-text-muted);
+  --accent: var(--t-brand);
+  --accent-light: var(--t-brand);
+  --line: var(--t-border-subtle);
+}
+
+/* Existing Soup sections use fixed warm inks. Bridge them to the chosen palette. */
+html[data-theme='white'] .site-header {
+  background: var(--bg);
+  border-color: var(--line);
+}
+html[data-theme='white']
+  :is(.main-nav, .install-command, .workflow-panel, .feature-art) {
+  background: var(--t-bg-deep);
+}
+html[data-theme='white'] :is(.stream-section, .final-section) {
+  background: var(--t-surface);
+}
+html[data-theme='white']
+  :is(.install-command, .install-command button, .terminal-bar, .route-line) {
+  border-color: var(--t-border-strong);
+}
+html[data-theme='white']
+  :is(
+    .main-nav a,
+    .github-link,
+    .language-control,
+    .hero-topline .eyebrow,
+    .hero-copy > p:not(.hero-note),
+    .install-command button,
+    .terminal-description,
+    .terminal-output,
+    .feature-copy ul,
+    .evaluation-footer ul,
+    .stream-copy > p:not(.eyebrow),
+    .integration,
+    .footer-links a,
+    .final-copy > p
+  ) {
+  color: var(--t-text-secondary);
+}
+html[data-theme='white']
+  :is(
+    .hero-note,
+    .hero-baseline,
+    .step,
+    .terminal-bar,
+    .terminal-meta,
+    .art-caption,
+    .stream-copy > p.small-print,
+    .migration-tabs button,
+    .migration-route,
+    .migration-command .text-link,
+    .zero-strip p,
+    .footer-top > div:first-child > p,
+    .footer-bottom,
+    .footer-bottom > a
+  ) {
+  color: var(--t-text-muted);
+}
+html[data-theme='white']
+  :is(
+    .install-command code,
+    .terminal-body pre,
+    .step.active,
+    .migration-tabs button.active
+  ) {
+  color: var(--fg);
+}
+html[data-theme='white'] :is(.button.primary, .nav-cta, .skip-link) {
+  color: var(--t-brand-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+html[data-theme='white'] :is(.button.primary:hover, .nav-cta:hover) {
+  background: color-mix(in srgb, var(--accent) 85%, var(--fg));
+  border-color: var(--accent);
+}
+html[data-theme='white']
+  :is(.step.active, .migration-tabs button.active, .integration:hover) {
+  background: var(--t-brand-soft);
+}
+html[data-theme='white']
+  :is(
+    .main-nav a:hover,
+    .github-link:hover,
+    .step:hover,
+    .migration-tabs button:hover,
+    .integration:hover
+  ) {
+  color: var(--fg);
+}
+html[data-theme='white']
+  :is(.text-link.accent:hover, .stream-glyph, .terminal-lights i:first-child) {
+  color: var(--accent);
+}
+html[data-theme='white'] .stream-packet {
+  background: var(--accent);
+}
+html[data-theme='white'] .soup-wordmark rect {
+  fill: var(--t-field-lit);
+}
+html[data-theme='white'] .hydra-evaluation {
+  --line: var(--t-border-strong);
+  --muted: var(--t-text-muted);
+  --dim: var(--t-text-secondary);
+  --ember: var(--accent);
+  color: var(--fg);
+}
+html[data-theme='white']
+  .hydra-evaluation
+  .hbr-cell[data-hot]
+  :is(.hbr-lab, .hbr-cap, .hbr-arr) {
+  color: var(--fg);
+}
+html[data-theme='white'] .document-art {
+  background: #080808;
+}
+html[data-theme='white'] .document-art .art-caption {
+  color: #b4aaa3;
+}
+html[data-theme='white'] ::selection {
+  background: var(--accent);
+  color: var(--t-brand-ink);
+}
+
+.soup-theme-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 36px;
+  flex-shrink: 0;
+  padding: 6px;
+  background: transparent;
+  color: var(--fg);
+}
+.soup-theme-trigger:hover {
+  color: var(--accent-light);
+}
+.soup-theme-trigger:disabled {
+  cursor: wait;
+}
+@media (max-width: 760px) {
+  .soup-theme-trigger {
+    width: 28px;
+    padding: 4px;
+  }
+}
+
+/* A hard edged pixel wave replaces the entire old page, including its canvas. */
+html[data-soup-theme-transition]::view-transition-group(root) {
+  animation: none;
+}
+html[data-soup-theme-transition]::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+  mix-blend-mode: normal;
+}
+html[data-soup-theme-transition]::view-transition-new(root) {
+  z-index: 2;
+  mix-blend-mode: normal;
+  animation: soup-theme-pixel-wave 650ms steps(13, end) both;
+}
+@keyframes soup-theme-pixel-wave {
+  from {
+    clip-path: polygon(
+      100% 0,
+      100% 100%,
+      100% 100%,
+      100% calc(var(--soup-theme-y) + 120px),
+      100% calc(var(--soup-theme-y) + 120px),
+      100% calc(var(--soup-theme-y) + 60px),
+      var(--soup-theme-x) calc(var(--soup-theme-y) + 60px),
+      var(--soup-theme-x) calc(var(--soup-theme-y) - 60px),
+      100% calc(var(--soup-theme-y) - 60px),
+      100% calc(var(--soup-theme-y) - 120px),
+      100% calc(var(--soup-theme-y) - 120px),
+      100% 0
+    );
+  }
+  to {
+    clip-path: polygon(
+      100% 0,
+      100% 100%,
+      -240px 100%,
+      -240px calc(var(--soup-theme-y) + 120px),
+      -180px calc(var(--soup-theme-y) + 120px),
+      -180px calc(var(--soup-theme-y) + 60px),
+      -120px calc(var(--soup-theme-y) + 60px),
+      -120px calc(var(--soup-theme-y) - 60px),
+      -180px calc(var(--soup-theme-y) - 60px),
+      -180px calc(var(--soup-theme-y) - 120px),
+      -240px calc(var(--soup-theme-y) - 120px),
+      -240px 0
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-soup-theme-transition]::view-transition-new(root) {
+    animation: none;
+  }
+}

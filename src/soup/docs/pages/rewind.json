@@ -1,0 +1,68 @@
+{
+  "slug": "rewind",
+  "title": "Find the rows behind a loss spike: soup rewind",
+  "description": "soup rewind names the dataset rows behind a training loss spike from the rewind.jsonl flight recorder an SFT run writes. Options, exit codes and JSON caveats.",
+  "source": "https://trysoup.dev/docs/rewind",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "e12a38431dc09d97f7d49b6d39be03bfbbcc391efd7cb726234527c985caf380",
+  "headings": [
+    {
+      "level": 2,
+      "id": "the-recorder",
+      "title": "The recorder"
+    },
+    {
+      "level": 2,
+      "id": "reading-it",
+      "title": "Reading it"
+    },
+    {
+      "level": 2,
+      "id": "exit-codes",
+      "title": "Exit codes"
+    },
+    {
+      "level": 2,
+      "id": "two-things-the-json-does",
+      "title": "Two things the JSON does"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Find the rows behind a loss spike: soup rewind</h1><p>A loss curve tells you that step 340 spiked. It does not tell you which rows were in the batch. <code>soup rewind</code> does, from a small flight recorder that an SFT run writes while it trains. It is new in v0.76.0, which takes Soup to 78 top-level commands.</p><p>Upstream&#x27;s own account of it, as one run: on an 8 GB M1 it flagged step 58 of a Qwen2.5-0.5B run and put the poisoned row at 100% of that step&#x27;s loss. That is a single anecdote, not a measured rate of any kind.</p><h2 id=\"the-recorder\">The recorder</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  rewind_log: true   # the default; false writes nothing"
+    },
+    {
+      "kind": "html",
+      "html": "<p>With <code>training.rewind_log</code> on, an SFT run writes <code>rewind.jsonl</code> into the run&#x27;s output directory (<code>&lt;output&gt;</code>, or <code>&lt;output&gt;/&lt;experiment_name&gt;</code> when <code>experiment_name</code> is set). It holds a header line (format version, backend, task, number of rows, batch size, gradient accumulation, and a fingerprint of the training rows) and then one line per micro-batch: the step, the dataset rows in the batch, each row&#x27;s mean supervised-token loss and its supervised-token count. A non-finite loss is stored as <code>null</code>. A previous run&#x27;s log in the same directory is kept as <code>rewind.jsonl.1</code>.</p><p>It records an SFT run on the transformers or the MLX backend, in a single process. A recorder failure never raises into training; it prints one <code>Rewind recorder disabled: ...</code>, <code>Rewind log disabled: &lt;path&gt;: &lt;error&gt;</code> (a log write that failed, such as a full disk) or <code>Rewind log off: &lt;reason&gt;</code> line and the run carries on. On the transformers backend the recorder switches itself off, with that one line, when it cannot attribute a loss to a row:</p><ul><li>a distributed launch (each rank samples its own shard);</li><li>a resumed run (a resume skips batches the recorder cannot see);</li><li><code>packing</code> or <code>padding_free</code>, which flatten each micro-batch into one sequence;</li><li><code>multipack</code>, RAFT, a vision run, an audio run, or a pre-tokenised dataset;</li><li>any task other than <code>sft</code>.</li></ul><p><code>soup rewind</code> then has nothing to read. Look for the <code>Rewind log off</code> or <code>Rewind recorder disabled</code> line in the training output.</p><h2 id=\"reading-it\">Reading it</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup rewind                              # the latest run: list the spikes, detail the worst\nsoup rewind <run_id> --step 340          # rank the rows of one step\nsoup rewind <run_id> --top 25 --no-preview\nsoup rewind <run_id> --json report.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It needs no model and no GPU. It finds the run in the local tracker (<code>~/.soup/experiments.db</code>), then looks for the log in the run&#x27;s recorded output directory, then in <code>&lt;output&gt;/&lt;experiment_name&gt;</code> and <code>&lt;output&gt;</code> from the run&#x27;s saved config, so a run that crashed before the tracker recorded its output directory can still be read.</p><p><strong>What counts as a spike.</strong> A step is <code>critical</code> when its token-weighted loss is not finite. It is a <code>warning</code> when its loss is strictly more than 2.0 times the median of the previous 20 measured finite steps, and at least 3 such steps lie behind it. Steps with no supervised tokens are skipped and never enter the baseline. The table lists critical spikes first, then warnings by ratio.</p><p><strong>How rows are ranked.</strong> Within the chosen step, each row&#x27;s share is <code>loss x tokens</code> divided by the sum of that quantity over the step. The share follows the row that moved the optimizer, not the row with the largest per-token mean, so one long malformed row stands out even when its per-token loss is ordinary. A row whose loss is not finite is listed first with a share of <code>0.0%</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": " Loss spikes\n Severity   Step     Loss   Baseline     ×\n warning       9   7.8429     0.9550   8.2\n\n Step 9 rows\n Row     Loss   Tokens   Share\n  17   9.0000      300   98.4%\n  16   0.9000       50    1.6%\nrow 17: 98% of step 9's loss, 300 tokens\nInspect or drop this row, then retrain."
+    },
+    {
+      "kind": "html",
+      "html": "<p>That output is from a synthetic twelve-step log. The last line names the worst row. &quot;Inspect or drop this row, then retrain.&quot; prints whenever the top row carries 50% or more of its step, or its loss is not finite, <strong>including on a step that was not a spike</strong>: <code>soup rewind &lt;run_id&gt; --step 3</code> on a clean run prints it for whichever row happens to be first.</p><div><table><thead><tr><th>Option</th><th>Meaning</th></tr></thead><tbody><tr><td><code>RUN_ID</code></td><td>A run id or a prefix of one. Defaults to the most recent run</td></tr><tr><td><code>--step N</code></td><td>Detail this step instead of the worst spike. The detail table prints even when the run has no spike</td></tr><tr><td><code>--top N</code></td><td>How many rows to list, default 10, at least 1</td></tr><tr><td><code>--json PATH</code></td><td>Also write the run id, the step, the spikes and the ranked rows to <code>PATH</code></td></tr><tr><td><code>--no-preview</code></td><td>Skip the preview column and do not load the dataset</td></tr></tbody></table></div><p><strong>Previews.</strong> Soup rebuilds the dataset from the run&#x27;s saved config and shows each row&#x27;s text only if the rebuilt rows fingerprint identically to the ones the run trained on. Otherwise it prints <code>Preview withheld: the dataset on disk differs from the one this run trained on (fingerprint mismatch).</code> and shows the ranking alone. The row number is an index into the training list Soup built from your data, after any validation split was held out, so it is not necessarily the line number in your file. Text from the dataset is stripped of control characters and shown literally before it reaches the terminal, so a crafted row cannot restyle your screen or inject markup.</p><h2 id=\"exit-codes\">Exit codes</h2><div><table><thead><tr><th>Code</th><th>Meaning</th></tr></thead><tbody><tr><td>0</td><td>A report printed, including <code>No loss spikes recorded.</code> and including when spikes were found. It never gates a pipeline on its own</td></tr><tr><td>1</td><td>No runs in the tracker, an unknown run id, no recorded output directory, no <code>rewind.jsonl</code> (the message names the three usual causes), a log with an unsupported version, a log with a header but no batches (<code>This says nothing about whether the run was clean.</code>), a step with no records, or a <code>--json</code> file that could not be written</td></tr><tr><td>2</td><td>The <code>--json</code> destination was refused. It is checked first, before the tracker is opened. A Click usage error is also 2</td></tr></tbody></table></div><p>The <code>--json</code> destination must stay under the current directory, must not be a symlink or a directory, and an existing regular file is replaced atomically.</p><h2 id=\"two-things-the-json-does\">Two things the JSON does</h2><p>Both are upstream behaviours at v0.77.0 (the <code>soup rewind</code> command is unchanged since v0.76.0), stated as they are.</p><ol><li><strong><code>--json</code> writes no file on a run with no spike.</strong> When no step qualifies and you did not pass <code>--step</code>, the command prints <code>No loss spikes recorded.</code> and returns before the write, with exit 0. A script that reads the file afterwards finds none. Pass <code>--step N</code> to force a detail table and a file.</li><li><strong>A non-finite loss is written as <code>NaN</code> or <code>Infinity</code>.</strong> Python&#x27;s <code>json.dumps</code> default emits those bare words, which are not valid JSON, and a strict parser rejects the file. Parse it with a reader that accepts them, such as Python&#x27;s <code>json.load</code>.</li></ol><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/training-stability\">Training stability</a>: loss-spike recovery and the watchdog act during the run; <code>soup rewind</code> explains one afterwards.</li><li><a href=\"__DOCS_BASE__/observability\">Observability</a>: <code>soup why</code>, <code>soup tui</code> and crash bundles.</li><li><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a>: <code>soup runs</code>, which holds the runs <code>soup rewind</code> reads.</li><li><a href=\"__DOCS_BASE__/configuration\">Configuration reference</a>: <code>training.rewind_log</code> in the training table.</li><li><a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a></li></ul><nav><a href=\"__DOCS_BASE__/experiments\"><span>Previous</span><span>Experiment Tracking</span></a><a href=\"__DOCS_BASE__/soup-bench\"><span>Next</span><span>soup bench</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

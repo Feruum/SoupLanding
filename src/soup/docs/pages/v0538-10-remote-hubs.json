@@ -1,0 +1,88 @@
+{
+  "slug": "v0538-10-remote-hubs",
+  "title": "v0.53.8 / v0.53.10 — Remote loaders, alternative hubs, tracker extras",
+  "description": "Soup CLI v0.53.8 / v0.53.10: fsspec remote loaders (s3/gs/gcs/az/abfs/abfss/oci), ModelScope + Modelers hub dispatcher with '--hub' on all major commands, '[trackers]' / '[mix]' / '[data-pro]' extras, PostHog env-var overrides, Web UI Tool Outputs panel, HF Space SDK auto-pick, wheel-safe demo bundles.",
+  "source": "https://trysoup.dev/docs/v0538-10-remote-hubs",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "7893b4e86c61a59866bf867051c72ccf66e526211ecba1ae77e94b6e0b95bfd9",
+  "headings": [
+    {
+      "level": 2,
+      "id": "live-fsspec-remote-loaders",
+      "title": "Live fsspec remote loaders"
+    },
+    {
+      "level": 2,
+      "id": "alternative-model-hubs",
+      "title": "Alternative model hubs"
+    },
+    {
+      "level": 2,
+      "id": "tracker-extras",
+      "title": "Tracker extras"
+    },
+    {
+      "level": 2,
+      "id": "hf-space-sdk-auto-pick",
+      "title": "HF Space SDK auto-pick"
+    },
+    {
+      "level": 2,
+      "id": "bundled-jsonl-fixtures",
+      "title": "Bundled JSONL fixtures"
+    },
+    {
+      "level": 2,
+      "id": "new-extras",
+      "title": "New extras"
+    },
+    {
+      "level": 2,
+      "id": "web-ui-tool-outputs-panel",
+      "title": "Web UI: Tool Outputs panel"
+    },
+    {
+      "level": 2,
+      "id": "tests",
+      "title": "Tests"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">v0.53.8 / v0.53.10 — Remote loaders, alternative hubs, tracker extras</h1><h2 id=\"live-fsspec-remote-loaders\">Live fsspec remote loaders</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: s3://my-bucket/instructions.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Closed scheme allowlist: <code>s3</code>, <code>gs</code>, <code>gcs</code>, <code>az</code>, <code>abfs</code>, <code>abfss</code>, <code>oci</code>. The schema gate from v0.42.0 is now backed by a real loader.</p><h2 id=\"alternative-model-hubs\">Alternative model hubs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  hub: modelscope   # hf | modelscope | modelers"
+    },
+    {
+      "kind": "html",
+      "html": "<p>v0.53.8 wires the dispatcher into <code>soup train</code> (pre-fetches the model before training starts). v0.53.10 plumbs the <code>--hub</code> flag through <code>chat</code> / <code>serve</code> / <code>infer</code> / <code>merge</code> / <code>export</code> / <code>push</code> and <code>soup data download --hub</code>.</p><p>The endpoint validation matches v0.29.0 HF endpoint validation: scheme allowlist, null-byte rejection, plain HTTP only for loopback, and RFC1918 / link-local / cloud-metadata IP literals refused over plain HTTP. An <code>https</code> hub endpoint is not checked for a private address, so these are not a general SSRF guard: the check on <code>HF_ENDPOINT</code> and the per-hub endpoint variables stops at the scheme and the plain-HTTP case.</p><p>(Updated in v0.76.0, #1549, #1550, #1554: IPv4 address spellings such as <code>4294967295</code> or <code>0xffffffff</code> are now read by one pure-Python parser, so the private-address check gives the same answer on Linux, macOS and Windows, and one loopback set (<code>localhost</code>, <code>127.0.0.1</code>, <code>::1</code>) is now shared by the judge-URL checks (the eval gate&#x27;s <code>judge_model</code>, <code>soup ship --judge-model</code>, the online-DPO judge URL, the judge API base and the vLLM check), so <code>http://[::1]</code> is accepted by all of them. Other checks keep their own loopback lists, and the Ollama provider&#x27;s URL check still accepts only a local Ollama. The <code>0.0.0.0</code> wording of these hub checks is unchanged, and so is the limit described above: an <code>https</code> hub endpoint is still not checked for a private address. See <a href=\"__DOCS_BASE__/private-addresses-refused#what-v0-76-0-changed-in-the-same-checks\">What v0.76.0 changed in the same checks</a>.)</p><h2 id=\"tracker-extras\">Tracker extras</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[trackers]\"\nsoup train --tracker mlflow      # or swanlab | trackio"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The <code>[trackers]</code> extra installs <code>mlflow</code> / <code>swanlab</code> / <code>trackio</code> as one bundle. Telemetry env vars (<code>SOUP_TELEMETRY</code>, <code>SOUP_POSTHOG_KEY</code>, <code>SOUP_POSTHOG_ENDPOINT</code>) existed here with <strong>no command wired to them</strong>. (<strong>Since changed</strong>: v0.75.0 wired telemetry as strictly opt-in, off unless <code>SOUP_TELEMETRY=1</code>, with a global <code>--no-telemetry</code> flag. The shipped wheel still sends nothing even when opted in, because its bundled project key is a placeholder the sender refuses by name. <a href=\"__DOCS_BASE__/tracker-eval-pro\">The payload, the policy and the placeholder</a>.)</p><h2 id=\"hf-space-sdk-auto-pick\">HF Space SDK auto-pick</h2><p><code>soup deploy hf-space</code> detects <code>streamlit</code> vs <code>gradio</code> automatically from the template&#x27;s <code>requirements.txt</code>.</p><h2 id=\"bundled-jsonl-fixtures\">Bundled JSONL fixtures</h2><p>The 4 demo bundles from v0.43.0 are now packaged as wheel data — they survive <code>pip install --target</code> and zipapp deployment.</p><h2 id=\"new-extras\">New extras</h2><ul><li><code>pip install &quot;soup-cli[mix]&quot;</code> — <code>scikit-optimize</code> for the Bayesian mix optimizer</li><li><code>pip install &quot;soup-cli[data-pro]&quot;</code> — <code>langdetect</code> + <code>presidio-analyzer</code> for proper langdetect / PII</li></ul><h2 id=\"web-ui-tool-outputs-panel\">Web UI: Tool Outputs panel</h2><p>The Web UI sidebar grows a &quot;Tool Outputs&quot; panel (3s polling, XSS-safe rendering) backed by <code>GET /api/tool-outputs</code>. The SFT trainer callback writes tool-call records into an in-memory buffer (at most 1,000 records, gone when the process ends, so nothing survives a crash), and the panel shows them only when the run that wrote them shares a process with the server. A run started from the Web UI does not, so its panel stays empty; see <a href=\"__DOCS_BASE__/web-ui#tool-outputs\">the REST API reference</a>.</p><h2 id=\"tests\">Tests</h2><ul><li>v0.53.8: <strong>8,162 → 8,257</strong> (+95)</li><li>v0.53.10: <strong>8,285 → 8,330</strong> (+45)</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/hf-hub-integration\">HuggingFace Hub integration</a></li><li><a href=\"__DOCS_BASE__/data-pipeline-pro\">Data Pipeline Pro</a></li></ul><nav><a href=\"__DOCS_BASE__/v0536-7-plugins-anthropic\"><span>Previous</span><span>Plugins, Anthropic, tools</span></a><a href=\"__DOCS_BASE__/v0539-live-ux\"><span>Next</span><span>Live SSE &amp; Web UI</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "slug": "training-stability",
+  "title": "Training Stability & Auto-Tuning (v0.32.0)",
+  "description": "LR Range Finder (--find-lr), auto mixed-precision picker, a loss-spike recovery hint (a spike_recovery.json written next to the run output; Soup does not relaunch the run) and a VRAM pressure advisory; the warmup_auto and convergence_detection keys are accepted but not applied at v0.77.0. New in v0.32.0.",
+  "source": "https://trysoup.dev/docs/training-stability",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "3be8eb39f718943b1a35ae3de9867d674eb2667a1682ebd9718fc2ccfde34f0e",
+  "headings": [
+    {
+      "level": 2,
+      "id": "lr-range-finder",
+      "title": "LR Range Finder"
+    },
+    {
+      "level": 2,
+      "id": "warmup-warmup-auto-is-accepted-not-read",
+      "title": "Warmup (warmup_auto is accepted, not read)"
+    },
+    {
+      "level": 2,
+      "id": "auto-mixed-precision",
+      "title": "Auto mixed-precision"
+    },
+    {
+      "level": 2,
+      "id": "loss-spike-recovery-hint",
+      "title": "Loss spike recovery hint"
+    },
+    {
+      "level": 2,
+      "id": "convergence-detector-accepted-not-enforced-its-two-tunables-are-refused-at-load",
+      "title": "Convergence detector (accepted, not enforced; its two tunables are refused at load)"
+    },
+    {
+      "level": 2,
+      "id": "vram-pressure-advisory",
+      "title": "VRAM pressure advisory"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Training Stability &amp; Auto-Tuning (v0.32.0)</h1><p>Pre-flight tuning + in-training stability nets. All flags are opt-in. Not all of them do something at v0.77.0: <code>warmup_auto</code> and <code>convergence_detection</code> are accepted by the schema, but nothing in v0.77.0 reads <code>warmup_auto</code> or acts on <code>convergence_detection</code>, the two convergence tunables are refused at load when set away from their defaults, and the loss watchdog, loss-spike hint and VRAM advisory are refused at config load on the tasks and backend that cannot run them (on MLX the watchdog runs on text SFT since v0.77.0; the other two stay refused there). Each section below says which.</p><h2 id=\"lr-range-finder\">LR Range Finder</h2><p>Run a fast.ai-style geometric LR sweep before the real training run. Soup writes a JSON report with the recommended LR, the loss curve, and the divergence point.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml \\\n  --find-lr \\\n  --find-lr-start 1e-7 \\\n  --find-lr-end 1e-1 \\\n  --find-lr-steps 100 \\\n  --find-lr-output ./lr_finder.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The report contains the geometric <code>lrs[]</code>, raw + EMA-smoothed <code>losses[]</code>, the recommended LR (steepest negative gradient before divergence), the LR with min loss, and the divergence point if any.</p><blockquote><p><strong>v0.33.0:</strong> <code>--find-lr</code> now runs an in-process LR-sweep training loop. NaN/Inf loss terminates the sweep early so <code>diverged_at</code> is honest.</p></blockquote><p><strong>Since v0.76.0 (#1203) it refuses instead of inventing a curve.</strong> If the sweep cannot run at all (the config does not load, the model or dataset cannot be loaded, <code>torch</code> is missing), <code>--find-lr</code> names the cause, exits 1 and writes no report; through v0.75.2 it wrote a placeholder curve and exited 0. The sweep takes one training row per step: with fewer rows than <code>--find-lr-steps</code> it runs one step per row over the same range and says so, and the recommendation needs at least 4 points, so <code>--find-lr-steps</code> must be at least 4 and a training set of fewer than 4 rows is refused before the model loads. If the loss turns non-finite partway through, the report covers the steps before it; if that leaves fewer than 4, the command says where it diverged instead of writing a report. See <a href=\"__DOCS_BASE__/training#read-the-console-before-trusting-find-lr\">Training methods</a>.</p><h2 id=\"warmup-warmup-auto-is-accepted-not-read\">Warmup (<code>warmup_auto</code> is accepted, not read)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  warmup_ratio: 0.03   # 3% of total update steps (default)"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>warmup_ratio</code> (0.0 to 0.5) sets warmup as a fraction of the optimizer steps the run really executes. Since v0.76.0 (#1431) Soup passes the fraction to the trainer and transformers resolves it as <code>ceil(real_optimizer_steps x warmup_ratio)</code>, with no clamp, so a run with fewer than 34 optimizer steps at the default 0.03 gets exactly one warmup step, and that first step trains at learning rate 0. Through v0.75.2 the ratio was turned into a fixed step count from the raw dataset rows before the trainer existed, so a run whose real step count differed (GRPO, where prompts repeat <code>num_generations</code> times; SFT with <code>packing</code> or <code>multipack</code>; pretrain with <code>packing</code>) got a warmup that was too short or covered the whole run; if the learning curve looked flat or never took off on one of those, re-run. <code>warmup_auto: true</code> is accepted by the schema, but nothing in v0.77.0 reads it, so setting it changes nothing about a training run; it prints nothing at load, and upstream names no release for refusing it. A helper that clamps warmup to [10, 1000] steps exists as library code, but no training path and no command calls it, and <code>soup autopilot</code> does not write a warmup into the config it generates.</p><h2 id=\"auto-mixed-precision\">Auto mixed-precision</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  auto_mixed_precision: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Picks <code>bf16</code> on Ampere+, <code>fp16</code> on Turing or known fp16-stable models (Qwen2 / Qwen2.5 / Phi-3 / Phi-3.5), <code>no</code> on pre-Pascal. Multi-version pairs match the longest substring deterministically.</p><p>Only <code>task: sft</code> reads it, and <code>task: tts</code>, which trains through the SFT trainer. Setting <code>auto_mixed_precision: true</code> on any other task is refused at config load (v0.76.0, #1618): through v0.75.2 a DPO, GRPO or KTO run carrying the key trained at its trainer&#x27;s default bf16 or fp16 choice with nothing said. It is also refused together with <code>quantization_aware: quest</code>.</p><h2 id=\"loss-spike-recovery-hint\">Loss spike recovery hint</h2><p>Builds on the loss watchdog. The watchdog itself stops the run when the loss stays above <code>loss_watchdog_threshold</code> (default 3.0) for <code>loss_watchdog_patience</code> (default 5) consecutive loss reports (one every <code>logging_steps</code>): the comparison is strictly <code>loss &gt; threshold</code>, a report at or below it resets the count, and a report with no loss neither advances nor resets it. <code>loss_spike_recovery</code> does not change that: it makes the watchdog also write a <code>spike_recovery.json</code> hint next to the run output, so that you (or a wrapper script) can relaunch with a lower learning rate.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  loss_watchdog: true                   # required\n  loss_spike_recovery: true\n  loss_spike_recovery_max_attempts: 3\n  loss_spike_recovery_lr_decay: 0.5"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The hint records the loss at the spike, the previous learning rate, a recommended one (the previous rate times <code>loss_spike_recovery_lr_decay</code>), and an attempt counter against <code>loss_spike_recovery_max_attempts</code>. Soup does <strong>not</strong> decay the learning rate or resume the run by itself: relaunch with the recommended <code>lr</code> and <code>--resume</code> yourself. Since v0.77.0 the hint carries its attempt count across those relaunches: a relaunched run writing to the same output directory reads <code>attempts</code> back from the existing <code>spike_recovery.json</code> at its first spike, keeps counting, and records <code>should_recover: false</code> (printing <code>max attempts N reached</code>) once <code>loss_spike_recovery_max_attempts</code> is used up, so a wrapper script that relaunches on <code>should_recover</code> stops (#1971). Through v0.76.1 nothing read the file back, so each relaunch started again at 1. Within one run the counter advances by one at most, because the run stops on the first firing. Since v0.76.0 every trainer that attaches the live training callback reads <code>loss_spike_recovery</code> (#802): the SFT trainer (and <code>task: tts</code>, which trains through it), pretrain, DPO, IPO, ORPO, SimPO, KTO, BCO, online DPO, GRPO, PPO, reward-model, embedding, classifier (which also serves <code>reranker</code> and <code>cross_encoder</code>), distill and ASR trainers, and so <code>task: preference</code>, which hands off to the paired-loss trainers. Through v0.75.2 only the SFT trainer read it. <code>task: prm</code>, <code>task: unlearn</code> and <code>task: moe_lora_routing</code> attach no live callback, so those three <strong>refuse</strong> <code>loss_watchdog</code>, <code>loss_spike_recovery</code> and <code>grad_accum_auto_tune</code> at config load, naming the reason (they used to be accepted and never read). <code>backend: mlx</code> refuses <code>loss_spike_recovery</code> and <code>grad_accum_auto_tune</code>, and <code>loss_watchdog</code> everywhere except MLX text SFT, which has a native watchdog since v0.77.0 (see <a href=\"__DOCS_BASE__/mlx-backend#the-loss-watchdog-on-mlx-sft\">the MLX page</a>). <code>task: tts</code> is not in that refused list: it trains through the SFT trainer, so it reads all three exactly as <code>sft</code> does. On an SFT run, <code>soup rewind</code> can show which dataset rows sat in a step whose loss spiked: see <a href=\"__DOCS_BASE__/rewind\">soup rewind</a>.</p><h2 id=\"convergence-detector-accepted-not-enforced-its-two-tunables-are-refused-at-load\">Convergence detector (accepted, not enforced; its two tunables are refused at load)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  convergence_detection: true\n  convergence_window: 50        # shown at its default: any other value is refused at load\n  convergence_rel_tol: 0.005    # shown at its default: any other value is refused at load"
+    },
+    {
+      "kind": "html",
+      "html": "<p>These keys are accepted by the schema, but nothing in v0.77.0 acts on them: the only reader is a startup check in <code>soup train</code> that prints a note when <code>convergence_detection</code> is set (&quot;set but not enforced during training in this build&quot;), and no advice is surfaced during a run. The plateau-detection logic that would produce <code>continue</code> / <code>early_stop</code> / <code>lower_lr</code> advice exists as library code that no training path calls. Since v0.77.0 a <code>convergence_window</code> or <code>convergence_rel_tol</code> that differs from its default stops the load (<code>training.convergence_window is accepted but read by nothing; refused as of v0.77. Delete the line.</code>, #808; it warned in v0.76), so <code>soup train</code> exits 1 and <code>soup doctor --config</code> exits 2; delete the two tunables. <code>convergence_detection</code> itself still loads, with the <code>soup train</code> note, and upstream names no release for refusing it.</p><h2 id=\"vram-pressure-advisory\">VRAM pressure advisory</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  grad_accum_auto_tune: true\n  grad_accum_pressure_threshold: 0.92"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Records peak memory each step. When pressure crosses the threshold, recommends a new <code>(batch, accum)</code> pair preserving effective batch (capped at <code>accum=1024</code>). It is an advisory printed once per run on CUDA, not an automatic change (restart with the new pair to take effect). Since v0.76.0 every trainer that attaches the live callback reads <code>grad_accum_auto_tune</code> (<code>task: tts</code> too, through the SFT trainer), and <code>prm</code>, <code>unlearn</code>, <code>moe_lora_routing</code> and <code>backend: mlx</code> refuse it at config load (MLX has no VRAM total to measure pressure against on unified memory; that is unchanged at v0.77.0). Pressure is now the peak allocated memory divided by the total memory of the CUDA device the run uses, read on the first advisory call, and the advisory prints the measured numbers (<code>peak 7.8 of 8.0 GB (97%)</code>). Through v0.75.2 the total was a fixed 24 GB (#1620), so on every card smaller than about 24 GB the advisory could never fire, and on a 40 to 80 GB card it fired at about 22 GB of peak use.</p><nav><a href=\"__DOCS_BASE__/training-speed-memory\"><span>Previous</span><span>Speed &amp; Memory</span></a><a href=\"__DOCS_BASE__/seeds-and-reproducibility\"><span>Next</span><span>Reproducibility</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<!-- Generated content source; rendered for visitors by the React site. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Text Extraction &amp; Dictation</title></head>
+<body><main>  <div class="manual manual--chapter">
+    <div class="manual__sidebar">
+      <nav class="manual__toc" aria-label="Chapters">
+        <ol>
+          <li><a href="/manual/">Welcome to Omarchy!</a></li>
+          <li><a href="/manual/getting-started/">Getting Started</a></li>
+          <li><a href="/manual/coming-from-mac-or-windows/">Coming From Mac or Windows</a></li>
+          <li><a href="/manual/navigation/">Navigation</a></li>
+          <li><a href="/manual/the-top-bar/">The Top Bar</a></li>
+          <li><a href="/manual/themes/">Themes</a></li>
+          <li><a href="/manual/hotkeys/">Hotkeys</a></li>
+          <li><a href="/manual/unified-clipboard-history/">Unified Clipboard &amp; History</a></li>
+          <li><a href="/manual/reminders/">Reminders</a></li>
+          <li><a href="/manual/notices/">Notices</a></li>
+          <li><a href="/manual/text-extraction-dictation/" aria-current="page">Text Extraction &amp; Dictation</a></li>
+          <li><a href="/manual/screenshots-recording/">Screenshots &amp; Recording</a></li>
+          <li><a href="/manual/toggles-idle-screensaver/">Toggles, Idle &amp; the Screensaver</a></li>
+          <li><a href="/manual/omarchy-cli/">Omarchy CLI</a></li>
+          <li><a href="/manual/terminal/">Terminal</a></li>
+          <li><a href="/manual/neovim/">Neovim</a></li>
+          <li><a href="/manual/ai/">AI</a></li>
+          <li><a href="/manual/development-tools/">Development Tools</a></li>
+          <li><a href="/manual/shell-tools/">Shell Tools</a></li>
+          <li><a href="/manual/shell-functions/">Shell Functions</a></li>
+          <li><a href="/manual/tuis/">TUIs</a></li>
+          <li><a href="/manual/guis/">GUIs</a></li>
+          <li><a href="/manual/browsers/">Browsers</a></li>
+          <li><a href="/manual/commercial-apps-services/">Commercial apps/services</a></li>
+          <li><a href="/manual/web-apps/">Web Apps</a></li>
+          <li><a href="/manual/gaming/">Gaming</a></li>
+          <li><a href="/manual/filling-out-pdfs/">Filling out PDFs</a></li>
+          <li><a href="/manual/windows-vm/">Windows VM</a></li>
+          <li><a href="/manual/other-packages/">Other Packages</a></li>
+          <li><a href="/manual/updates/">Updates</a></li>
+          <li><a href="/manual/dotfiles/">Dotfiles</a></li>
+          <li><a href="/manual/shell-plugins/">Shell Plugins</a></li>
+          <li><a href="/manual/monitors/">Monitors</a></li>
+          <li><a href="/manual/keyboard-mouse-trackpad/">Keyboard, Mouse, Trackpad</a></li>
+          <li><a href="/manual/networking/">Networking</a></li>
+          <li><a href="/manual/system-sleep/">System sleep</a></li>
+          <li><a href="/manual/hardware-authentication/">Hardware authentication</a></li>
+          <li><a href="/manual/fonts/">Fonts</a></li>
+          <li><a href="/manual/backgrounds/">Backgrounds</a></li>
+          <li><a href="/manual/prompt/">Prompt</a></li>
+          <li><a href="/manual/branding/">Branding</a></li>
+          <li><a href="/manual/common-tweaks/">Common tweaks</a></li>
+          <li><a href="/manual/making-your-own-theme/">Making your own theme</a></li>
+          <li><a href="/manual/mac-support/">Mac support</a></li>
+          <li><a href="/manual/troubleshooting/">Troubleshooting</a></li>
+          <li><a href="/manual/faq/">FAQ</a></li>
+          <li><a href="/manual/system-snapshots/">System snapshots</a></li>
+          <li><a href="/manual/security/">Security</a></li>
+          <li><a href="/manual/omarchy-on/">Omarchy on...</a></li>
+          <li><a href="/manual/dual-boot-install/">Dual Boot Install</a></li>
+          <li><a href="/manual/unattended-installs/">Unattended Installs</a></li>
+        </ol>
+      </nav>
+    </div>
+
+    <article class="manual__content">
+      <h1>Text Extraction &amp; Dictation</h1>
+<h3 id="text-extraction">Text Extraction <a class="manual__heading-link" href="#text-extraction" aria-label="Link to this section">#</a></h3>
+
+<p>Hit <code>Super + Ctrl + PrtScr</code> to select a region on the screen for text extraction. The tesseract open source OCR model will then quickly convert that selection into text and place it on the clipboard. Then you just hit <code>Super + V</code> to paste.</p>
+
+<p>This is very helpful for grabbing addresses out of image footers or phone numbers embedded in website headlines.</p>
+
+<p><img src="/manual/images/text-extraction.webp" alt="text-extraction" /></p>
+
+<h3 id="dictation">Dictation <a class="manual__heading-link" href="#dictation" aria-label="Link to this section">#</a></h3>
+
+<p>On fresh installs, <a href="https://superwhisper.com/">Superwhisper</a> is the default dictation backend, using cloud processing without offline model downloads. Choose Superwhisper or <a href="https://voxtype.io/">Voxtype</a> through <em>Setup &gt; Defaults &gt; Dictation</em> in the Omarchy menu. Selecting a backend installs it if needed and makes it the default for dictation. Voxtype loads a base English model that takes up 150MB; change the model with <code>voxtype setup model</code> and other settings through <code>~/.config/voxtype/config.toml</code>. Superwhisper opens its settings to choose cloud or local processing, and OPR keeps the application updated.</p>
+
+<p>You dictate by holding down <code>Right Alt</code> or <code>F9</code>, or by toggling with <code>Super + Ctrl + X</code>, and the dictated text will appear in the focused input area. These shortcuts use the selected backend. Right Alt also starts dictation when used in a modifier chord; use Left Alt for those chords. On keyboard layouts where Right Alt is AltGr, use <code>F9</code> to keep AltGr available for typing.</p>
+
+<p>The same shortcuts work with either backend. Select your backend through Setup &gt; Defaults &gt; Dictation. The backend installer configures it and saves the selection. Run <code>omarchy default dictation</code> to see which one is selected. The selection is saved in <code>~/.config/omarchy/defaults/dictation</code>. Fresh installs select Superwhisper automatically.</p>
+
+<p>Omarchy loads the selected backend’s desktop integration automatically. No Superwhisper configuration is needed in <code>~/.config/hypr/</code>.</p>
+
+<p>Custom bindings and scripts can use <code>omarchy dictation start</code>, <code>omarchy dictation stop</code>, and <code>omarchy dictation toggle</code>. The selected backend handles the recording and transcription. Selecting Superwhisper disables its native hold shortcut and sets its native toggle to <code>Alt + Space</code>, keeping it separate from Omarchy’s recording keys. Superwhisper requires at least one native recording shortcut, and its cancellation shortcut stays available.</p>
+
+<p>Additional backends can integrate without changing Omarchy. Provide an executable named <code>omarchy-dictation-&lt;backend&gt;</code> on PATH that accepts <code>start</code>, <code>stop</code>, and <code>toggle</code> and returns promptly, with a nonzero status on failure. Its installer configures the provider and calls <code>omarchy-dictation-use &lt;backend&gt;</code> after successful setup. This stops the previous backend and saves the selection atomically; <code>stop</code> must succeed when the provider is idle or unavailable. Backend names use lowercase letters, digits, and hyphens. Provide <code>omarchy-install-dictation-&lt;backend&gt;</code> for setup; <code>omarchy default dictation &lt;backend&gt;</code> launches it. Add a Defaults menu entry through an Omarchy menu extension to call that selector. Optional desktop integration can live in <code>${XDG_CONFIG_HOME:-$HOME/.config}/&lt;backend&gt;/shortcuts.lua</code>.</p>
+
+    </article>
+  </div>
+</main></body>
+</html>

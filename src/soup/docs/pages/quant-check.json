@@ -1,0 +1,92 @@
+{
+  "slug": "quant-check",
+  "title": "Quant-Lobotomy Checker",
+  "description": "Never ship a quantization regression. soup eval quant-check compares a before and an after model on one JSONL task file and renders a single OK / MINOR / MAJOR verdict; since v0.76.0 a model that fails to load stops the command with exit 1 (pass --allow-stub to score with deterministic stubs instead) and MAJOR exits 2. New in v0.26.0.",
+  "source": "https://trysoup.dev/docs/quant-check",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "4c2f977f8cc758c2e59aac569b4017af4fe316c145d2552742e6b294ff427a30",
+  "headings": [
+    {
+      "level": 2,
+      "id": "run-it",
+      "title": "Run it"
+    },
+    {
+      "level": 2,
+      "id": "output",
+      "title": "Output"
+    },
+    {
+      "level": 2,
+      "id": "what-can-make-an-ok-meaningless",
+      "title": "What can make an OK meaningless"
+    },
+    {
+      "level": 2,
+      "id": "exit-codes",
+      "title": "Exit codes"
+    },
+    {
+      "level": 2,
+      "id": "verdict-thresholds",
+      "title": "Verdict thresholds"
+    },
+    {
+      "level": 2,
+      "id": "output-formats",
+      "title": "Output formats"
+    },
+    {
+      "level": 2,
+      "id": "tasks-file",
+      "title": "Tasks file"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Quant-Lobotomy Checker</h1><p>Quantization — 16-bit → 4-bit, say — often destroys niche capability you care about while the aggregate score looks fine. <code>soup eval quant-check</code> runs one JSONL task file through a before model and an after model and renders a single OK / MINOR / MAJOR verdict for the pair, so you can catch a stealth regression before you ship it. Since v0.76.0 the verdict is also the exit code (MAJOR exits 2), so it can gate a CI step. It scores one average over the whole file, not one verdict per task or category; see &quot;What can make an OK meaningless&quot; below.</p><h2 id=\"run-it\">Run it</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval quant-check \\\n  --before ./output/merged \\\n  --after ./output/merged-quantized \\\n  --tasks critical_eval.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Each side is loaded with <code>AutoModelForCausalLM.from_pretrained</code>, so each must be a Hugging Face-format model directory that transformers can load, such as a merged model or a quantized checkpoint directory, and it must sit under the current working directory. A standalone <code>.gguf</code> file cannot be loaded this way: it is refused up front with exit 3. Either side can instead be <code>registry://&lt;id&gt;</code> pointing at a <a href=\"__DOCS_BASE__/registry\">registry</a> entry; that resolves to the first artifact recorded on the entry, whatever its kind.</p><h2 id=\"output\">Output</h2><p>One row, named <code>default</code>, whatever the <code>category</code> values in the tasks file:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "Quant check\n┏━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━━┓\n┃ Task    ┃ Before ┃ After ┃  Delta ┃ Verdict ┃\n┡━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━━┩\n│ default │  0.540 │ 0.310 │ -0.230 │ MAJOR   │\n└─────────┴────────┴───────┴────────┴─────────┘"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"what-can-make-an-ok-meaningless\">What can make an OK meaningless</h2><p>The score is one average over the whole tasks file: <code>category</code> is not split out, so run the command once per task file if you want a verdict per area.</p><p><strong>If either side fails to load, the command stops (v0.76.0).</strong> It prints <code>Failed to load --before model (&lt;path&gt;): &lt;reason&gt; (pass --allow-stub to score with deterministic stubs instead)</code>, naming the side that failed (<code>--before</code> or <code>--after</code>), and exits 1. A JSON file, an empty directory or a missing dependency all land here.</p><p><strong>Before v0.76.0 that failure was silent.</strong> The command printed <code>Live model load failed (...); using deterministic stub.</code>, replaced both models with a stub that returned the same canned text for every prompt, showed <code>default | 0.000 | 0.000 | +0.000 | OK</code> and exited 0: a pass that measured nothing. Any CI step that ran <code>soup eval quant-check</code> and looked only at the exit code passed on a broken load. Re-run those.</p><p><code>--allow-stub</code> is the opt-in to the old behaviour, for a smoke run of the plumbing in CI without weights. The table is then titled <code>Quant check (deterministic stub - not a live measurement)</code>, <code>--format json</code> carries <code>&quot;stub&quot;: true</code>, and in the other formats a line (<code>Failed to load --before model (&lt;reason&gt;); using deterministic stub.</code>) names each side that fell back. A run where both sides fell back still measures nothing and exits 0. The verdict is computed from the scores as usual, so a run where only one side fell back compares a stub against a real model and can exit 2.</p><h2 id=\"exit-codes\">Exit codes</h2><div><table><thead><tr><th>Code</th><th>Means</th></tr></thead><tbody><tr><td>0</td><td>OK or MINOR on every task, which includes a run where both sides fell back to stubs under <code>--allow-stub</code>.</td></tr><tr><td>2</td><td>At least one task is MAJOR.</td></tr><tr><td>1</td><td>A model failed to load (without <code>--allow-stub</code>) or an unexpected error. A <code>--tasks</code> file that is not valid JSONL is one of them: it exits 1 at v0.76.0 through v0.77.0 (<code>Invalid JSON on line 1</code>; a <code>.csv</code> or <code>.txt</code> file reads <code>Expected .jsonl file, got: .csv</code>), although upstream&#x27;s changelog says 3.</td></tr><tr><td>3</td><td>A usage or input error: an unknown <code>--format</code>, a <code>--before</code>, <code>--after</code> or <code>--tasks</code> path that is missing, outside the working directory or an unresolvable <code>registry://</code> reference, a standalone <code>.gguf</code>, or a mistyped flag. Since v0.77.0 also an ambiguous <code>registry://</code> reference, with a message that names the candidate ids: a <code>name:tag</code> that matches several entries (through v0.76.1 it resolved to the newest), or an id prefix that does (a traceback before) (#1763, #1934).</td></tr></tbody></table></div><p>Before v0.76.0 the command exited 0 for every verdict and 1 for a bad path. A script that tested for exit 1 as &quot;a bad regression&quot; never fired; test for 2. See <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>.</p><h2 id=\"verdict-thresholds\">Verdict thresholds</h2><p>The classifier uses absolute drops in score:</p><ul><li><code>OK</code> — drop <code>&lt; 0.02</code> (or the score actually improved)</li><li><code>MINOR</code> — <code>0.02 ≤ drop &lt; 0.05</code></li><li><code>MAJOR</code> — <code>drop ≥ 0.05</code></li></ul><h2 id=\"output-formats\">Output formats</h2><p><code>--format</code> accepts <code>table</code> (default, Rich-rendered), <code>json</code>, or <code>markdown</code>. Pipe the output to a file if you want to persist the report:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval quant-check --before X --after Y --tasks t.jsonl --format json > report.json"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"tasks-file\">Tasks file</h2><p>Reuse any <a href=\"__DOCS_BASE__/experiments\">custom eval JSONL</a>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "jsonl",
+      "code": "{\"prompt\": \"Solve: ...\", \"expected\": \"42\", \"category\": \"math.competition_hard\", \"scoring\": \"exact\"}\n{\"prompt\": \"Capital of France?\", \"expected\": \"Paris\", \"scoring\": \"contains\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The file name must end in <code>.jsonl</code> and hold at most 10,000 rows. <code>prompt</code> is required; <code>expected</code> defaults to empty, <code>category</code> to <code>default</code> and <code>scoring</code> to <code>exact</code>. <code>scoring</code> is one of <code>exact</code>, <code>contains</code>, <code>answer</code>, <code>regex</code>, <code>semantic</code>, <code>tool_call_match</code>, <code>tool_call_name_match</code> or <code>tool_call_args_subset</code>; any other value is refused with the line number. Two changes in v0.76.0 move scores: <code>contains</code> now requires the expected string to appear as a whole token (an ASCII alphanumeric run, so <code>14</code> no longer contains <code>4</code>, though <code>3.4</code> still does), and <code>answer</code> is new: it compares the final answer the model states, and refuses at load a row whose <code>expected</code> states no single answer. A <code>--before</code> or <code>--after</code> score you recorded with the old substring <code>contains</code> can be higher than the same outputs score now. <code>soup eval custom</code> and <code>soup ship --task-eval</code> read the same format.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/export\">Export</a> — GGUF and the other formats (AWQ and GPTQ export were removed in v0.77.0)</li><li><a href=\"__DOCS_BASE__/experiments\">Evaluation</a></li></ul><nav><a href=\"__DOCS_BASE__/eval-depth\"><span>Previous</span><span>Eval Depth</span></a><a href=\"__DOCS_BASE__/diagnose\"><span>Next</span><span>soup diagnose: post-training model report card</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

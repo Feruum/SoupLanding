@@ -1,0 +1,8 @@
+---
+import LeaderboardPage from '../../../soup/LeaderboardPage.astro'
+import { soupLocales } from '../../../soup/locales'
+export function getStaticPaths() {
+  return Object.keys(soupLocales).filter(code => code !== 'en').map(locale => ({ params: { locale } }))
+}
+---
+<LeaderboardPage language={Astro.params.locale!} />

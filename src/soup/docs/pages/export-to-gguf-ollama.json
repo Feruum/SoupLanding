@@ -1,0 +1,119 @@
+{
+  "slug": "export-to-gguf-ollama",
+  "title": "Export fine-tuned models to GGUF and deploy on Ollama",
+  "description": "Export a fine-tuned model to GGUF and deploy to Ollama with Soup CLI in three commands. Quantization levels and one-liner pipeline.",
+  "source": "https://trysoup.dev/docs/export-to-gguf-ollama",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "5bf6e2223dca33a5f7ed2c2ecead64dee7c64186f7be7eb4de5e5357eeb3f74a",
+  "headings": [
+    {
+      "level": 2,
+      "id": "0-build-llama-cpp-first-if-you-want-a-quantized-gguf",
+      "title": "0. Build llama.cpp first, if you want a quantized GGUF"
+    },
+    {
+      "level": 2,
+      "id": "1-export-to-gguf",
+      "title": "1. Export to GGUF"
+    },
+    {
+      "level": 2,
+      "id": "2-deploy-to-ollama",
+      "title": "2. Deploy to Ollama"
+    },
+    {
+      "level": 2,
+      "id": "3-chat",
+      "title": "3. Chat"
+    },
+    {
+      "level": 2,
+      "id": "one-liner-train-export-deploy",
+      "title": "One-liner: train → export → deploy"
+    },
+    {
+      "level": 2,
+      "id": "running-the-llama-cpp-programs-with-soup-llama",
+      "title": "Running the llama.cpp programs with soup llama"
+    },
+    {
+      "level": 2,
+      "id": "other-export-formats",
+      "title": "Other export formats"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Export fine-tuned models to GGUF and deploy on Ollama</h1><p>After training with Soup CLI, export your model to GGUF format and serve it locally with Ollama in three commands.</p><h2 id=\"0-build-llama-cpp-first-if-you-want-a-quantized-gguf\">0. Build llama.cpp first, if you want a quantized GGUF</h2><p>Soup auto-clones llama.cpp (pinned at tag <code>b5270</code>) into <code>~/.soup/llama.cpp</code> on first use, but it does <strong>not build it</strong>. Converting to <code>f16</code> or <code>f32</code> works from the Python script alone. <strong>Every quantized type additionally needs the <code>llama-quantize</code> binary</strong>, so build it once:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "cd ~/.soup/llama.cpp\ncmake -B build -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release\ncmake --build build --config Release --target llama-quantize -j 4"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Soup finds the binary in both the single-config layout (<code>build/bin/llama-quantize</code>, from Make or Ninja) and the multi-config one (<code>build/bin/Release/llama-quantize.exe</code>, from MSVC or Xcode), or on your <code>PATH</code>. To use a checkout you already have, pass <code>--llama-cpp /path/to/llama.cpp</code> or set <code>LLAMA_CPP_PATH</code>.</p><p>On Windows the validated toolchain is Visual Studio 2022 Build Tools with the &quot;Desktop development with C++&quot; workload plus CMake 3.14 or newer, CPU-only. Linux and macOS need only a C++ toolchain and CMake. <strong>CUDA builds of llama.cpp are untested.</strong></p><blockquote><p><strong>Do not run <code>pip install -r ~/.soup/llama.cpp/requirements.txt</code>.</strong> It pins <code>torch~=2.2.1</code> against the CPU wheel index, so it will downgrade a CUDA PyTorch and break training. Soup deliberately installs only the convert script&#x27;s own extras (<code>gguf</code>, <code>sentencepiece</code>, <code>protobuf</code>), unpinned.</p></blockquote><p><strong>Two checks before the toolchain work (v0.77.0).</strong> A model whose architecture the pinned <code>b5270</code> converter cannot convert, Qwen3.5 among them, is refused before anything is cloned or installed, with <code>Select a compatible checkout with --llama-cpp &lt;dir&gt;.</code> (exit 1); moving the pin is open upstream (#1911). A newer checkout passed with <code>--llama-cpp</code> must also advertise <code>--no-mtp</code> for a merged model that declares MTP layers but saved no MTP tensors, which Soup then converts with that flag. And in an environment that manages its own packages, <code>--no-install-deps</code> makes Soup check <code>gguf</code>, <code>sentencepiece</code> and <code>protobuf</code> and refuse, naming the missing ones, instead of running pip. It does not stop the clone, so pair it with <code>--llama-cpp</code> or <code>LLAMA_CPP_PATH</code>. <code>--verbose</code> streams the converter&#x27;s and quantizer&#x27;s output as it runs. Both flags are for <code>--format gguf</code> only; see <a href=\"__DOCS_BASE__/export#gguf-llama-cpp-ollama\">Model Export</a>.</p><h2 id=\"1-export-to-gguf\">1. Export to GGUF</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup export --model ./runs/my-model \\\n            --format gguf \\\n            --quant q4_k_m \\\n            --output ./my-model.gguf"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Quantization levels:</strong></p><div><table><thead><tr><th>Quant</th><th>Size (7B)</th><th>Quality</th><th>Use case</th></tr></thead><tbody><tr><td><code>q4_k_m</code></td><td>~4.1 GB</td><td>Good</td><td>Default — best size/quality balance</td></tr><tr><td><code>q5_k_m</code></td><td>~4.8 GB</td><td>Better</td><td>When you need higher accuracy</td></tr><tr><td><code>q8_0</code></td><td>~7.5 GB</td><td>Near-lossless</td><td>Benchmarks, eval</td></tr><tr><td><code>q4_0</code></td><td>~3.8 GB</td><td>Lower</td><td>The smallest rung <code>--quant</code> accepts</td></tr><tr><td><code>f16</code> / <code>f32</code></td><td>~14 GB / ~28 GB</td><td>Unquantized</td><td>A conversion with no quantization step</td></tr></tbody></table></div><p><code>--quant</code> accepts exactly these six values (<code>q4_0</code>, <code>q4_k_m</code>, <code>q5_k_m</code>, <code>q8_0</code>, <code>f16</code>, <code>f32</code>) and exits 1 on anything else, so the smaller llama.cpp rungs like <code>q2_k</code> and <code>q3_k_m</code> are not reachable through Soup.</p><h2 id=\"2-deploy-to-ollama\">2. Deploy to Ollama</h2><p>Soup CLI ships with Ollama integration (v0.18.0+):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup deploy ollama \\\n    --model ./my-model.gguf \\\n    --name my-model \\\n    --template chatml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>This creates an Ollama Modelfile, imports the GGUF, and registers your model.</p><h2 id=\"3-chat\">3. Chat</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "ollama run my-model"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Or via the API:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "curl http://localhost:11434/api/generate -d '{\n  \"model\": \"my-model\",\n  \"prompt\": \"Hello!\"\n}'"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"one-liner-train-export-deploy\">One-liner: train → export → deploy</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml && \\\nsoup export --model ./output --format gguf --quant q4_k_m --output ./my-model.gguf && \\\nsoup deploy ollama --model ./my-model.gguf --name my-model --yes"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup train</code> writes to the config&#x27;s <code>output:</code> directory (<code>./output</code> unless you set it), and there is no <code>latest</code> subdirectory, so point <code>--model</code> at that directory. Without <code>--output</code>, <code>soup export</code> names the file <code>&lt;model-name&gt;.&lt;quant&gt;.gguf</code> and writes it next to the model directory (<code>./output.q4_k_m.gguf</code>), not inside it, so pass <code>--output</code> when a later command has to find the file. <code>--yes</code> skips the confirmation prompt of <code>soup deploy ollama</code>. In a script or CI job, pass <code>--yes</code> to <code>soup train</code> as well: since v0.77.0, with stdin piped or redirected and no <code>--yes</code>, it exits 3 instead of waiting for a confirmation nobody can give.</p><h2 id=\"running-the-llama-cpp-programs-with-soup-llama\">Running the llama.cpp programs with <code>soup llama</code></h2><p><code>soup llama &lt;subcommand&gt; [args...]</code> starts one of five llama.cpp programs and forwards your arguments to it unchanged:</p><div><table><thead><tr><th>Soup command</th><th>Program it starts</th></tr></thead><tbody><tr><td><code>soup llama cli</code></td><td><code>llama-cli</code></td></tr><tr><td><code>soup llama mtmd-cli</code></td><td><code>llama-mtmd-cli</code></td></tr><tr><td><code>soup llama gguf-split</code></td><td><code>llama-gguf-split</code></td></tr><tr><td><code>soup llama server</code></td><td><code>llama-server</code></td></tr><tr><td><code>soup llama quantize</code></td><td><code>llama-quantize</code></td></tr></tbody></table></div>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup llama quantize ./my-model.f16.gguf ./my-model.Q5_K_M.gguf Q5_K_M\nsoup llama server -m ./my-model.gguf --port 8080"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The arguments are llama.cpp&#x27;s own syntax, not Soup&#x27;s, and they depend on the llama.cpp build you installed. A few things are Soup&#x27;s:</p><ul><li><strong>The program must be on your <code>PATH</code>.</strong> It is looked up by name only. Setting <code>LLAMA_CPP_HOME</code> does not make Soup find it, and neither does the <code>~/.soup/llama.cpp/build/bin</code> directory from step 0 above: <code>soup export</code> searches that directory itself, <code>soup llama</code> does not, so add it to <code>PATH</code> first.</li><li><strong>When the program is missing</strong> the command prints <code>llama-quantize not found on PATH; install llama.cpp or set LLAMA_CPP_HOME</code> (with the name of the program you asked for) and exits 2.</li><li><strong><code>--help</code> after the subcommand shows Soup&#x27;s help, not the program&#x27;s.</strong> Run the program itself for its own options.</li><li><strong>Arguments are limited:</strong> at most 64, each at most 1024 characters, with no NUL or line break in any of them. Otherwise it exits 2 before starting anything.</li><li><strong>The program runs with a reduced environment.</strong> <code>HF_TOKEN</code>, <code>OPENAI_API_KEY</code> and every other variable outside a short allowlist are dropped (the list is in the <a href=\"__DOCS_BASE__/cli-reference\">CLI reference</a>). Its output goes straight to your terminal and its exit code becomes the exit code of <code>soup llama</code>.</li></ul><h2 id=\"other-export-formats\">Other export formats</h2><p>Soup CLI also supports:</p><ul><li><strong>ONNX</strong> — <code>--format onnx</code> for cross-platform inference</li><li><strong>TensorRT-LLM</strong> — <code>--format tensorrt</code> for NVIDIA optimized serving</li><li><strong>Hugging Face</strong> — not an export format. A merged checkpoint comes from <code>soup merge --adapter &lt;path&gt; --output &lt;dir&gt;</code>. The formats <code>soup export</code> accepts are <code>gguf</code>, <code>gguf-ud</code>, <code>onnx</code>, <code>tensorrt</code>, <code>bitnet</code>, <code>tq1_0</code> and <code>torchao</code>; AWQ and GPTQ export were removed in v0.77.0, and they need v0.76.x and its <code>[awq]</code> or <code>[gptq]</code> extra, for example <code>pip install &quot;soup-cli[awq]&lt;0.77&quot;</code>; upstream notes that both projects are archived and incompatible with <code>[train]</code> (see <a href=\"__DOCS_BASE__/export#awq-and-gptq-export-removed-in-v0-77-0\">Model Export</a>). Only the GGUF family (<code>gguf</code>, <code>gguf-ud</code>, <code>bitnet</code>, <code>tq1_0</code>) can be passed to <code>--deploy ollama</code>; the other formats are refused before the export starts, because Ollama cannot load them.</li></ul><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/serving\">Serving with vLLM and SGLang</a></li><li><a href=\"__DOCS_BASE__/fine-tune-llama-3-1-lora\">Fine-tune Llama 3.1 with LoRA</a></li></ul><nav><a href=\"__DOCS_BASE__/fine-tune-gemma-3-qlora\"><span>Previous</span><span>Fine-tune Gemma 3 with QLoRA on a single GPU</span></a><a href=\"__DOCS_BASE__/dpo-training-guide\"><span>Next</span><span>DPO training: align LLMs with human preferences</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

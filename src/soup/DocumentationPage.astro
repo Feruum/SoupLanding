@@ -1,0 +1,20 @@
+---
+import SoupLayout from './SoupLayout.astro'
+import { SoupHeader } from './SoupHeader'
+import { SoupFooter } from './SoupFooter'
+import { Documentation, DocumentationIndex } from './docs/Documentation'
+import { loadDocument } from './docs/documents'
+import { getMessages } from './catalogue'
+import { getFooterGroups } from './locales'
+const { language = 'en', slug } = Astro.props
+const doc = slug ? await loadDocument(slug) : null
+const m = await getMessages(language)
+const path = slug ? `docs/${slug}/` : 'docs/'
+---
+<SoupLayout language={language} path={path} title={`${doc?.title ?? m.navDocs} — Soup`} description={doc?.description ?? m.heroDescription}>
+  <div class="soup-site">
+    <SoupHeader language={language} m={m} path={path} client:load />
+    <main id="main">{doc ? <Documentation doc={doc} m={m} language={language} client:load /> : <DocumentationIndex m={m} language={language} client:load />}</main>
+    <SoupFooter language={language} m={m} path={path} groups={getFooterGroups(language)} client:visible />
+  </div>
+</SoupLayout>

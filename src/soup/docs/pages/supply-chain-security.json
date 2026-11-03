@@ -1,0 +1,125 @@
+{
+  "slug": "supply-chain-security",
+  "title": "Supply Chain Security (v0.60.0)",
+  "description": "Soup CLI v0.60.0 supply chain security for LoRA adapters. soup adapters scan spectral-analyses weights for backdoors (rank-1, energy, Frobenius, NaN/Inf). soup adapters sign/verify Merkle-root tamper detection, signed with ed25519 or, since v0.76.0, Sigstore keyless. soup adapters check-safetensors --strict refuses pickle/.bin. soup adapters merge --license enforces SPDX compatibility (33-entry matrix). soup airgap-bundle packs for physical-media transfer (≤100 GiB). +152 tests. Also carries the vulnerability-reporting policy (SECURITY.md).",
+  "source": "https://trysoup.dev/docs/supply-chain-security",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "2bdc5cc8bced9e247195b5908312315c03b0360cd8b0c3325fc8ea93fbcfc326",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-adapters-scan-spectral-backdoor-detector",
+      "title": "soup adapters scan — spectral backdoor detector"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-sign-verify-merkle-root-tamper-detection",
+      "title": "soup adapters sign / verify — Merkle-root tamper detection"
+    },
+    {
+      "level": 2,
+      "id": "sigstore-keyless-signing-v0-76-0",
+      "title": "Sigstore keyless signing (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-check-safetensors-refuse-pickle-at-the-boundary",
+      "title": "soup adapters check-safetensors — refuse pickle at the boundary"
+    },
+    {
+      "level": 2,
+      "id": "is-the-adapter-alive-soup-adapters-check-and-audit",
+      "title": "Is the adapter alive: soup adapters check and audit"
+    },
+    {
+      "level": 2,
+      "id": "license-conflict-gate-in-soup-adapters-merge",
+      "title": "License-conflict gate in soup adapters merge"
+    },
+    {
+      "level": 2,
+      "id": "namespace-pin-tofu-anti-ai-jacking",
+      "title": "Namespace-pin TOFU (anti-AI-Jacking)"
+    },
+    {
+      "level": 2,
+      "id": "soup-airgap-bundle-physical-media-transfer",
+      "title": "soup airgap-bundle — physical-media transfer"
+    },
+    {
+      "level": 2,
+      "id": "reporting-a-vulnerability",
+      "title": "Reporting a vulnerability"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Supply Chain Security (v0.60.0)</h1><p>&quot;Tensors you can ship through procurement.&quot; v0.60 layers 6 supply-chain controls on top of LoRA adapters so a security team can clear shipped weights for production.</p><h2 id=\"soup-adapters-scan-spectral-backdoor-detector\"><code>soup adapters scan</code> — spectral backdoor detector</h2><p>Pure-numpy spectral analysis of LoRA weight matrices. Flags four patterns associated with weight-space trojans:</p><div><table><thead><tr><th>Pattern</th><th>Warn</th><th>Fail</th></tr></thead><tbody><tr><td>Rank-1 dominance</td><td>50×</td><td>200×</td></tr><tr><td>Top singular value / energy</td><td>&gt; 75%</td><td>&gt; 95%</td></tr><tr><td>Frobenius outlier (σ)</td><td>&gt; 4σ</td><td>&gt; 8σ</td></tr><tr><td>NaN / Inf</td><td>—</td><td>any</td></tr></tbody></table></div>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters scan ./my_adapter --format json | jq '.overall'\n# \"OK\" | \"WARN\" | \"FAIL\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Exit codes: <code>0 = OK</code>, <code>1 = WARN</code> (advisory), <code>3 = FAIL</code> (CI gate).</p><h2 id=\"soup-adapters-sign-verify-merkle-root-tamper-detection\"><code>soup adapters sign</code> / <code>verify</code> — Merkle-root tamper detection</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters sign ./my_adapter --backend unsigned\n# → ./my_adapter/.soup-signature.json\n\nsoup adapters verify ./my_adapter            # exit 1 on mismatch (lenient)\nsoup adapters verify ./my_adapter --strict   # exit 3 on mismatch (CI-strict)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The <code>unsigned</code> backend (default) computes a Merkle root over all adapter files for offline SHA-256 verification. <code>ed25519</code> is <strong>live as of v0.71.2</strong> — <code>soup adapters sign --backend ed25519 --key &lt;priv.pem&gt;</code> (or <code>--generate-key</code>, or <code>SOUP_SIGNING_KEY</code>) writes a real detached signature; <code>soup adapters verify --public-key &lt;trusted.pem&gt;</code> does a cryptographic verify that fails closed on any tamper or wrong key. <code>sigstore</code> (keyless OIDC, Fulcio and Rekor) is <strong>live as of v0.76.0</strong>; see <a href=\"#sigstore-keyless-signing-v0-76-0\">Sigstore keyless signing</a> below. Through v0.75.2 <code>soup adapters sign --backend sigstore</code> refused with exit 2 and <code>soup attest emit --sign sigstore</code> fell back to an unsigned statement and exited 0; neither is true any more (<a href=\"__DOCS_BASE__/governance\">Governance</a> has the attestation half).</p><p><code>soup adapters sign</code> exits 2 for a refused argument (an unknown backend, <code>--interactive-oidc</code> without <code>--backend sigstore</code>, the <code>[sigstore]</code> extra missing, no ambient credential when the Sigstore trust root can be loaded) and 1 for a missing adapter directory or a signing service that failed at run time, which includes a trust root that cannot be loaded (for example offline), even when no credential is present either.</p><blockquote><p><strong>From v0.71.2 to v0.75.0 the <code>--public-key</code> check could be walked straight past, and this page said otherwise.</strong> The trusted key was consulted only <strong>inside</strong> the ed25519 branch, so with <code>--public-key trusted.pem</code> a record carrying any other backend was never compared against it and verified with <strong>exit 0, even under <code>--strict</code></strong>. An adapter re-signed with the default <code>unsigned</code> backend passed a check that was supposed to authenticate the signer, which is the failure the command exists to prevent. It is fixed in v0.75.1: with <code>--public-key</code>, a record whose backend is not ed25519 fails verification with a stated reason. Without <code>--public-key</code> nothing changed, and an <code>unsigned</code> record still verifies by Merkle root alone, as described above. If you gated a pipeline on <code>--public-key</code>, the gate was open; re-verify anything you accepted on an affected version.</p></blockquote><h2 id=\"sigstore-keyless-signing-v0-76-0\">Sigstore keyless signing (v0.76.0)</h2><p>Install the extra: <code>pip install &quot;soup-cli[sigstore]&quot;</code> (<code>sigstore&gt;=4.4.0,&lt;5.0.0</code>; it is not part of <code>[all]</code>). Signing is keyless. It uses an ambient OIDC identity (for example GitHub Actions) to obtain a Fulcio certificate and submits to the Sigstore public-good Rekor log, so <strong>the signer&#x27;s identity ends up in a public transparency-log entry</strong>. A browser sign-in is never opened implicitly on a headless run; pass <code>--interactive-oidc</code> to allow it.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters sign ./my_adapter --backend sigstore\nsoup adapters verify ./my_adapter \\\n  --cert-identity 'https://github.com/acme/repo/.github/workflows/release.yml@refs/heads/main' \\\n  --cert-oidc-issuer 'https://token.actions.githubusercontent.com'"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>sign</code> signs the Merkle root and stores the whole Sigstore bundle in <code>.soup-signature.json</code>: the <code>signature</code> field stays empty and <code>sigstore_bundle</code> holds the bundle. The same flag exists on <code>soup attest emit --sign sigstore</code>, which also needs <code>--output</code>; that command, its exit codes and the statement format are on the <a href=\"__DOCS_BASE__/governance\">Governance</a> page.</p><p><strong>Verification is fail-closed and needs both values, supplied by you.</strong> <code>--cert-identity</code> and <code>--cert-oidc-issuer</code> are the policy you trust; the identity embedded in the bundle is not trusted on its own, because that would reduce authentication to self-consistency. A Sigstore record verified without both flags is reported invalid (exit 1, or 3 with <code>--strict</code>), either flag alone is a finding too, and <code>--public-key</code> with a Sigstore record fails because it requires an ed25519 signature. As with ed25519, a pass shows that the signer asserted this Merkle root; it does not show that the adapter is safe.</p><p><strong>One difference between the two verify commands, so a CI gate does not misread it.</strong> <code>soup attest verify</code> gives a Sigstore verifier that is unavailable (for example the trust root cannot be fetched, or the extra is missing) its own exit 1 and a bad signature exit 3. <code>soup adapters verify</code> folds both into the same list of findings: a verifier outage and a forged signature both print a reason and exit 1 (3 with <code>--strict</code>). If you gate on that exit code, you cannot tell an outage from a bad signature without reading the printed reason. The argument and extra refusals on this page (exit 2 on sign, the missing-extra finding on verify, the attest verify exit codes) were run on the v0.76.0 CLI without the extra installed; the signing and the Fulcio and Rekor round trip were not, because that needs the extra and the network. Upstream&#x27;s tests mock the signer and <code>benchmarks/</code> has no end-to-end record, so read this as shipped in v0.76.0, not as validated.</p><p>Since v0.77.0 <code>soup attest verify</code> also reads a statement and a signature file saved with a UTF-8 byte-order mark; the check itself is unchanged.</p><h2 id=\"soup-adapters-check-safetensors-refuse-pickle-at-the-boundary\"><code>soup adapters check-safetensors</code> — refuse pickle at the boundary</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters check-safetensors ./my_adapter --strict && echo \"SHIP IT\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Rejects any <code>.bin</code>, <code>.pt</code>, or pickle-format weights. The single biggest LoRA attack vector is <code>pickle.load</code> on hostile weights; <code>--strict</code> makes the CI gate hard.</p><h2 id=\"is-the-adapter-alive-soup-adapters-check-and-audit\">Is the adapter alive: <code>soup adapters check</code> and <code>audit</code></h2><p>A different question from the backdoor scan: does the adapter do anything at all, and did the run that wrote it do what its config asked? <code>soup adapters check</code> reads the weights without PyTorch (since v0.77.0 without the <code>safetensors</code> package too, though it needs NumPy) and ends in one line, <code>alive</code> or <code>inactive: &lt;reason&gt;</code>; it <strong>refuses a weights file over 2 GiB before opening it</strong>, because it loads every tensor into memory. <code>soup adapters audit --config soup.yaml</code> compares what a finished run recorded in <code>adapter_config.json</code> with the config. Both are on <a href=\"__DOCS_BASE__/adapter-check\">Adapter check and audit</a>, with their exit codes and limits.</p><h2 id=\"license-conflict-gate-in-soup-adapters-merge\">License-conflict gate in <code>soup adapters merge</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters merge a/ b/ c/ --output merged/ \\\n  --license mit --license apache-2.0 --license mit \\\n  --license-override \"Approved by legal team 2026-05-20\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>33-entry SPDX-license compatibility matrix. Conflicting licenses require <code>--license-override &quot;&lt;reason, ≥ 8 chars&gt;&quot;</code> for audit.</p><h2 id=\"namespace-pin-tofu-anti-ai-jacking\">Namespace-pin TOFU (anti-AI-Jacking)</h2><p>Soup keeps a local trust-on-first-use pin of a Hugging Face repo&#x27;s author, and <strong>only five paths consult it: <code>soup spectrum scan &lt;model-id&gt;</code>, <code>soup probe sae-diff --auto-download</code>, the base model of a <code>stream_layers: true</code> training run, since v0.76.0 a Hub id given as <code>training.prm_reward</code> (downloaded before training starts), and, since v0.77.0, the base model of <code>soup merge --low-memory</code> when the base is a Hub id rather than a local directory (only its <code>*.safetensors</code> and <code>*.json</code> files are fetched)</strong>. All five download through Soup&#x27;s own hub wrapper, which records <code>(repo_id, author, created_at)</code> in a SQLite store (<code>~/.soup/namespace_pin.db</code>; <code>SOUP_NAMESPACE_PIN_DB</code> moves it) the first time it sees a repo. A later download through that wrapper is refused if the author changed or if <code>created_at</code> changed in either direction (a pinned repo&#x27;s creation time never legitimately changes, so any drift looks like a deleted-and-recreated repo).</p><p><strong>This does not protect an ordinary training run.</strong> The base model that <code>soup train</code> (without <code>stream_layers</code>), <code>chat</code>, <code>serve</code>, <code>merge</code> (without <code>--low-memory</code>), <code>export</code> and <code>infer</code> load is fetched by <code>transformers</code> directly and is never checked, so a hijacked organization could still serve you altered weights through any of them. The check also <strong>fails open</strong>: if the Hub metadata cannot be fetched (offline, rate-limited) or the SQLite store cannot be read, the download goes ahead. And there is no CLI flag to approve an author change; the override exists only as the <code>allow_namespace_shift</code> keyword argument of the Python wrapper. If a hijacked base model is in your threat model, download the base once, check it, and point <code>base</code> at that local directory. The base revision that a v0.77.0 <code>soup train</code> records (see <a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a>) is a separate mechanism: it records which commit was loaded, not who owns the repo, and it does not extend the pin to <code>soup train</code>.</p><h2 id=\"soup-airgap-bundle-physical-media-transfer\"><code>soup airgap-bundle</code> — physical-media transfer</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup airgap-bundle \\\n  --output secure-bundle.tar \\\n  --model ./llama3-8b-merged \\\n  --dataset ./prod-logs \\\n  --wheel ./wheelhouse \\\n  --bundle-size-cap 50"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Packs model + datasets + wheels + kernels + manifest into a single tarball suitable for transfer through a data diode (physical-media / sneaker-net). Embeds a SHA-256 manifest per file. Refuses to build if total size &gt; <code>--bundle-size-cap</code> (default 100 GiB).</p><p>Three details are easy to get wrong. <code>--output</code> is written as a plain, <strong>uncompressed</strong> tar whatever its extension, so name it <code>.tar</code> (a <code>.tar.gz</code> name produces a file that <code>tar -xzf</code> rejects as &quot;not in gzip format&quot;). <code>--model</code>, <code>--dataset</code>, <code>--wheel</code> and <code>--kernel</code> each take a <strong>directory</strong> (the last three are repeatable), and every path must sit under the working directory. And <strong>a single file passed to <code>--dataset</code> is accepted without an error and packs nothing</strong>: the summary panel still counts it under <code>Datasets</code> and the command exits 0, while the tarball lacks it. Compare the <code>Files</code> count in the panel, or run <code>tar -tf secure-bundle.tar</code>, against what you expect before you carry it across. <code>--repro-receipt &lt;json&gt;</code> embeds a receipt from <code>soup train --repro-receipt</code>, and is auto-detected from <code>&lt;model&gt;/repro-receipt.json</code>.</p><h2 id=\"reporting-a-vulnerability\">Reporting a vulnerability</h2><p>This restates upstream&#x27;s <a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.77.0/SECURITY.md\"><code>SECURITY.md</code> at v0.77.0</a>, which differs from v0.76.x only in its Supported Versions section; that file is the authority if the two ever differ.</p><p><strong>Supported versions.</strong> Security fixes are shipped for the latest published release, <code>0.77.x</code>. <code>0.76.x</code>, the last line that runs on Python 3.10 and exports AWQ or GPTQ, also receives security fixes only, until 0.78.0 is released. Everything below <code>0.76</code> is unsupported, so a v0.75 install has no patched release to wait for: <code>pip install -U soup-cli</code>. No new advisory was published with v0.76.0, v0.76.1 or v0.77.0 (v0.77.0&#x27;s release notes list six tightened behaviours under Security, none with an advisory). The two below are public and both fixes are carried in 0.76.0 and later, so a user still on 0.75.0 or 0.75.1 should upgrade.</p><p><strong>How to report.</strong> Report privately, and do not open a public GitHub issue for anything security-sensitive. The preferred route is a private report through <a href=\"https://github.com/MakazhanAlpamys/Soup/security/advisories/new\">GitHub Security Advisories</a>. If you cannot use GitHub, email <code>team@trysoup.dev</code> (the project address), or <code>makazanalpamys@gmail.com</code> (the maintainer&#x27;s personal address) if that bounces. <strong>Do not report in Discord</strong>: it is a public channel. Include the affected version or versions and your platform, a minimal reproduction or proof of concept, and the impact you observed.</p><p><strong>What to expect.</strong> Upstream aims to acknowledge a report within 5 business days and to ship a fix or mitigation for a confirmed, in-scope issue &quot;as promptly as is practical&quot;. That is a target, not a service-level agreement, and no other deadline is promised. Disclosure is coordinated: once a fix is released the reporter is credited by name in the release notes, unless they ask for anonymity. <strong>There is no bug bounty and no monetary reward</strong>; the credit is the whole of what is offered.</p><p><strong>Scope.</strong> The threat model assumes the operator runs Soup on their own machine with their own data. In scope, as representative examples:</p><ul><li>path traversal or arbitrary file read or write from a user-supplied config, dataset or artifact path;</li><li>SSRF in the synthetic-data providers, the inference server, or the hub and endpoint validators;</li><li>command, Modelfile, Jinja chat-template, or systemd or launchd unit injection;</li><li>secret leakage in logs, crash bundles or generated artifacts;</li><li>sandbox escape in the RLVR code-execution reward path.</li></ul><p>Out of scope: vulnerabilities in third-party model weights or datasets you choose to load; issues that require an already-compromised host; and the DNS and email configuration of <code>trysoup.dev</code> (a missing or permissive DMARC, SPF or DKIM record, and anything else a public DNS query establishes), which the project fixes but does not treat as a finding in Soup.</p><p><strong>Advisories published so far</strong>, each with the page that says what changed and what to re-check:</p><ul><li><a href=\"https://github.com/MakazhanAlpamys/Soup/security/advisories/GHSA-63h4-gvp4-r26g\">GHSA-63h4-gvp4-r26g</a>, fixed in v0.75.1: <a href=\"__DOCS_BASE__/an-empty-adapter\">an adapter with nothing in it, and eight hardening fixes</a>.</li><li><a href=\"https://github.com/MakazhanAlpamys/Soup/security/advisories/GHSA-9f49-hqpf-c849\">GHSA-9f49-hqpf-c849</a>, fixed in v0.75.2: <a href=\"__DOCS_BASE__/private-addresses-refused\">endpoint URLs can no longer name a private address</a>.</li></ul><h2 id=\"numbers\">Numbers</h2><p>+152 new tests in v0.60.0. Security-fix coverage: 12 HIGH, 11 MEDIUM, 6 LOW.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a> — v0.71.35 puts signing, scanning and attestation on a HIPAA / SOC 2 / EU AI Act / SR 11-7 path.</li><li><a href=\"__DOCS_BASE__/governance\">Governance</a> — v0.59 BOM + SLSA-3 + audit log.</li><li><a href=\"__DOCS_BASE__/adapters\">Adapters</a> — v0.57 diff / merge / blame / branch (the rest of the LoRA toolkit).</li><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle (v0.67)</a> — <code>soup lock</code> SHA256 closure makes signed + scanned adapter artifacts reproducible across the team; <code>soup adapters pr</code> puts review + signing on every adapter change.</li></ul><nav><a href=\"__DOCS_BASE__/governance\"><span>Previous</span><span>Governance, BOM &amp; SLSA-3 attestations</span></a><a href=\"__DOCS_BASE__/compliance-pack\"><span>Next</span><span>Compliance Pack</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

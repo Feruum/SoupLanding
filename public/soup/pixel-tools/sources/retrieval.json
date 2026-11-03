@@ -1,0 +1,457 @@
+{
+  "retrieved": "2026-10-30T23:09:08.286Z",
+  "assets": [
+    {
+      "id": "huggingface",
+      "url": "https://trysoup.dev/logos/huggingface.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "huggingface.svg",
+      "bytes": 3042
+    },
+    {
+      "id": "ollama",
+      "url": "https://trysoup.dev/logos/ollama.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "ollama.svg",
+      "bytes": 4784
+    },
+    {
+      "id": "vllm",
+      "url": "https://trysoup.dev/logos/vllm.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "vllm.svg",
+      "bytes": 444
+    },
+    {
+      "id": "deepspeed",
+      "url": "https://trysoup.dev/logos/deepspeed.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "deepspeed.svg",
+      "bytes": 243
+    },
+    {
+      "id": "unsloth",
+      "url": "https://trysoup.dev/logos/unsloth.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "unsloth.svg",
+      "bytes": 139
+    },
+    {
+      "id": "onnx",
+      "url": "https://trysoup.dev/logos/onnx.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "onnx.svg",
+      "bytes": 1812
+    },
+    {
+      "id": "nvidia",
+      "url": "https://trysoup.dev/logos/nvidia.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "nvidia.svg",
+      "bytes": 896
+    },
+    {
+      "id": "wandb",
+      "url": "https://trysoup.dev/logos/wandb.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "sglang",
+      "url": "https://trysoup.dev/logos/sglang.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "sglang.svg",
+      "bytes": 193
+    },
+    {
+      "id": "flashattention",
+      "url": "https://trysoup.dev/logos/flashattention.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "flashattention.svg",
+      "bytes": 309
+    },
+    {
+      "id": "llamacpp",
+      "url": "https://trysoup.dev/logos/llamacpp.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "llamacpp.svg",
+      "bytes": 333
+    },
+    {
+      "id": "mlx",
+      "url": "https://trysoup.dev/logos/mlx.png",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "mlx.png",
+      "bytes": 48758
+    },
+    {
+      "id": "openai",
+      "url": "https://trysoup.dev/logos/openai.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "openai.svg",
+      "bytes": 1344
+    },
+    {
+      "id": "tensorflow",
+      "url": "https://trysoup.dev/logos/tensorflow.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "tensorflow.svg",
+      "bytes": 300
+    },
+    {
+      "id": "gguf",
+      "url": "https://trysoup.dev/logos/gguf.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "gguf.svg",
+      "bytes": 481
+    },
+    {
+      "id": "loramerge",
+      "url": "https://trysoup.dev/logos/loramerge.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "loramerge.svg",
+      "bytes": 383
+    },
+    {
+      "id": "meta",
+      "url": "https://trysoup.dev/logos/meta.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "qwen",
+      "url": "https://trysoup.dev/logos/qwen.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "gemma",
+      "url": "https://trysoup.dev/logos/gemma.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "mistral",
+      "url": "https://trysoup.dev/logos/mistral.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "microsoft",
+      "url": "https://trysoup.dev/logos/microsoft.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "deepseek",
+      "url": "https://trysoup.dev/logos/deepseek.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "langfuse",
+      "url": "https://trysoup.dev/logos/langfuse.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "langsmith",
+      "url": "https://trysoup.dev/logos/langsmith.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "helicone",
+      "url": "https://trysoup.dev/logos/helicone.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "openpipe",
+      "url": "https://trysoup.dev/logos/openpipe.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "opentelemetry",
+      "url": "https://trysoup.dev/logos/opentelemetry.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "mlflow",
+      "url": "https://trysoup.dev/logos/mlflow.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "swanlab",
+      "url": "https://trysoup.dev/logos/swanlab.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "trackio",
+      "url": "https://trysoup.dev/logos/trackio.svg",
+      "kind": "upstream Soup asset",
+      "status": 404
+    },
+    {
+      "id": "hf-official",
+      "url": "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg",
+      "kind": "Hugging Face official brand asset",
+      "status": "saved",
+      "filename": "hf-official.svg",
+      "bytes": 35286
+    },
+    {
+      "id": "deepseek-official",
+      "url": "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-V3/main/figures/logo.svg",
+      "kind": "DeepSeek official repository",
+      "status": 404
+    },
+    {
+      "id": "gemma-official",
+      "url": "https://ai.google.dev/static/gemma/images/gemma-logo.svg",
+      "kind": "Google official website",
+      "status": 404
+    },
+    {
+      "id": "qwen-official",
+      "url": "https://raw.githubusercontent.com/QwenLM/Qwen3/main/assets/logo.png",
+      "kind": "Qwen official repository",
+      "status": 404
+    },
+    {
+      "id": "meta-official",
+      "url": "https://static.xx.fbcdn.net/rsrc.php/yf/r/-7pQO6hUGK_.svg",
+      "kind": "Meta official brand website",
+      "status": "saved",
+      "filename": "meta-official.svg",
+      "bytes": 8912
+    },
+    {
+      "id": "qwen-web",
+      "url": "https://img.alicdn.com/imgextra/i4/O1CN01OXv3EM1FN8t9W4P79_!!6000000000474-2-tps-80-80.png",
+      "kind": "Qwen official website icon",
+      "status": "saved",
+      "filename": "qwen-web.png",
+      "bytes": 1658
+    },
+    {
+      "id": "mistral-official",
+      "url": "https://mistral.ai/cms-media/api/media/file/icon-m-book-red.svg",
+      "kind": "Mistral official website icon",
+      "status": "saved",
+      "filename": "mistral-official.svg",
+      "bytes": 2138
+    },
+    {
+      "id": "deepspeed-official",
+      "url": "https://www.deepspeed.ai/assets/images/deepspeed-logo-uppercase-bold-white-1.15.svg",
+      "kind": "DeepSpeed official website",
+      "status": "saved",
+      "filename": "deepspeed-official.svg",
+      "bytes": 13464
+    },
+    {
+      "id": "sglang-official",
+      "url": "https://sglang.ai/images/logo.png",
+      "kind": "SGLang official website",
+      "status": "not a supported image (text/html; charset=utf-8)"
+    },
+    {
+      "id": "helicone-official",
+      "url": "https://www.helicone.ai/static/logo.svg",
+      "kind": "Helicone official website",
+      "status": "saved",
+      "filename": "helicone-official.svg",
+      "bytes": 8685
+    },
+    {
+      "id": "opentelemetry-official",
+      "url": "https://opentelemetry.io/img/logos/opentelemetry-icon-color.svg",
+      "kind": "OpenTelemetry official website",
+      "status": 404
+    },
+    {
+      "id": "langfuse-official",
+      "url": "https://langfuse.com/apple-touch-icon.png",
+      "kind": "Langfuse official website",
+      "status": "saved",
+      "filename": "langfuse-official.png",
+      "bytes": 5533
+    },
+    {
+      "id": "langsmith-official",
+      "url": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/6a1c6031b3db015796401c5b_4e8060f75e16b02daa59026cbae4bc8f_LangSmith%20Engine_Icon_light%201.svg",
+      "kind": "LangSmith official website",
+      "status": "saved",
+      "filename": "langsmith-official.svg",
+      "bytes": 1413
+    },
+    {
+      "id": "swanlab-official",
+      "url": "https://swanlab.cn/icon.png?e31c53cba54196fe",
+      "kind": "SwanLab official website",
+      "status": "saved",
+      "filename": "swanlab-official.png",
+      "bytes": 9150
+    },
+    {
+      "id": "gemma-github",
+      "url": "https://raw.githubusercontent.com/google-deepmind/gemma/main/docs/_static/gemma.png",
+      "kind": "Google DeepMind official repository",
+      "status": 404
+    },
+    {
+      "id": "unsloth-github",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/images/unsloth%20logo.png",
+      "kind": "Unsloth official repository",
+      "status": 404
+    },
+    {
+      "id": "mlflow-github",
+      "url": "https://raw.githubusercontent.com/mlflow/mlflow/master/assets/logo.svg",
+      "kind": "MLflow official repository",
+      "status": "saved",
+      "filename": "mlflow-github.svg",
+      "bytes": 2619
+    },
+    {
+      "id": "unsloth-original",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/images/unsloth%20logo%20only.png",
+      "kind": "Unsloth official repository",
+      "status": "saved",
+      "filename": "unsloth-original.png",
+      "bytes": 60610
+    },
+    {
+      "id": "trackio-official",
+      "url": "https://raw.githubusercontent.com/gradio-app/trackio/main/trackio/assets/trackio_logo_light.png",
+      "kind": "Trackio official repository",
+      "status": "saved",
+      "filename": "trackio-official.png",
+      "bytes": 29998
+    },
+    {
+      "id": "opentelemetry-original",
+      "url": "https://raw.githubusercontent.com/open-telemetry/opentelemetry.io/main/assets/icons/logo.svg",
+      "kind": "OpenTelemetry official repository",
+      "status": "saved",
+      "filename": "opentelemetry-original.svg",
+      "bytes": 3345
+    },
+    {
+      "id": "deepseek-original",
+      "url": "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-V2/main/figures/logo.svg",
+      "kind": "DeepSeek official repository",
+      "status": "saved",
+      "filename": "deepseek-original.svg",
+      "bytes": 10656
+    },
+    {
+      "id": "microsoft-original",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/microsoft.svg",
+      "kind": "Microsoft brand mark vendored in the official Unsloth repository",
+      "status": "saved",
+      "filename": "microsoft-original.svg",
+      "bytes": 272
+    },
+    {
+      "id": "meta-original",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/meta.svg",
+      "kind": "Meta brand mark vendored in the official Unsloth repository",
+      "status": "saved",
+      "filename": "meta-original.svg",
+      "bytes": 2381
+    },
+    {
+      "id": "deepseek-mark",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/deepseek.svg",
+      "kind": "DeepSeek brand mark vendored in the official Unsloth repository",
+      "status": "saved",
+      "filename": "deepseek-mark.svg",
+      "bytes": 2560
+    },
+    {
+      "id": "openpipe-original",
+      "url": "https://openpipe.ai/favicon.ico",
+      "kind": "OpenPipe official website icon",
+      "status": "saved",
+      "filename": "openpipe-original.ico",
+      "bytes": 4286
+    },
+    {
+      "id": "openpipe-svg",
+      "url": "https://raw.githubusercontent.com/openpipe/openpipe/main/app/public/favicons/safari-pinned-tab.svg",
+      "kind": "OpenPipe official repository",
+      "status": "saved",
+      "filename": "openpipe-svg.svg",
+      "bytes": 755
+    },
+    {
+      "id": "sglang-original",
+      "url": "https://raw.githubusercontent.com/sgl-project/sglang/main/assets/logo_square.svg",
+      "kind": "SGLang official repository",
+      "status": "saved",
+      "filename": "sglang-original.svg",
+      "bytes": 52241
+    },
+    {
+      "id": "mistral-mark",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/mistral.svg",
+      "kind": "Mistral brand mark vendored in the official Unsloth repository",
+      "status": "saved",
+      "filename": "mistral-mark.svg",
+      "bytes": 1001
+    },
+    {
+      "id": "weightsandbiases",
+      "url": "https://trysoup.dev/logos/weightsandbiases.svg",
+      "kind": "upstream Soup asset",
+      "status": "saved",
+      "filename": "weightsandbiases.svg",
+      "bytes": 817
+    },
+    {
+      "id": "google-gemma-avatar",
+      "url": "https://avatars.githubusercontent.com/u/271369873?v=4",
+      "kind": "Logo of the official google-gemma GitHub organization",
+      "status": "saved",
+      "filename": "google-gemma-avatar.jpg",
+      "bytes": 20268
+    },
+    {
+      "id": "microsoft-avatar",
+      "url": "https://avatars.githubusercontent.com/u/6154722?v=4",
+      "kind": "Logo of the official microsoft GitHub organization",
+      "status": "saved",
+      "filename": "microsoft-avatar.png",
+      "bytes": 1669
+    },
+    {
+      "id": "deepseek-ai-avatar",
+      "url": "https://avatars.githubusercontent.com/u/148330874?v=4",
+      "kind": "Logo of the official deepseek-ai GitHub organization",
+      "status": "saved",
+      "filename": "deepseek-ai-avatar.png",
+      "bytes": 15456
+    }
+  ]
+}

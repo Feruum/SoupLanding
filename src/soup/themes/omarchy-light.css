@@ -1,0 +1,265 @@
+/* White is a full light palette; illustration geometry and logo pixels stay intact. */
+html[data-theme='white'] {
+  --os-light-panel: #faf9f7;
+  --os-light-toolbar: #f0eeea;
+  --os-light-warm: #f4e8de;
+  --os-light-border: #d8d2cb;
+  --os-light-ink: #25221e;
+  --os-light-muted: #686158;
+  --os-light-accent: #984323;
+  --os-light-green: #49613d;
+}
+
+html[data-theme='white'] .os-deep {
+  background: var(--t-bg-deep);
+}
+html[data-theme='white'] .os-install {
+  background: var(--os-light-panel);
+}
+html[data-theme='white'] .os-section :is([class^='os-'], [class*=' os-']) {
+  border-color: var(--os-light-border);
+}
+html[data-theme='white']
+  :is(
+    .os-method-toolbar button,
+    .os-method-columns > div + div,
+    .os-data-table > div + div,
+    .os-hardware-top > div + div,
+    .os-gate-list > div + div,
+    .os-ci-flow > span,
+    .os-faq-list > details,
+    .os-about-tags span + span,
+    .os-release-result i,
+    .os-method-data > p
+  ) {
+  border-color: var(--os-light-border);
+}
+html[data-theme='white'] .os-section :is(h2, h3, .text-text) {
+  color: var(--t-text);
+}
+html[data-theme='white']
+  :is(
+    .os-window,
+    .os-install-package,
+    .os-install-steps,
+    .os-method-browser,
+    .os-method-editor,
+    .os-recipe,
+    .os-recipe-editor,
+    .os-community-card,
+    .os-copy-row,
+    .os-lockfile
+  ) {
+  background: var(--t-bg);
+}
+html[data-theme='white'] .os-window {
+}
+html[data-theme='white']
+  :is(
+    .os-window-bar,
+    .os-window-foot,
+    .os-method-toolbar,
+    .os-recipe-file,
+    .os-recipe-command
+  ) {
+  background: var(--os-light-toolbar);
+}
+html[data-theme='white']
+  :is(
+    .os-run-route strong,
+    .os-chip-list code,
+    .os-data-flow > span,
+    .os-memory-source > div > span,
+    .os-memory-gpu > div,
+    .os-artifact,
+    .os-artifact-check
+  ) {
+  background: var(--os-light-warm);
+}
+html[data-theme='white']
+  :is(
+    .os-code,
+    .os-shell,
+    .os-copy-row,
+    .os-recipe-command,
+    .os-pane-head > span:first-child
+  ) {
+  color: var(--os-light-ink);
+}
+html[data-theme='white']
+  :is(
+    .os-section .text-text-secondary,
+    .os-prose > p,
+    .os-install-package > p,
+    .os-install-step p,
+    .os-method-data > p,
+    .os-community-card p,
+    .os-faq-list details > p,
+    .os-window-bar,
+    .os-window-foot,
+    .os-tool-notes,
+    .os-package-extras,
+    .os-gate-list p,
+    .os-data-table code,
+    .os-chip-list code
+  ) {
+  color: var(--t-text-secondary);
+}
+html[data-theme='white']
+  :is(
+    .os-section .text-text-muted,
+    .os-about-tags,
+    .os-window-bar > span:last-child,
+    .os-line-no,
+    .os-syntax-comment,
+    .os-method-toolbar button,
+    .os-method-path,
+    .os-pane-head > span:last-child,
+    .os-run-route code,
+    .os-run-backends,
+    .os-data-table span,
+    .os-hardware-top span,
+    .os-memory-map code,
+    .os-release-flow code,
+    .os-lockfile b,
+    .os-recipe-identity code,
+    .os-recipe-file > span:last-child,
+    .os-recipe-meta > span,
+    .os-recipes-bottom > code,
+    .os-model-cluster > code,
+    .os-file-output
+  ) {
+  color: var(--os-light-muted);
+}
+html[data-theme='white']
+  :is(
+    .os-syntax-key,
+    .os-copy-row > button,
+    .os-step-index,
+    .os-pane-head,
+    .os-dataset-icon b,
+    .os-sample-file,
+    .os-shell b,
+    .os-run-route,
+    .os-run-route strong,
+    .os-data-table span:last-child,
+    .os-data-flow > span,
+    .os-memory-arrow,
+    .os-memory-source > div > span,
+    .os-memory-gpu > div,
+    .os-memory-gpu b,
+    .os-release-flow,
+    .os-artifact,
+    .os-artifact-check,
+    .os-gate-list > div,
+    .os-release-result span:last-child,
+    .os-graph-node > span,
+    .os-graph-branches > div > span,
+    .os-graph-merge,
+    .os-lockfile > code,
+    .os-ci-flow,
+    .os-mcp-row strong,
+    .os-mcp-row > span:last-child,
+    .os-community-card > svg,
+    .os-community-arrow,
+    .os-faq-number,
+    .os-faq-toggle
+  ) {
+  color: var(--os-light-accent);
+}
+html[data-theme='white']
+  :is(
+    .os-syntax-value,
+    .os-method-data > pre,
+    .os-hardware-top strong,
+    .os-training-chips,
+    .os-release-result span:first-child,
+    .os-adapter-graph,
+    .os-lockfile > div,
+    .os-provenance-seal,
+    .os-provenance > div:last-child,
+    .os-mcp-row
+  ) {
+  color: var(--os-light-green);
+}
+html[data-theme='white'] .os-link {
+  color: var(--t-text);
+  text-decoration-color: var(--os-light-accent);
+}
+html[data-theme='white'] .os-link:hover {
+  color: var(--os-light-accent);
+}
+html[data-theme='white'] .os-package-icon {
+  color: #ead6c8;
+}
+html[data-theme='white'] .os-method-toolbar button[aria-selected='true'] {
+  color: var(--os-light-accent);
+  background: var(--os-light-warm);
+  box-shadow: inset 0 -2px var(--accent);
+}
+html[data-theme='white'] .os-tab-light {
+  background: #9a8b7e;
+}
+html[data-theme='white']
+  .os-method-toolbar
+  button[aria-selected='true']
+  .os-tab-light {
+  background: var(--accent);
+}
+html[data-theme='white'] .os-dataset-icon i {
+  background: #f3eee7;
+  border-color: #bb9f87;
+}
+html[data-theme='white'] .os-dataset-icon i:nth-child(2) {
+  background: #ede4d9;
+  border-color: #ae8662;
+}
+html[data-theme='white'] .os-dataset-icon i:nth-child(3) {
+  background: #f8eee2;
+  border-color: #9e6a40;
+}
+html[data-theme='white'] .os-memory-source > div > span:nth-child(4) {
+  background: #e7cfb8;
+  color: #713b1b;
+  border-color: #ab7546;
+}
+html[data-theme='white']
+  :is(.os-graph-node > i, .os-data-flow > i, .os-ci-flow > i) {
+  border-color: #b38a68;
+}
+html[data-theme='white'] .os-graph-branches::before,
+html[data-theme='white'] .os-graph-branches::after,
+html[data-theme='white'] .os-graph-branches > div:nth-child(2)::before,
+html[data-theme='white'] .os-graph-branches > div:nth-child(2)::after {
+  border-color: #b38a68;
+}
+
+html[data-theme='white'] .os-recipe {
+  --recipe-ink: color-mix(in srgb, var(--recipe-color) 35%, #25221e);
+}
+html[data-theme='white']
+  :is(
+    .os-recipe-file,
+    .os-recipe-meta > code,
+    .os-recipe-editor .os-syntax-key
+  ) {
+  color: var(--recipe-ink);
+}
+html[data-theme='white'] .os-recipe-editor .os-syntax-value {
+  color: var(--os-light-green);
+}
+html[data-theme='white'] .os-recipe-identity > span {
+  border-color: color-mix(in srgb, var(--recipe-color) 65%, #b8b1aa);
+  background: color-mix(in srgb, var(--recipe-color) 15%, white);
+  color: var(--t-text);
+}
+html[data-theme='white'] .os-model-face {
+  color: var(--t-text);
+}
+html[data-theme='white']
+  :is(.os-model-face:hover, .os-model-face:focus-visible) {
+}
+html[data-theme='white'] .os-community-card:hover {
+  background: var(--os-light-panel);
+  border-color: #b88c71;
+}

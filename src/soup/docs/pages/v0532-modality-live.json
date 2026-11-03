@@ -1,0 +1,83 @@
+{
+  "slug": "v0532-modality-live",
+  "title": "v0.53.2 — Live trainers for Modality II",
+  "description": "Soup CLI v0.53.2 lights up Modality II trainers: 'task: distill' (student + frozen teacher + KL/JS), 'task: classifier' / 'reranker' / 'cross_encoder', reasoning_effort dispatch, EOT-unmask, EBFT + GDPO loss kernels (both refused at config load since v0.76.0).",
+  "source": "https://trysoup.dev/docs/v0532-modality-live",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "2c852a5bb24483cc2300bc8e84c5da62a309dce88fa9d075ba67e877c346f894",
+  "headings": [
+    {
+      "level": 2,
+      "id": "live-trainers",
+      "title": "Live trainers"
+    },
+    {
+      "level": 3,
+      "id": "task-distill",
+      "title": "task: distill"
+    },
+    {
+      "level": 3,
+      "id": "task-classifier-reranker-cross-encoder",
+      "title": "task: classifier | reranker | cross_encoder"
+    },
+    {
+      "level": 2,
+      "id": "reasoning-effort-dispatch",
+      "title": "Reasoning effort dispatch"
+    },
+    {
+      "level": 2,
+      "id": "assistant-only-loss-eot-unmask",
+      "title": "Assistant-only loss + EOT unmask"
+    },
+    {
+      "level": 2,
+      "id": "ebft-gdpo-live",
+      "title": "EBFT + GDPO live"
+    },
+    {
+      "level": 2,
+      "id": "tests",
+      "title": "Tests"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">v0.53.2 — Live trainers for Modality II</h1><p>v0.52.0 shipped the schema, allowlists, and validators. v0.53.2 lights up the trainers.</p><h2 id=\"live-trainers\">Live trainers</h2><h3 id=\"task-distill\"><code>task: distill</code></h3><p><code>DistillTrainerWrapper</code> — student model + frozen teacher + per-token KL divergence. Independent <code>trust_remote_code</code> flags per side.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: distill\nbase: meta-llama/Llama-3.2-1B\ntraining:\n  teacher_model: meta-llama/Llama-3.2-3B-Instruct   # under training, not at root\n  distill_divergence: forward_kl   # kl | forward_kl | reverse_kl | js\n  distill_temperature: 2.0          # [0.05, 100]"
+    },
+    {
+      "kind": "html",
+      "html": "<p>(Changed in v0.76.0: before v0.76.0 a distillation run with <code>gradient_accumulation_steps</code> above 1 multiplied its gradient by that count (upstream&#x27;s example: the same effective batch split four ways produced four times the gradient), which upstream says changed the effective learning rate (#720, #742); that is a row of the <a href=\"__DOCS_BASE__/settings-refused-at-load#re-run-this\">v0.76.0 re-run table</a>. Two memory keys, <code>distill_chunk_size</code> and <code>distill_checkpoint</code>, are new: see <a href=\"__DOCS_BASE__/modality-ii#memory-controls-v0-76-0\">Memory controls</a>.)</p><h3 id=\"task-classifier-reranker-cross-encoder\"><code>task: classifier | reranker | cross_encoder</code></h3><p><code>ClassifierTrainerWrapper</code> covers single-label, multi-label, and cross-encoder heads.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: classifier\ntraining:\n  num_labels: 5\n  label_names: [toxic, severe, threat, obscene, identity_hate]"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"reasoning-effort-dispatch\">Reasoning effort dispatch</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  reasoning_effort: high   # low | medium | high — gpt-oss family"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Injects the <code>&lt;|reasoning_effort|&gt;</code> prefix into chat turns.</p><h2 id=\"assistant-only-loss-eot-unmask\">Assistant-only loss + EOT unmask</h2><p><code>train_on_eot: true</code> unmasks the EOT / EOS boundary token so the model learns end-of-turn behaviour without leaking the rest of the prompt into the loss.</p><p>(Since v0.77.0, #806 and #1587: <code>reasoning_effort</code> and <code>train_on_eot</code> load only on <code>sft</code>, <code>tts</code> and <code>distill</code>, the tasks whose rows the SFT formatter builds; on any other task the config is refused at load. Through v0.76.1 they were refused on <code>tts</code> and accepted on <code>pretrain</code>, <code>classifier</code>, <code>reranker</code> and <code>cross_encoder</code>, which never read them.)</p><h2 id=\"ebft-gdpo-live\">EBFT + GDPO live</h2><p>EBFT (<code>structured</code> / <code>strided</code>) and GDPO (<code>standard</code> / <code>length_normalized</code> / <code>margin</code>) loss kernels both land as drop-in losses behind their respective task schemas.</p><p>(Superseded in v0.76.0: this is no longer true. <code>training.ebft_variant</code>, <code>training.ebft_temperature</code> and every value of <code>training.gdpo_variant</code> are refused at config load, (#1230, #1309): supported TRL versions do not expose the DPO loss hook GDPO needed, so it was accepted and ignored, and upstream&#x27;s refusal for EBFT says it is not yet a distinct objective. Remove the keys. The current account is under <a href=\"__DOCS_BASE__/modality-ii#ebft-gdpo-variants-refused-since-v0-76-0\">EBFT + GDPO variants</a>.)</p><h2 id=\"tests\">Tests</h2><ul><li><strong>7,722 → 7,842</strong> (+120)</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/modality-ii\">Modality II overview</a></li><li><a href=\"__DOCS_BASE__/training\">Training methods</a></li></ul><nav><a href=\"__DOCS_BASE__/v053-live-writers\"><span>Previous</span><span>Quant Menu II live writers</span></a><a href=\"__DOCS_BASE__/v0536-7-plugins-anthropic\"><span>Next</span><span>Plugins, Anthropic, tools</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

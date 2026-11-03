@@ -1,0 +1,134 @@
+{
+  "slug": "multi-gpu",
+  "title": "Multi-GPU Mastery",
+  "description": "Multi-GPU mastery in Soup CLI v0.27.0. --gpus launch (detects the interconnect, then re-launches under accelerate), DeepSpeed ZeRO++, FSDP2 + torch.compile, pipeline parallelism (validated; the run executes data-parallel at v0.77.0), multi-node launch flags (--nodes, --node-rank, --master-addr), DeepSpeed-MII serving backend.",
+  "source": "https://trysoup.dev/docs/multi-gpu",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "2b005f767c1769b1dfaa04dcdb3436ff7867c9513873c901812e27d81fe756a1",
+  "headings": [
+    {
+      "level": 2,
+      "id": "one-flag-launch",
+      "title": "One-flag launch"
+    },
+    {
+      "level": 2,
+      "id": "multi-node-launch",
+      "title": "Multi-node launch"
+    },
+    {
+      "level": 2,
+      "id": "zero",
+      "title": "ZeRO++"
+    },
+    {
+      "level": 2,
+      "id": "fsdp2-torch-compile",
+      "title": "FSDP2 + torch.compile"
+    },
+    {
+      "level": 2,
+      "id": "pipeline-parallelism",
+      "title": "Pipeline parallelism"
+    },
+    {
+      "level": 2,
+      "id": "deepspeed-mii-backend",
+      "title": "DeepSpeed-MII backend"
+    },
+    {
+      "level": 2,
+      "id": "multi-gpu-recipes",
+      "title": "Multi-GPU recipes"
+    },
+    {
+      "level": 2,
+      "id": "security-guardrails",
+      "title": "Security & guardrails"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Multi-GPU Mastery</h1><p>Soup v0.27.0 turns multi-GPU training from a research paper into a CLI flag. <code>--gpus</code> detects the topology and re-launches under <code>accelerate</code>, ZeRO++ lands quantized weights and grads, FSDP2 can opt into <code>torch.compile</code>, and a pipeline-parallelism setting is validated but not yet executed (see below).</p><h2 id=\"one-flag-launch\">One-flag launch</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --gpus auto\nsoup train --gpus 8"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--gpus</code> resolves the GPU count (an integer or <code>auto</code>) and detects the interconnect (NVLink vs PCIe). With more than one GPU it then re-launches the same <code>soup train</code> command under <code>accelerate launch --num_processes N</code>, carrying your flags with it. It does not pick a sharding strategy for you: choose one with <code>--deepspeed</code> or <code>--fsdp</code> (or in the config). Pass <code>--no-reexec</code> to print the <code>accelerate launch</code> command instead of running it; Soup then exits 1 so a script does not carry on as if training had started.</p><p><strong>Pass <code>--yes</code> in scripts.</strong> Since v0.77.0 <code>soup train</code> with stdin piped or redirected and no <code>--yes</code> exits 3 before it loads any data, because the start-training confirmation cannot be answered (#2077, #2052). <code>--yes</code> is carried into the relaunched <code>accelerate launch</code> command with your other flags, so put it on the command you run on each node.</p><p><strong>The exit code after a launch is the launcher&#x27;s, on every platform (v0.76.0).</strong> On Linux and macOS Soup replaces its own process with <code>accelerate</code>, so the code your shell or CI sees is the launcher&#x27;s. On Windows, through v0.75.2, the same call returned immediately: in a check with a stand-in launcher that ran for five seconds and exited 7, <code>soup train --gpus 2</code> still exited 0 after about three seconds, the launcher kept running in the background, and its exit code was lost. Since v0.76.0 Soup waits for the launcher on Windows and exits with its code, and an <code>OSError</code> while launching exits 1 with a <code>--no-reexec</code> hint. This is from the call site (<code>commands/train.py</code>), and upstream&#x27;s own end-to-end test uses a stand-in <code>accelerate</code>; a real Windows multi-GPU run was not exercised here. If a script gated on <code>soup train --gpus N</code> on Windows ever passed while training was still running, that was this.</p><h2 id=\"multi-node-launch\">Multi-node launch</h2><p><code>soup train</code> takes four flags for training across several machines (v0.76.0). Run the same command on <strong>each node</strong>, changing only <code>--node-rank</code>. For two machines with eight GPUs each (add <code>--yes</code> when the command runs from a script or over a non-interactive SSH session):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# On rank 0 (replace 10.0.0.10 with its reachable private hostname or IP)\nsoup train --config soup.yaml --gpus 8 --nodes 2 --node-rank 0 --master-addr 10.0.0.10 --master-port 29500 --yes\n\n# On rank 1\nsoup train --config soup.yaml --gpus 8 --nodes 2 --node-rank 1 --master-addr 10.0.0.10 --master-port 29500 --yes"
+    },
+    {
+      "kind": "html",
+      "html": "<div><table><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--nodes N</code></td><td>Number of machines, 1 to 256, default 1. Every node must use the same <code>--gpus</code></td></tr><tr><td><code>--node-rank R</code></td><td>This machine&#x27;s rank, 0 to N-1, default 0. Ranks must be distinct</td></tr><tr><td><code>--master-addr</code></td><td>Rank 0&#x27;s hostname or IP, reachable from every node. Required when <code>--nodes</code> is above 1. An IPv4 or IPv6 literal or a hostname: the port goes in <code>--master-port</code>, so <code>head:29500</code> is refused</td></tr><tr><td><code>--master-port</code></td><td>Coordinator port, 1 to 65535, default 29500</td></tr></tbody></table></div><p><code>--gpus</code> is the number of GPUs <strong>per node</strong>: the two commands above pass <code>--num_processes 16 --num_machines 2</code> to Accelerate and start eight workers on each machine. <code>--gpus auto</code> detects the local count, so use it only when every node has the same number of visible GPUs. <code>--nodes</code> above 1 requires <code>--gpus</code>, and cannot be combined with <code>--cloud</code> or <code>--find-lr</code>; the rank, address and port flags are refused with <code>--nodes 1</code>. Soup uses static rendezvous and does not provision machines, copy files or run the command on other nodes: install the same Soup and training dependencies on every node and make the model, config and data available at the paths each command uses. All nodes need network access to rank 0&#x27;s coordinator port and to the peer connections NCCL uses; opening only the coordinator port may not be enough.</p><p>Every launch-setting mistake is caught before anything loads and exits 1 with <code>Invalid distributed launch: ...</code>. One message is easy to misread: a malformed <code>--master-addr</code> (for example <code>head:29500</code>) prints <code>--master-addr is required and must be a hostname or IP address</code>, the same text as a missing one. Checked with <code>--dry-run --gpus 4 --nodes 2 --node-rank 1 --master-addr 10.0.0.10</code> on a machine with no GPU: the valid command printed <code>accelerate launch --num_processes 8 --multi_gpu --num_machines 2 --machine_rank 1 ...</code> and <code>Config valid. Ready to train!</code> (exit 0, without probing the other nodes); <code>--master-addr head:29500</code>, no <code>--master-addr</code>, <code>--node-rank 2</code> with <code>--nodes 2</code>, and <code>--node-rank 1</code> with <code>--nodes 1</code> each exited 1. <code>--no-reexec</code> prints the same command without <code>--dry-run</code> and exits 1, as for any multi-GPU launch.</p><p>Multi-node launches default to <code>NCCL_IB_DISABLE=0</code>, which allows InfiniBand; on a TCP-only cluster set <code>NCCL_IB_DISABLE=1</code> on every node before launching. Existing NCCL settings are preserved, and Soup prints that default as a note. No two-node run was possible here: the validation and the printed launch command are tested, a live multi-node launch was not.</p><h2 id=\"zero\">ZeRO++</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-70B\ntask: sft\n\ndata:\n  train: ./data/train.jsonl\n\ntraining:\n  quantization: 4bit\n  lora:\n    r: 16\n    alpha: 32"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --gpus 8 --deepspeed zero++\n# aliases: zero_pp"
+    },
+    {
+      "kind": "html",
+      "html": "<p>ZeRO++ cuts inter-GPU communication by quantizing the broadcasted weights and gradients. Integer fields (<code>sub_group_size</code>, <code>stage3_max_live_parameters</code>, <code>stage3_max_reuse_distance</code>) are written as <code>int(1e9)</code> so DeepSpeed&#x27;s strict JSON validator accepts them.</p><h2 id=\"fsdp2-torch-compile\">FSDP2 + torch.compile</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  use_fsdp2_compile: true"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --gpus 4 --fsdp full_shard"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The validator requires an FSDP preset, CUDA, <code>backend=transformers</code>, and <code>torch&gt;=2.2 + accelerate&gt;=0.27</code>. DeepSpeed + <code>torch.compile</code> is explicitly rejected — the two own their own compile paths and mixing them produces a cryptic runtime crash.</p><h2 id=\"pipeline-parallelism\">Pipeline parallelism</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  parallelism: pipeline\n  pipeline_stages: 4"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The validator requires <code>pipeline_stages &gt;= 2</code>, CUDA, and <code>gpu_count &gt;= pipeline_stages</code>. <code>pipeline_stages</code> is bounded <code>[1, 16]</code>.</p><p><strong>Validation only.</strong> At v0.77.0 <code>parallelism: pipeline</code> is checked and then the run executes data-parallel: <code>soup train</code> prints a yellow &quot;Pipeline parallelism (deferred execution)&quot; panel saying the config is validated and the trainer runs in data-parallel mode. No pipeline stages are executed, so setting it does not split the model across GPUs.</p><p><strong>Task coverage of <code>--fsdp</code> and <code>--deepspeed</code> widened in v0.76.0 (#1204).</strong> The <code>prm</code> and <code>moe_lora_routing</code> wrappers stored <code>--fsdp</code> and never passed it to their trainer arguments, and the <code>online_dpo</code> wrapper did the same with both <code>--fsdp</code> and <code>--deepspeed</code>, so the flags had no effect on the trainer for those tasks. They now reach the trainer on all three; if you launched one of them under <code>--gpus N</code> expecting sharding, you did not get it.</p><h2 id=\"deepspeed-mii-backend\">DeepSpeed-MII backend</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --backend mii --model ./output"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Registered in v0.27.0, live since v0.33.0. A misconfigured <code>--backend mii</code> always exits non-zero (never silently accepts).</p><p><strong>v0.74.0 repaired the prompt and the finish reason.</strong> Until then this backend hand-rolled a <code>System:/User:/Assistant:</code> prompt and hardcoded <code>finish_reason</code> to <code>stop</code>, so a served model saw a format it was never trained on and a client could not tell a truncated answer from a completed one. It now applies the model&#x27;s own chat template through the shared builder and reports the engine&#x27;s real finish reason. Behaviour is unchanged for a model that ships no chat template. That is the third backend to have carried this same pair, after vLLM in v0.73.0 and SGLang in v0.74.0.</p><h2 id=\"multi-gpu-recipes\">Multi-GPU recipes</h2><ul><li><code>llama3-70b-fsdp2</code> — 70B SFT on 8×A100 via FSDP2 + compile</li><li><code>qwen3-32b-zeropp</code> — Qwen 3 32B SFT via DeepSpeed ZeRO++</li><li><code>deepseek-v3-pipeline</code> — DeepSeek V3 SFT scaffold (the pipeline setting is validated; training runs data-parallel)</li></ul>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup recipes use llama3-70b-fsdp2\nsoup train --gpus 8 --fsdp full_shard"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Sharding is a launch flag, not a recipe key. The <code>llama3-70b-fsdp2</code> recipe sets <code>use_fsdp2_compile: true</code>, and <code>soup train</code> refuses that (exit 1, &quot;use_fsdp2_compile requires FSDP to be enabled&quot;) unless <code>--fsdp</code> is passed, so <code>soup train --gpus 8</code> alone fails. The ZeRO++ recipe takes <code>--deepspeed zero++</code> in the same position. See <a href=\"__DOCS_BASE__/recipe-catalog#before-you-run-one\">Before you run one</a>.</p><h2 id=\"security-guardrails\">Security &amp; guardrails</h2><ul><li><code>--gpus</code> rejects <code>bool</code>, negatives, zero, non-digits, and values above <code>MAX_GPU_COUNT=128</code></li><li><code>--gpus auto</code> on a CPU-only host prints an explicit yellow warning instead of silently single-processing</li><li>The <code>accelerate launch</code> argv is built via <code>shlex.quote</code> so copy-pasted commands can&#x27;t inject via a crafted config path</li><li>NCCL env hints are applied via <code>os.environ.setdefault</code> — user / launcher overrides always win</li><li>Rich markup on <code>--config</code> paths is escaped before embedding in advice panels</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/training-speed-memory\">Training speed &amp; memory</a> — Cut CE, FP8, activation offloading</li><li><a href=\"__DOCS_BASE__/backends\">Backends</a> — transformers / unsloth / MLX</li></ul><nav><a href=\"__DOCS_BASE__/rlvr\"><span>Previous</span><span>RLVR: Verifiable Rewards</span></a><a href=\"__DOCS_BASE__/training-speed-memory\"><span>Next</span><span>Speed &amp; Memory</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

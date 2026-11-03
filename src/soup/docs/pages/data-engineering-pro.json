@@ -1,0 +1,111 @@
+{
+  "slug": "data-engineering-pro",
+  "title": "Data Engineering Pro (v0.69.0)",
+  "description": "Soup CLI v0.69.0 data engineering pro — turn dataset prep into a first-class engineering discipline. soup build is a dbt-shaped DAG of dataset transforms with re-tokenise-only-changed-rows incremental materialisation. soup expect is a Great Expectations suite for chat data (PII, refusal, token length, and a judge expectation that a chosen answer beats the rejected one, which needs --judge or args.judge and otherwise fails with exit 2 unless args.advisory is set; exit 2 means an expectation failed, exit 3 means the suite or data was rejected). soup data gen-magpie generates synthetic data via Magpie chat-template-prefix harvest. soup data persona-mix is the Persona-Hub diversity sampler (12 personas × 5 styles bundled, BYO Tencent 200k). soup data brain-rot is the arXiv 2510.13928 AI-slop detector (OK/MINOR/MAJOR, --strict exits 3). +262 tests, 11,487 total.",
+  "source": "https://trysoup.dev/docs/data-engineering-pro",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "8fbc22c84c710c2b2ca4bcfef06665639248eae9d66f7ce120639cdaf72f579d",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-build-dbt-shaped-dag-of-dataset-transforms",
+      "title": "soup build — dbt-shaped DAG of dataset transforms"
+    },
+    {
+      "level": 2,
+      "id": "soup-expect-great-expectations-for-chat-data-live",
+      "title": "soup expect — Great Expectations for chat data (LIVE)"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-gen-magpie-synthetic-data-via-chat-template-prefix-harvest",
+      "title": "soup data gen-magpie — synthetic data via chat-template-prefix harvest"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-persona-mix-persona-hub-diversity-sampler-live",
+      "title": "soup data persona-mix — Persona-Hub diversity sampler (LIVE)"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-brain-rot-ai-slop-detector-live",
+      "title": "soup data brain-rot — AI-slop detector (LIVE)"
+    },
+    {
+      "level": 2,
+      "id": "cross-cutting-hardening",
+      "title": "Cross-cutting hardening"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Engineering Pro (v0.69.0)</h1><p>Dataset prep stops being &quot;throw a JSONL at the trainer&quot; and becomes a first-class engineering discipline. dbt-shaped DAG, Great-Expectations suite, Magpie synth, Persona-Hub diversity, and the <a href=\"https://arxiv.org/abs/2510.13928\">arXiv 2510.13928</a> brain-rot detector.</p><h2 id=\"soup-build-dbt-shaped-dag-of-dataset-transforms\"><code>soup build</code> — dbt-shaped DAG of dataset transforms</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# manifest.yaml\n# Each model names a transform, not SQL. A seed model reads a source;\n# every downstream model names the models it consumes in refs.\nmodels:\n  - name: chats_raw\n    kind: incremental\n    source: data/thumbs_up.jsonl\n    transform: identity\n  - name: chats_nonempty\n    kind: incremental\n    refs: [chats_raw]\n    transform: drop_empty\n  - name: chats_train\n    kind: table\n    refs: [chats_nonempty]\n    transform: token_count"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup build manifest.yaml --dry-run    # validates topology, exits 0 (LIVE today)\nsoup build manifest.yaml              # materialises (live since v0.71.6)"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--output-dir</code> (<code>-o</code>, default <code>build_out</code>, which must stay under the working directory) receives one <code>&lt;model&gt;.jsonl</code> for every <code>table</code> and <code>incremental</code> model, plus the SQLite state store <code>.soup_build_state.sqlite</code>. A <code>view</code> is derived in memory for the models that <code>refs</code> it and is <strong>never written to disk</strong>, which is why the last model above is a <code>table</code>: make the model you want to train on a <code>table</code> or an <code>incremental</code>. <code>drop_empty</code> drops rows whose <code>text</code> field is empty or blank (<code>config.field</code> names a different field); no built-in transform decontaminates anything.</p><ul><li>Closed <code>SUPPORTED_MODEL_KINDS = {incremental, table, view}</code></li><li>Topo-sort via Kahn&#x27;s algorithm</li><li><strong>Re-tokenise only changed rows</strong>: <code>compute_row_hash</code> (SHA-256 over canonical-JSON, <code>id</code> field excluded) + <code>incremental_diff(prev, new) → {added, changed, removed, unchanged}</code></li><li>DoS caps: <code>_MAX_MODELS=256</code>, <code>_MAX_REFS_PER_MODEL=32</code>, <code>_MAX_FILE_BYTES=1 MiB</code></li><li><strong>Live as of v0.71.6</strong> — <code>run_build</code> materialises datasets with five built-in transforms, and these are the whole list: <code>identity</code>, <code>drop_empty</code>, <code>lowercase</code>, <code>add_field</code> and <code>token_count</code>. Anything else must be a <strong>dotted import path</strong> (<code>my_pkg.transforms:filter_low_quality</code>), resolved from the CLI, which upstream flags as arbitrary code execution: only run a manifest you trust, and do not feed an untrusted one to <code>soup build</code> on a shared CI host. <strong>A name that is neither is caught by the runner, not by the plan</strong>, so <code>--dry-run</code> exits 0 on a manifest whose real run dies on the first unknown transform. The schema deliberately does not validate the function reference. <code>table</code> rebuilds, <code>view</code> re-derives, <code>incremental</code> re-transforms only the rows whose content hash changed (SQLite state store, keyed by row hash + transform fingerprint). A custom transform is a function of exactly two positional arguments, the row and the model&#x27;s <code>config</code> mapping, and it returns a dict, or <code>None</code> to drop the row; the function is resolved, and its module imported, once when the build starts. It has to be importable by the Python that runs <code>soup</code> (installed, or on <code>PYTHONPATH</code>): in a test, a module that sat only in the working directory was not found. v0.71.6 also makes <code>soup data gen-magpie</code> generate live (ollama / vllm raw-completion, SSRF-hardened; <code>anthropic</code> rejected).</li></ul><h2 id=\"soup-expect-great-expectations-for-chat-data-live\"><code>soup expect</code> — Great Expectations for chat data (LIVE)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# suite.yaml: every entry is a mapping with a name; arguments go under args\nexpectations:\n  - name: expect_no_pii\n  - name: expect_token_length_between\n    args: {min_tokens: 32, max_tokens: 2048}\n  - name: expect_no_refusal_pattern\n  - name: expect_chosen_preferred_over_rejected_by_judge\n    args: {threshold: 0.7, judge: \"ollama://llama3.1\"}"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup expect ./data.jsonl ./suite.yaml\nsoup expect ./data.jsonl ./suite.yaml --judge ollama://llama3.1"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Exit codes (changed in v0.76.0):</strong> <code>0</code> the suite passed, <strong><code>2</code> an expectation failed</strong>, <strong><code>3</code> the suite or the data was rejected</strong> (a missing or invalid suite, an unreadable or malformed dataset, a path outside the working directory, a mistyped flag), and <code>1</code> the judge could not be reached. Through v0.75.2 the codes were the other way round: 3 meant a failed expectation and 2 a rejected input. <strong>A CI step written for the old codes now reads a failing dataset as an input error, or the reverse.</strong> Check any <code>exit 3</code> test in a pipeline. The same move applies to the other gate commands; the list is on <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>. The exit-1 case comes from the code and was not run here, because no judge server was available. Since v0.77.0 a missing input is named in the error (<code>data file not found: &lt;path&gt;</code>, <code>suite file not found: &lt;path&gt;</code>) instead of a bare value, with the exit codes unchanged (#1833).</p><p>Closed allowlist: <code>expect_no_pii</code> (reuses v0.47 Presidio), <code>expect_token_length_between</code>, <code>expect_no_refusal_pattern</code> (reuses v0.56 refusal detector), <code>expect_chosen_preferred_over_rejected_by_judge</code> (see below). <code>_MAX_SUITE_LEN=64</code>. Drop into CI between <code>soup data</code> and <code>soup train</code>.</p><p><strong>The suite is checked strictly.</strong> A suite entry takes only <code>name</code> and <code>args</code>, and <code>args</code> takes only what that expectation declares: <code>min_tokens</code> and <code>max_tokens</code> for the length check, <code>threshold</code>, <code>judge</code> and <code>advisory</code> for the judge expectation, nothing for the other two. A key beside <code>name</code> (<code>threshold: 1</code> at the entry level), an argument the expectation does not take (<code>min_token</code>), a bare name instead of a mapping (<code>expectations[0] must be a dict</code>), a <code>- expect_x: {...}</code> mapping (<code>expectation name must be non-empty</code>) and a top-level key other than <code>expectations</code> (<code>fail_fast: true</code>) are all refused when the suite loads, with exit 3, naming the key and suggesting the close spelling where there is one: <code>expect_token_length_between takes no argument &#x27;min_token&#x27; (did you mean &#x27;min_tokens&#x27;?)</code>. Through v0.75.2 an unknown key under <code>args</code> was ignored, so a misspelled bound silently left that bound off. The length check defaults to <code>min_tokens</code> 1 and <code>max_tokens</code> 1,048,576 (so with no arguments an empty row fails), and it counts whitespace-separated words, not tokenizer tokens.</p><p><strong><code>expect_chosen_preferred_over_rejected_by_judge</code> needs a judge.</strong> Give it one with <code>args: {judge: &quot;ollama://llama3.1&quot;}</code> in the suite or <code>soup expect --judge &lt;url&gt;</code> on the command line; the flag wins when both are set. The URL takes the same forms as <code>soup eval gate</code>&#x27;s <code>judge_model</code> (<code>ollama://&lt;model&gt;</code>, loopback <code>http://</code>, or <code>https://</code>), and plain <code>http://</code> is accepted only for loopback and a private, link-local or reserved IP literal is refused (both exit 3). Each row is judged in both orders: <code>chosen</code> winning both times scores 1.0, <code>rejected</code> winning both times scores 0.0, and a tie or a disagreement between the two orders scores 0.5. <code>threshold</code> (default 0.7) is the lowest score that passes, so at the default a row passes only when the judge picks <code>chosen</code> in both orders. A row scoring below <code>threshold</code>, a row missing <code>chosen</code> or <code>rejected</code>, and a row whose judge call raises an unexpected error (<code>judge raised</code>) are violations; a judge that cannot be reached at all is the exit-1 case above. Since v0.77.0 a judge reply is bounded at 1 MiB, checked while it streams, and an oversized reply is refused before it is parsed, without logging its body (#1929). <strong>With no judge configured, every preference row is a violation and the run exits 2.</strong> The suite at the top of this section does exactly that if you drop <code>judge:</code> and pass no <code>--judge</code>. If you want to trust the existing labels instead, set <code>args: {advisory: true}</code>: nothing is scored, the report prints <code>advisory: no judge ran; N rows not scored</code>, and the expectation passes. <strong>A pass in advisory mode is not a preference-quality check</strong>, and <code>--judge</code> with a suite that has no judge expectation only prints a note. Through v0.75.2 the command-line run had no judge at all: the expectation only checked that <code>chosen</code> and <code>rejected</code> were present, <code>threshold</code> was never compared with anything, and it passed, which is why a clean result from an older release says nothing about preference quality. For length bias and identical pairs use <a href=\"__DOCS_BASE__/fine-tune-doctor\"><code>soup data lint</code></a>.</p><p><strong>What the checks read.</strong> The PII and length checks scan every text field the row&#x27;s format carries (v0.76.0; through v0.75.2 only a handful of top-level names were read, and <code>input</code>, <code>conversations[].value</code>, <code>chosen</code>, <code>rejected</code> and <code>completion</code> were skipped):</p><ul><li>ChatML, tool-calling and audio rows: <code>messages[].content</code> (a string or a list of text parts), tool-call arguments and <code>tools[].function.description</code></li><li>ShareGPT, LLaVA and ShareGPT4V: <code>conversations[].value</code></li><li>Alpaca: <code>instruction</code>, <code>input</code>, <code>output</code>, <code>system</code>, <code>response</code></li><li>DPO: <code>prompt</code>, <code>chosen</code>, <code>rejected</code>; KTO: <code>prompt</code>, <code>completion</code></li><li>embedding: <code>anchor</code>, <code>positive</code>, <code>negative</code></li><li>plaintext and ASR: <code>text</code></li><li>RAFT: <code>query</code>, <code>golden_doc</code>, <code>distractor_docs</code>, <code>answer</code>; PRM: <code>prompt</code>, <code>completions</code>; input_output: <code>segments[].text</code></li></ul><p><code>expect_no_refusal_pattern</code> reads only the assistant side: assistant and gpt turns, DPO <code>chosen</code>, KTO <code>completion</code>, Alpaca <code>output</code> and <code>response</code>, RAFT <code>answer</code>, PRM <code>completions</code>, <code>segments</code> not marked <code>label: false</code>, and <code>text</code> for plaintext rows. A row with text but no assistant side passes it. A row with no extractable text at all <strong>fails</strong> every expectation, so a blank or unparseable row cannot pass CI. A line that is not valid JSON, a JSON value that is not an object, and a file with no checkable rows are refused with exit 3 and line numbers, instead of being skipped. A UTF-8 byte-order mark at the start of the file is dropped.</p><h2 id=\"soup-data-gen-magpie-synthetic-data-via-chat-template-prefix-harvest\"><code>soup data gen-magpie</code> — synthetic data via chat-template-prefix harvest</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data gen-magpie --base meta-llama/Llama-3-8B \\\n  --provider ollama --target 50000 \\\n  --output ./synth.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Magpie trick: prime the base model with just the assistant chat-template prefix and let it complete the prompt itself. Reuses the v0.20 provider stack, minus Anthropic: Magpie primes the base model with a bare chat-template prefix, which a hosted chat API will not do, so <code>--provider anthropic</code> is refused here. Ollama and vLLM work. <code>--base</code> is sent to the provider as its model name, so with <code>--provider ollama</code> it has to be a model your Ollama server has pulled (the example id above is illustrative); a provider that is unreachable or does not know the model produces zero rows and a warning, not an error. <code>_MAX_TARGET_ROWS=1_000_000</code>, <code>_MAX_BASE_MODEL_LEN=512</code>. The live <code>run_magpie</code> loop and the v0.47 quality-filter chain shipped in v0.71.6, with <code>--quality-filter</code> on by default. The default filter keeps a row that is non-empty and scores at least 0.1 on the heuristic educational-value scorer; as of v0.76.0 it no longer applies the abuse-keyword heuristic, which is not a toxicity classifier (see <a href=\"__DOCS_BASE__/data-forge\">Data forge</a>).</p><p><code>--max-tokens</code> caps the tokens requested per generation (default 512, allowed 1 to 16384, otherwise exit 2). Since v0.77.0 a raw completion is also bounded at 8 MiB of decoded content, checked while it streams: an oversized one is dropped as a sample, without logging its body, and collection continues within its attempt limit (#1929). <code>--base-url</code> points at the provider and defaults to loopback (<code>http://localhost:11434</code> for Ollama, <code>http://localhost:8000</code> for vLLM). For Ollama it must still be a loopback host: a remote URL is refused with exit 2 (<code>Remote Ollama instances are not supported</code>). For vLLM, plain HTTP is accepted only for localhost, any other host needs HTTPS, and a private, link-local or reserved IP literal is refused on either scheme.</p><h2 id=\"soup-data-persona-mix-persona-hub-diversity-sampler-live\"><code>soup data persona-mix</code> — Persona-Hub diversity sampler (LIVE)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data persona-mix --prompts ./prompts.jsonl \\\n  --n 20000 --output ./diverse.jsonl\n# Optional BYO: --personas tencent-200k.jsonl --styles styles.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Bundled 12 personas × 5 writing styles (BYO Tencent 200k corpus via <code>--personas</code> / <code>--styles</code>). Deterministic by seed (<code>random.Random(seed)</code>). <code>compute_topic_diversity</code> = Shannon entropy over pooled whitespace tokens. Atomic JSONL write + cwd-contained input + <code>enforce_under_cwd_and_no_symlink</code> on output. Caps: 100 MiB / 100k entries per loader.</p><h2 id=\"soup-data-brain-rot-ai-slop-detector-live\"><code>soup data brain-rot</code> — AI-slop detector (LIVE)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data brain-rot ./data.jsonl --strict --max-major-fraction 0.25\n# exit 3 if MAJOR fraction > 0.25"
+    },
+    {
+      "kind": "html",
+      "html": "<p><a href=\"https://arxiv.org/abs/2510.13928\">arXiv 2510.13928</a> brain-rot detector. Two pure-Python scorers:</p><ul><li><code>score_triviality</code> — token-diversity inversion + <code>!!</code> / <code>??</code> punctuation runs + low-effort token density + length penalty</li><li><code>score_popularity_signal</code> — clickbait phrase scan + emoji U+1F300–U+1FAFF density</li></ul><p>Worst-signal-wins: <code>1.0 − max(triviality, popularity)</code>. Bands match v0.26/v0.56/v0.65: OK ≥ 0.85, MINOR ≥ 0.60, else MAJOR. <code>refuse_if_rotten</code> raises when MAJOR fraction exceeds threshold. English-keyword-only in v0.69.0; multilingual shipped in v0.71.6 behind <code>--lang en|es|fr|de|ru|auto</code>.</p><h2 id=\"cross-cutting-hardening\">Cross-cutting hardening</h2><p>Refactored 3 duplicate TOCTOU blocks behind a new shared <code>paths.enforce_under_cwd_and_no_symlink</code> helper (code-review CRITICAL fix). v0.70 + future releases reuse it.</p><h2 id=\"numbers\">Numbers</h2><p>+262 tests in v0.69.0 (11,225 → <strong>11,487</strong>) across 5 new test files. 3 POSIX-only symlink tests skip on Windows.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance (v0.68)</a> — the TOCTOU helper this consolidates was first lifted here.</li><li><a href=\"__DOCS_BASE__/loop-hardening\">Loop hardening (v0.70)</a> — <code>soup expect</code> gates data going into <code>--reward-hack-detector</code> runs.</li><li><a href=\"__DOCS_BASE__/eval-depth\">Eval depth (v0.65)</a> — same OK / MINOR / MAJOR taxonomy.</li></ul><nav><a href=\"__DOCS_BASE__/trace-ecosystem\"><span>Previous</span><span>Trace Ecosystem</span></a><a href=\"__DOCS_BASE__/data-moat-ii\"><span>Next</span><span>Data Moat II</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

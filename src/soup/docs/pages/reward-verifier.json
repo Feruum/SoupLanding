@@ -1,0 +1,96 @@
+{
+  "slug": "reward-verifier",
+  "title": "Reward Forge: synthesize a reward verifier, then prove it cannot be gamed (v0.71.40 → v0.71.41)",
+  "description": "Reward Forge (v0.71.40 and v0.71.41) turns Soup's reward-hacking detector on the reward verifier itself. soup reward synth <references.jsonl> -o reward.py auto-generates a deterministic verifier from your gold outputs (numeric, json_schema, regex or tool_call, auto-detected or forced with --kind), emits a readable committable .py, and the moat is a mandatory calibration report that refuses (exit 2) any verifier that cannot accept 90% of references and reject auto-generated bad answers. soup reward stress <reward.py|accuracy|format|verifiable> --references golds.jsonl then attacks a verifier with empty, length-padded, repetition and sentinel-spam completions scored against the real gold, reporting a per-attack accept-rate table plus a gameability verdict (exit 0 robust, 2 gameable, 1 error). Both are pure and offline and add no new trusted-exec surface. v0.71.40 also makes a comma-separated reward_fn train as an ensemble. No RL library (TRL, Unsloth, Axolotl, OpenRLHF) synthesizes a reward or tests one for gameability.",
+  "source": "https://trysoup.dev/docs/reward-verifier",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "953669c5e915ab673a3f08fef013ad7efaea756e998f47b3d1b9ac0d4b37c77e",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-reward-synth-a-verifier-from-your-gold-outputs-v0-71-40",
+      "title": "soup reward synth — a verifier from your gold outputs (v0.71.40)"
+    },
+    {
+      "level": 3,
+      "id": "the-moat-mandatory-calibration",
+      "title": "The moat: mandatory calibration"
+    },
+    {
+      "level": 2,
+      "id": "soup-reward-stress-is-the-verifier-gameable-v0-71-41-six-attacks-since-v0-76-0",
+      "title": "soup reward stress — is the verifier gameable? (v0.71.41, six attacks since v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "reward-ensembles-now-train-v0-71-40",
+      "title": "Reward ensembles now train (v0.71.40)"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "where-it-fits",
+      "title": "Where it fits"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Reward Forge: synthesize a reward verifier, then prove it cannot be gamed (v0.71.40 → v0.71.41)</h1><p>An RL run trusts its <strong>reward verifier</strong> more than anything else and inspects it least. If the verifier pays out for the wrong reasons, the policy learns to hack it, and you find out after the GPU hours. Reward Forge is two commands that turn Soup&#x27;s reward-hacking detector on the verifier itself: <code>soup reward synth</code> <strong>builds</strong> a deterministic verifier from your data and refuses a bad one; <code>soup reward stress</code> <strong>attacks</strong> a verifier to see if degenerate junk gets paid.</p><p>Both are pure and offline, and both ride the existing <code>load_reward_fn</code> <code>.py</code> path, so they add <strong>no new trusted-execution surface</strong>. No RL library (TRL, Unsloth, Axolotl, OpenRLHF) synthesizes a reward or tests one for gameability.</p><h2 id=\"soup-reward-synth-a-verifier-from-your-gold-outputs-v0-71-40\"><code>soup reward synth</code> — a verifier from your gold outputs (v0.71.40)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup reward synth golds.jsonl -o reward.py                      # auto-detect the family\nsoup reward synth golds.jsonl -o reward.py --kind numeric --tolerance 1e-6\nsoup reward synth golds.jsonl --plan-only                       # show the induced spec, write nothing\nsoup reward synth golds.jsonl -o reward.py --output-report calib.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Point it at a JSONL of reference (gold) outputs and it infers one of four verifier families, auto-detected or forced with <code>--kind</code>, each grounded in your golds. Each row is read from its <code>answer</code> field (<code>--field</code> names another one) or, for chat rows, from the assistant turn of <code>messages</code>; a file with neither exits 1 with <code>no gold outputs found</code>.</p><div><table><thead><tr><th><code>--kind</code></th><th>What it checks</th></tr></thead><tbody><tr><td><code>numeric</code></td><td>Reads the gold and the completion with the same parser the built-in <code>math</code> and <code>accuracy</code> rewards use (<code>####</code>, <code>\\boxed{}</code>, <code>The answer is</code> or <code>Answer:</code>, else the last number; <code>1,000</code> and a Unicode minus are normalised) and compares exactly or within <code>--tolerance</code>. Near-misses inside the tolerance are binary here, where the built-ins give partial credit.</td></tr><tr><td><code>json_schema</code></td><td>Induces keys, value types and required fields from the golds and validates against them.</td></tr><tr><td><code>regex</code></td><td>Builds positional character classes over equal-length golds.</td></tr><tr><td><code>tool_call</code></td><td>Binds each tool&#x27;s <code>required</code> and <code>allowed</code> arguments.</td></tr></tbody></table></div><p>The emitted <code>reward.py</code> is <strong>readable and committable</strong> — you read it, edit it, diff it in review, and check it into git, exactly like a hand-written reward. It is not a trained-weights black box. Since v0.76.0 the numeric kind imports Soup&#x27;s answer parser (<code>soup_cli.utils.final_answer</code>), so the file runs where Soup is installed and is not fully self-contained; its header says so.</p><p><strong>Regenerate a numeric verifier written before v0.76.0</strong> (#1350). The old file pulled the last number with a local regex. A new one reads both sides with the shared parser, so <code>1,000</code>-style golds and <code>The answer is ...</code> completions score where they scored 0 before, and it stops paying some completions the old regex paid: a <code>####</code> or <code>\\boxed{}</code> answer carrying units, <code>%</code> or a non-dollar currency symbol or code (<code>#### 42 apples</code>, <code>\\boxed{42\\%}</code>, <code>#### €42</code>), a hedged or parenthetically justified answer phrase (<code>The answer is either 41 or 42</code>, <code>The answer is 42 (6*7=42).</code>), and a completion whose last <code>\\boxed{}</code> is wrong after a right first one. A bare <code>42%</code> and <code>The answer is 42%.</code> still pay, as under the built-ins. Do not compare runs across an old and a regenerated verifier.</p><h3 id=\"the-moat-mandatory-calibration\">The moat: mandatory calibration</h3><p>The differentiator is that synth <strong>refuses to emit a verifier that cannot tell good from bad</strong>. Before writing the file, the synthesized verifier is loaded back and run against:</p><ul><li>its <strong>own references</strong> — it must accept at least <strong>90%</strong>, and</li><li><strong>auto-generated bad answers</strong> — it must reject them.</li></ul><p>A degenerate always-accept verifier is refused with <strong>exit 2</strong>, never silently written. <code>--plan-only</code> reports the induced spec without writing, and <code>--output-report</code> persists the calibration JSON, which now names every reference the verifier rejects (<code>rejected_references</code>); a refused run lists the first ten of them in the panel and counts the rest. Since v0.76.0 <code>-o</code> is not touched until the candidate has been loaded back and accepted: the candidate is written to a temporary sibling file and moved onto <code>-o</code> only on acceptance, so a refusal, an error or a crash leaves an existing <code>reward.py</code> byte-identical. <em>(Through v0.75.2, <code>soup reward synth -o reward.py --force</code> overwrote the existing verifier first and deleted the file outright on a refusal or error, destroying a previously working verifier (#1450).)</em></p><p><code>--min-discrimination</code> (default 0.5, allowed 0.0 to 1.0, otherwise exit 1) sets how far apart those two groups must be. Discrimination is the share of its own references the verifier accepts minus the share of the auto-generated bad answers it also accepts; below the bar the verifier is refused with exit 2. <code>--min-discrimination 0</code> does not switch the check off: a verifier whose discrimination is 0 or less is refused regardless.</p><h2 id=\"soup-reward-stress-is-the-verifier-gameable-v0-71-41-six-attacks-since-v0-76-0\"><code>soup reward stress</code> — is the verifier gameable? (v0.71.41, six attacks since v0.76.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup reward stress reward.py --references golds.jsonl\nsoup reward stress reward.py --references golds.jsonl --attacks empty,length,repetition,sentinel --sentinel GOLD\nsoup reward stress verifiable --verifiable-domain math --references golds.jsonl   # probe a builtin"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Where synth proves a verifier separates references from friendly perturbations, stress asks the adversarial question a reward-hacking model asks at train time: <strong>does the verifier pay out for degenerate junk?</strong> It feeds six attack families, each scored against the real gold (references are cycled), so a <code>numeric</code>, <code>tool_call</code> or <code>json_schema</code> verifier still gets a valid target and must reject the garbage. <code>--attacks</code> takes a comma list and defaults to all six:</p><ul><li><code>empty</code> — an empty completion</li><li><code>length</code> — a length-padded completion</li><li><code>repetition</code> — a repeated fragment</li><li><code>sentinel</code> — spam containing a magic token (<code>--sentinel</code>)</li><li><code>wrapped_junk</code> — structure-preserving junk: junk wrapped in the structure a reward looks for (the built-in <code>format</code> reward paid 1.0 to <code>&lt;think&gt;&lt;/think&gt;a</code>)</li><li><code>answer_spray</code> — a completion that embeds the real gold among distractor answers</li></ul><p>The last two were added in v0.76.0 (#814, #937). Each family is expanded into several distinct variants and judged per family, so a clean family cannot dilute a gameable one. A run costs up to 23 batched verifier invocations, or 4,600 scored completions at the 200-gold cap, so a slow or model-based verifier takes proportionally longer than a string check.</p><p>Real output for the <code>reward.py</code> synthesized above from ten numeric golds (<code>42</code>, <code>43</code>, ...):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "$ soup reward stress reward.py --references golds.jsonl\nattack         n  accepted  accept-rate\nempty         30         0           0%\nlength        30         0           0%\nrepetition    30         0           0%\nsentinel      30         0           0%\nwrapped_junk  70         0           0%\nanswer_spray  40         0           0%\n\nreference accept: 100%   gameability: 0%   verdict: robust (not gameable)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It reports a <strong>per-attack accept-rate table</strong> plus an overall gameability verdict, tuned by <code>--max-gameable</code> and <code>--threshold</code>, and <code>--output-report</code> persists the JSON. It probes a synthesized <code>.py</code> <strong>and</strong> a builtin (<code>accuracy</code>, <code>format</code>, <code>verifiable</code>) through the same loader. Exit codes: <strong>0 = robust</strong>, <strong>2 = gameable</strong>, <strong>1 = error</strong>. A gold-requiring verifier probed with <strong>no <code>--references</code></strong> is a hard error naming the flag, never a false &quot;robust&quot;.</p><p><strong>The built-in <code>format</code> reward is gameable.</strong> Probed against the same golds, <code>soup reward stress format --references golds.jsonl</code> accepts 57% of <code>wrapped_junk</code> and 25% of <code>answer_spray</code> completions, prints <code>verdict: GAMEABLE</code> and exits 2, while <code>accuracy</code> and <code>verifiable</code> with <code>--verifiable-domain math</code> come back robust (the <code>format</code> run also prints <code>Using built-in reward function: format</code>). <code>format</code> pays 0.5 for a <code>&lt;think&gt;...&lt;/think&gt;</code> block and 0.5 for any text after it, so it rewards structure and says nothing about whether the answer is right. Train against it alone and a policy can collect it with an empty think block; combine it with a reward that checks the answer. <em>(A <code>robust</code> verdict from v0.75.x for the built-in <code>format</code> reward, or for a custom verifier that rewards structure only, was made with four attack families that could not exercise that structure: re-probe before you train GRPO against it.)</em></p><p><code>--field</code> (default <code>answer</code>) names the gold field, and for <code>verifiable --verifiable-domain json_schema</code> it can name a field holding the schema as a JSON object, which is decoded before scoring (<code>--field schema</code>). One limit: the built-in attacks are plain text and not valid JSON, so <code>json_schema</code> rejects them during parsing before any schema-specific constraint is evaluated. The result does not yet distinguish a strict schema from a permissive one, and its <code>reference accept</code> is not a meaningful control for that domain (it is normally <code>0%</code>).</p><h2 id=\"reward-ensembles-now-train-v0-71-40\">Reward ensembles now train (v0.71.40)</h2><p>A comma-separated <code>training.reward_fn</code> finally trains as a <strong>reward ensemble</strong>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: grpo                       # root-level, NOT under training\ntraining:\n  reward_fn: \"accuracy,format\"   # resolves to GRPOTrainer(reward_funcs=[accuracy, format])\n  gradient_checkpointing: true   # since v0.77.0 the default false reaches TRL; true keeps the old memory"
+    },
+    {
+      "kind": "html",
+      "html": "<p>This also unlocks the <code>rm_ensemble</code> reward-hack detector, which needs at least two rewards, and it fixes a recipe (<code>deepseek-v3-reasoning</code>) that shipped exactly this form and previously crashed with <code>Unknown reward function</code>. The <code>reward_fn</code> field also gained a validator that rejects null bytes, blanks, oversize strings and empty comma segments (<code>verifiable</code> in a comma list without a <code>verifiable_domain</code> now fails at parse time, like the bare form). Since v0.77.0 an ensemble can also include <code>judge_rank</code>, the LLM-judge ranking reward (<code>format,judge_rank</code>, for example; #2047, #2117), which is not a verifier: it sends prompts and completions to the judge host you configure. See <a href=\"__DOCS_BASE__/rlvr\">RLVR</a> and <a href=\"__DOCS_BASE__/grpo-plus\">GRPO Plus</a>.</p><h2 id=\"re-run-this\">Re-run this</h2><div><table><thead><tr><th>If you did</th><th>What was different</th><th>What to do</th></tr></thead><tbody><tr><td><code>soup reward stress</code> and read &quot;robust&quot; for the built-in <code>format</code> reward, or for a custom verifier that rewards structure only</td><td>The four attack families of v0.75.x could not exercise structure (#814)</td><td>Re-probe before you train GRPO against it</td></tr><tr><td>Trained GRPO with a numeric verifier from <code>soup reward synth</code> written before v0.76.0</td><td>The old file pulled the last number with a local regex, so it scored some spellings 0 and paid some completions the built-ins do not (#1350)</td><td>Regenerate it, and do not compare runs across the old and the new verifier</td></tr><tr><td><code>soup reward synth -o reward.py --force</code> over an existing verifier that was then refused or failed</td><td>The existing file could be overwritten first and deleted (#1450)</td><td>Check you still have the last good copy; v0.76.0 never touches <code>-o</code> until the candidate is accepted</td></tr></tbody></table></div><h2 id=\"where-it-fits\">Where it fits</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "soup reward synth  →  reward.py  →  soup reward stress  →  soup train (task: grpo)\n   (build)             (commit)        (prove robust)         (train against it)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Synthesize a verifier from data you already have, stress it until the accept-rates are zero, commit the <code>.py</code>, then train GRPO against a reward you have actually audited.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/online-dpo\">RL &amp; preference training</a> — GRPO, online DPO and the judge in the loop the reward feeds.</li><li><a href=\"__DOCS_BASE__/reward-hack-mitigation\">Closed-loop reward-hacking auto-mitigation</a> — the train-time half: detect a policy gaming the reward and self-correct.</li><li><a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> — the SHIP / DON&#x27;T-SHIP verdict that gates the trained model.</li></ul><nav><a href=\"__DOCS_BASE__/asr-fine-tuning\"><span>Previous</span><span>ASR (Whisper)</span></a><a href=\"__DOCS_BASE__/layer-streaming\"><span>Next</span><span>Layer Streaming</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

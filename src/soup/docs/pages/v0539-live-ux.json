@@ -1,0 +1,101 @@
+{
+  "slug": "v0539-live-ux",
+  "title": "v0.53.9 — Live dashboard, Web UI mobile, bench percentiles, tokenizer trainer",
+  "description": "Soup CLI v0.53.9: an SSE training-event route ('/api/train/stream', not opened by the bundled dashboard and empty for a run started from the Web UI), 'soup ui --public' phone-scannable QR (the token is set once at startup and does not rotate), 'soup serve --reasoning-parser' for stripping <think> blocks from transformers replies (streamed ones too since v0.76.0), 'soup tokenizer train', 'soup bench --p50 --p95' tail-latency percentiles, 'soup bench --backend auto'.",
+  "source": "https://trysoup.dev/docs/v0539-live-ux",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "1ec5d1bda9e96ea230f60a4d997e790af26477bd5e304c5a5f016e5f8501e557",
+  "headings": [
+    {
+      "level": 2,
+      "id": "live-sse-training-stream",
+      "title": "Live SSE training stream"
+    },
+    {
+      "level": 2,
+      "id": "phone-scannable-web-ui",
+      "title": "Phone-scannable Web UI"
+    },
+    {
+      "level": 2,
+      "id": "validation-loss-v0-75-0",
+      "title": "Validation loss (v0.75.0)"
+    },
+    {
+      "level": 2,
+      "id": "standalone-clis",
+      "title": "Standalone CLIs"
+    },
+    {
+      "level": 2,
+      "id": "reasoning-parser",
+      "title": "Reasoning parser"
+    },
+    {
+      "level": 2,
+      "id": "tool-outputs-polling",
+      "title": "Tool outputs polling"
+    },
+    {
+      "level": 2,
+      "id": "tests",
+      "title": "Tests"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">v0.53.9 — Live dashboard, Web UI mobile, bench percentiles, tokenizer trainer</h1><h2 id=\"live-sse-training-stream\">Live SSE training stream</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "GET /api/train/stream"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Server-sent events for every <code>on_log</code> / <code>on_step_end</code> / <code>on_epoch_end</code> event. At v0.75.2 the route exists, but the bundled dashboard never opens it, so the dashboard did not move from polling to real-time: the events are produced inside the training process, and the buffer the route reads lives in the <code>soup ui</code> process, so for a run started from the Web UI it carries heartbeats only. See <a href=\"__DOCS_BASE__/web-ui#rest-api-reference\">the REST API reference</a>.</p><p>(Unchanged at v0.77.0: the bundled page&#x27;s script still does not open <code>/api/train/stream</code>. What v0.76.0 did change is the New Training page, whose log panel now opens and follows the run&#x27;s output through <code>/api/train/logs</code> when you start a run from it, or open the page while one is running (#1687). The progress card stays hidden, because no route reports a total step count for a run the UI started. See <a href=\"__DOCS_BASE__/web-ui\">the Web UI page</a>.)</p><h2 id=\"phone-scannable-web-ui\">Phone-scannable Web UI</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup ui --public                          # bind 0.0.0.0 + print phone QR\nsoup ui --public --auth-token \"$(python -c 'import secrets; print(secrets.token_urlsafe(24))')\"   # override the auto-generated bearer"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The token must be 16 to 128 URL-safe characters (<code>A-Z a-z 0-9 _ -</code>); a shorter one, or one with other characters, is refused with exit 1.</p><p>The QR encodes <code>http://&lt;lan-ip&gt;:&lt;port&gt;/?token=...</code> — scan from your phone and you&#x27;re in. The token is held behind a lock but is set once, at startup (the generated value, or <code>--auth-token</code>); nothing rotates it while the server runs, so the only way to change it is to restart <code>soup ui</code>.</p><p>(Changed in v0.76.0, #1136, #1190, #1191, #1474: on a loopback bind the URL <code>soup ui</code> opens and prints carries the token, the server swaps it for an HttpOnly session cookie and redirects to the same address without it, and the page holds the token in a closure instead of <code>sessionStorage</code> or <code>window</code>. The QR code above is the non-loopback <code>--public</code> case and is unchanged. See <a href=\"__DOCS_BASE__/web-ui#security\">Security</a>.)</p><p>(Since v0.77.0, #1839 and #2110: on a loopback bind <code>soup ui</code> also checks the <code>Host</code> header, and with <code>--public</code> the server still binds <code>0.0.0.0</code> (unless <code>--host</code> names another address) but the printed <code>URL:</code> line and the browser it opens use <code>127.0.0.1</code>, which Windows can reach; the phone QR and the bearer gate are unchanged.)</p><p><strong>Three things changed here in v0.75.0.</strong> A non-loopback bind without a valid token now <strong>exits 2</strong> instead of warning (in practice a token is always present by then, so no option of the command reaches that guard). Authentication covers the <strong>read</strong> endpoints and the event streams as well as the mutating ones, where before this only the mutating ones were gated. And <code>--public</code> no longer serves <code>/openapi.json</code>, <code>/docs</code>, <code>/docs/oauth2-redirect</code> or <code>/redoc</code> at all: they are 404 off loopback and unchanged on it. See <a href=\"__DOCS_BASE__/web-ui#security\">the Web UI page</a>.</p><h2 id=\"validation-loss-v0-75-0\">Validation loss (v0.75.0)</h2><p>(Corrected in v0.76.0, #1223 and #1313: the account below is accurate for the MLX backend only. On the transformers backend no evaluation ran at all. The task wrappers handed the held-out split to the trainer and none set an evaluation schedule, whose Hugging Face default is &quot;no&quot;, so the default <code>data.val_split: 0.1</code> withheld 10% of your rows from training and used them for nothing, and <code>val_loss</code> stayed empty until v0.76.0. It is the first release in which a transformers run fills it. See <a href=\"__DOCS_BASE__/settings-refused-at-load#breaking-changes\">the v0.76.0 page</a> for what else changed with it.)</p><p>Soup never stored it, on any backend. The callback read <code>logs[&quot;loss&quot;]</code> and never <code>logs[&quot;eval_loss&quot;]</code>, so an evaluation step left the last <strong>training</strong> loss in place and re-reported that to every sink: the evaluated number existed nowhere at all. There was also nowhere to put it, no <code>metrics</code> column and no event field, and the display read only <code>grad_norm</code>, <code>speed</code> and <code>gpu_mem</code> out of its keyword arguments.</p><p>The live panel gains a <code>Val loss</code> row, and the <code>metrics</code> table and the <code>/api/train/stream</code> frame each carry <code>val_loss</code> <strong>as its own series, never folded into <code>loss</code></strong>.</p><p>The storage rule is the part worth knowing before you read a series back:</p><ul><li>The <strong>panel</strong> carries the last measured value forward between evaluations, so the row does not blink.</li><li>The <strong>stored and streamed</strong> values do not. A step where no evaluation ran records <code>NULL</code>, so a series has one point per measurement rather than one per logged step.</li><li>Existing <code>~/.soup/experiments.db</code> files are migrated in place, and rows written before this release read <code>NULL</code> rather than a fabricated <code>0.0</code>, <strong>because an unmeasured value must not read as a measured one</strong>.</li></ul><p>The MLX backend feeds all three too, through a hook that had been called on every evaluation and done nothing, because the base-class method is a <code>pass</code> and therefore a silent no-op rather than an error. See <a href=\"__DOCS_BASE__/mlx-backend\">the MLX backend page</a>.</p><h2 id=\"standalone-clis\">Standalone CLIs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup tokenizer train --input corpus.jsonl --vocab-size 32000 --output tok/\nsoup bench ./output --p50 --p95           # per-prompt tail-latency percentiles\nsoup bench ./output --backend auto         # auto-detect transformers vs mlx"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup tokenizer train</code> trains a byte-level BPE (vocabulary 256 to 200000) and its special tokens default to <code>&lt;pad&gt;</code>, <code>&lt;s&gt;</code>, <code>&lt;/s&gt;</code> and <code>&lt;unk&gt;</code>. <code>--special-token</code> is repeatable, and passing any of it <strong>replaces</strong> that default list instead of adding to it, so repeat the defaults you still want: <code>--special-token &quot;&lt;|im_start|&gt;&quot;</code> alone produces a vocabulary with no <code>&lt;pad&gt;</code>, <code>&lt;s&gt;</code>, <code>&lt;/s&gt;</code> or <code>&lt;unk&gt;</code>.</p><h2 id=\"reasoning-parser\">Reasoning parser</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --reasoning-parser deepseek-r1  # | qwen3 | phi4 | openthinker\nsoup serve --model ./output --max-model-len 8192   # vLLM only (v0.73.0): lower it when the\n                                             # engine refuses to start because the KV\n                                             # cache does not fit. Default: the model's own maximum"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Strips <code>&lt;think&gt;...&lt;/think&gt;</code> blocks (or OpenThinker&#x27;s thought tags) from the reply on the transformers backend. Through v0.75.2 a request with <code>stream: true</code> went through a separate path that skipped the parser and sent the thought blocks; since v0.76.0 a streamed request applies the parser too (#1607). A streamed reply from the transformers backend is still generated in full first and then sent word by word, so the parser (and <code>--structured-output</code>) apply to the whole reply before the first chunk leaves. On <code>--backend vllm</code>, <code>sglang</code> or <code>mii</code>, <code>--reasoning-parser</code> is accepted and nothing reads it. The stripped blocks are not kept anywhere: nothing in v0.76.0 writes them to the Tool Outputs panel.</p><h2 id=\"tool-outputs-polling\">Tool outputs polling</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "GET /api/tool-outputs"
+    },
+    {
+      "kind": "html",
+      "html": "<p>JSON poll of the most-recent tool-call records — paired with the Web UI Tool Outputs panel.</p><h2 id=\"tests\">Tests</h2><ul><li><strong>8,257 → 8,285</strong> (+28)</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/web-ui\">Web UI</a></li><li><a href=\"__DOCS_BASE__/serving\">Serving</a></li></ul><nav><a href=\"__DOCS_BASE__/v0538-10-remote-hubs\"><span>Previous</span><span>Remote data &amp; alt hubs</span></a><a href=\"__DOCS_BASE__/v05311-grpo-prm-longlora\"><span>Next</span><span>GRPO Plus + preference</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

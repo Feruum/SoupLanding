@@ -1,0 +1,106 @@
+{
+  "slug": "plugins",
+  "title": "Plugin System (v0.45.0)",
+  "description": "Plugin system in Soup CLI v0.45.0. BasePlugin Protocol + PluginSpec registered from Python or discovered from the soup_cli.plugins entry-point group (third-party code loads only after soup plugins enable; install exits 2 and installs nothing), OpenAI↔Anthropic Messages converter, server-side tools allowlist, n-gram spec decoding schema (no flag builds it), 15-entry integrations catalog, Data Recipe DAG (since v0.76.0 llm_text and judge nodes need --provider or --offline from the CLI).",
+  "source": "https://trysoup.dev/docs/plugins",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "9466e4600a6dbfc5091b1a060f3488098f62ac092a948f85a5a038bf496b6f56",
+  "headings": [
+    {
+      "level": 2,
+      "id": "baseplugin-protocol",
+      "title": "BasePlugin Protocol"
+    },
+    {
+      "level": 2,
+      "id": "discovery-and-opt-in-v0-76-0",
+      "title": "Discovery and opt-in (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "openai-anthropic-messages-converter",
+      "title": "OpenAI ↔ Anthropic Messages converter"
+    },
+    {
+      "level": 2,
+      "id": "server-side-tools-allowlist",
+      "title": "Server-side tools allowlist"
+    },
+    {
+      "level": 2,
+      "id": "n-gram-speculative-decoding",
+      "title": "N-gram speculative decoding"
+    },
+    {
+      "level": 2,
+      "id": "external-integrations-catalog",
+      "title": "External integrations catalog"
+    },
+    {
+      "level": 2,
+      "id": "advanced-trainer-plugin-allowlist",
+      "title": "Advanced trainer-plugin allowlist"
+    },
+    {
+      "level": 2,
+      "id": "data-recipe-dag",
+      "title": "Data Recipe DAG"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Plugin System (v0.45.0)</h1><p>5 parts, +169 tests. Public plugin / hook surface.</p><h2 id=\"baseplugin-protocol\">BasePlugin Protocol</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "python",
+      "code": "from soup_cli.plugins import register_plugin\n\n# The four hook names are fixed: pre_train, post_train, pre_step, post_step.\n# Each takes one context dict and returns None. A plugin carries any\n# subset of them; hooks are discovered by name, so a misspelled one is\n# silently never called.\nclass MyTrainerPlugin:\n    def pre_train(self, context): ...\n    def post_step(self, context): ...\n\n# Registration is what puts a plugin in the registry. Nothing is\n# discovered by subclassing: BasePlugin is a runtime-checkable\n# Protocol, not a base class you inherit registration from. Something\n# has to call register_plugin(...): your own code, or the entry point\n# described under \"Discovery and opt-in\" below.\nregister_plugin(\n    name=\"my-trainer\",          # kebab-case\n    version=\"0.1.0\",            # semver\n    plugin=MyTrainerPlugin(),\n    description=\"Example\",\n)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"discovery-and-opt-in-v0-76-0\">Discovery and opt-in (v0.76.0)</h2><p>Soup discovers installed Python distributions that publish the <code>soup_cli.plugins</code> entry-point group (and any module under <code>soup_cli/plugins/</code>, of which none ship in the wheel). Discovery reads package metadata only: a third-party entry point is listed as <code>disabled</code>, with the description &quot;Installed entry point; enable it to load third-party code.&quot;, without its module being imported or executed. <code>soup plugins enable &lt;name&gt;</code> is the explicit code-loading boundary: it imports the entry point, requires it to register a plugin with the same name as the entry point, and stores the choice atomically in <code>~/.soup/plugins.json</code> (a version-1 JSON file of at most 64 KiB, written with mode 0600 where the platform supports it; a symlink at that path is refused). Later <code>soup</code> processes reuse that choice, so once you have enabled a plugin, a training run on a trainer that attaches the plugin callback imports it and fires its hooks, without any further wiring in your training config.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "toml",
+      "code": "[project.entry-points.\"soup_cli.plugins\"]\ndemo-plugin = \"demo_plugin:register\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>The target is a zero-argument registration function (a module that registers on import also works). The entry-point name must match the plugin name that <code>register_plugin(...)</code> registers (kebab-case, 1 to 40 characters), or <code>soup plugins enable</code> fails with <code>failed to enable plugin &#x27;demo-plugin&#x27;: &lt;ExceptionType&gt;</code> and leaves nothing half-loaded. The registry holds at most 64 plugins.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup plugins list              # discovers and lists; a third-party entry point shows as disabled\nsoup plugins enable demo-plugin\nsoup plugins disable demo-plugin"
+    },
+    {
+      "kind": "html",
+      "html": "<p>With nothing installed <code>soup plugins list</code> prints <code>No plugins registered.</code> and exits 0. The table has name, version, state, hooks, resources and description columns (a plugin may also register <code>templates</code> and <code>model_groups</code>; they are descriptive metadata that <code>soup plugins</code> shows, and Soup does not apply them to a model configuration). Exit codes: <code>enable</code> and <code>disable</code> exit 1 for <code>Unknown plugin: &lt;name&gt;</code> and 2 when the name is not kebab-case, the choice cannot be saved or the entry point fails to load (an unwritable state directory, a symlinked state file, a registration function that raises). <strong><code>soup plugins install &lt;name&gt;</code> exits 2 and installs nothing:</strong> <code>Soup does not install plugin &lt;name&gt;. Install a trusted Python distribution that exposes the soup_cli.plugins entry-point group, then opt in with soup plugins enable &lt;name&gt;.</code> Through v0.75.2 the same command printed an advisory and exited 0, which was a break for any script that ran it; install the distribution with pip yourself, then enable it. The list, enable, disable, install and unknown-plugin outputs above were run on the v0.76.0 CLI against a stand-in distribution (a <code>.dist-info</code> directory on <code>PYTHONPATH</code>).</p><p>Three limits worth knowing:</p><ul><li><strong>Enabling a plugin runs its code with your privileges.</strong> Soup does not sandbox, vet or verify a plugin; <code>enable</code> is an import. Install only a distribution you trust.</li><li><strong>The opt-in lives in a file.</strong> Anything that can write <code>~/.soup/plugins.json</code> (or the file <code>SOUP_PLUGIN_STATE_PATH</code> points at) can enable an installed entry point, and the next <code>soup plugins</code> command or training run that builds the plugin callback will import it. An unreadable, oversized or malformed state file is ignored with a warning and every third-party plugin stays disabled. <code>SOUP_PLUGIN_STATE_PATH</code> accepts any path up to 4,096 characters and is not held to your home or working directory; upstream&#x27;s source describes it as mainly there for tests, so see <a href=\"__DOCS_BASE__/environment-variables\">Environment variables</a> before relying on it.</li><li><strong>A hook that raises is swallowed.</strong> See below.</li></ul><p><strong>Registered, enabled plugins really run, inside the process that registered or enabled them.</strong> The SFT, pretrain, DPO, IPO, ORPO, SimPO, KTO, BCO, online DPO, GRPO, PPO, reward-model, embedding and distill trainers (and <code>task: preference</code>, which hands off to the paired-loss ones) attach them as a genuine Hugging Face <code>TrainerCallback</code>; the ASR, classifier, PRM, unlearn and MoLE-routing trainers and the MLX backend do not. The TTS trainer subclasses the SFT trainer and inherits its setup, so it does attach them. On the trainers that do, <code>pre_train</code> / <code>post_train</code> / <code>pre_step</code> / <code>post_step</code> fire against the live training loop rather than being a surface waiting to be wired. Two deliberate properties: a hook that raises is swallowed at WARNING, so one misbehaving plugin cannot kill a multi-hour run, and the hook set is snapshotted when the callback is constructed, so registering a plugin mid-run does not retroactively receive events.</p><p>Discovery happens when you run <code>soup plugins</code>, and again when a training run builds the plugin callback (the callback calls the same discovery before it snapshots the enabled hooks). If you register a plugin from your own Python entry point, that still works exactly as before, in the same process, and it needs no <code>enable</code>.</p><h2 id=\"openai-anthropic-messages-converter\">OpenAI ↔ Anthropic Messages converter</h2><p><code>anthropic_messages.py</code> converts between OpenAI and Anthropic Messages schemas — useful for trace-to-preference + serve. <code>soup serve</code> exposes it as <code>POST /v1/messages</code> on the transformers and vLLM backends, not on SGLang or MII (see <a href=\"__DOCS_BASE__/serving\">Inference Server</a>).</p><h2 id=\"server-side-tools-allowlist\">Server-side tools allowlist</h2><p><code>server_tools.py</code> ships a server-side tools allowlist + <code>WebSearchConfig</code> for the inference server. Nothing in <code>soup serve</code> builds a <code>WebSearchConfig</code>, so at v0.77.0 (unchanged since v0.76.x) <code>/v1/tools/web_search</code> on the transformers backend answers 403 to every request that passes its auth (401) and payload (400) checks; the vLLM, SGLang and DeepSpeed-MII backends have no tool routes. See <a href=\"__DOCS_BASE__/serving\">Inference Server</a>.</p><h2 id=\"n-gram-speculative-decoding\">N-gram speculative decoding</h2><p><code>ngram_spec.py</code> holds a validated schema for n-gram (prompt-lookup) speculative decoding, and the transformers generate path forwards <code>prompt_lookup_num_tokens</code> when it is handed a config. No CLI flag or <code>soup.yaml</code> key builds that config at v0.77.0 (v0.76.x and v0.75.2 neither), so <code>soup serve</code> cannot turn it on.</p><h2 id=\"external-integrations-catalog\">External integrations catalog</h2><p>15-entry registry of known <strong>deployment and serving targets</strong> a trained model can be handed to, each with the artifact format it expects: LM Studio, ComfyUI, stable-diffusion.cpp, Open WebUI, Ollama, TEI, pgvector, FAISS, Weaviate and the rest. Not experiment trackers: those are a separate closed allowlist on <code>soup train --tracker</code> (<code>wandb</code>, <code>tensorboard</code>, <code>mlflow</code>, <code>swanlab</code>, <code>trackio</code> and <code>none</code>), and any other name is refused.</p><h2 id=\"advanced-trainer-plugin-allowlist\">Advanced trainer-plugin allowlist</h2><p>Closed allowlist for advanced trainer plugins. At v0.77.0 nothing calls it: there is no <code>soup.yaml</code> key for trainer plugins and no command reaches <code>instantiate_trainer_plugins</code>, so it is library code a run cannot turn on.</p><h2 id=\"data-recipe-dag\">Data Recipe DAG</h2><p><code>recipe_dag.py</code> parses a YAML DAG describing data preprocessing steps + dependencies. Topological sort guarantees deterministic execution order.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data recipe recipe.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Validation is the default: the path is a positional argument and there is no <code>validate</code> subcommand. The live per-node runner shipped in v0.53.7 behind <code>--execute</code>, which also needs <code>--output &lt;dir&gt;</code> under the current directory and checkpoints after each node. Since v0.76.0 a recipe that contains <code>llm_text</code> or <code>judge</code> nodes also needs a choice between a real provider and placeholder output (the example below has both kinds of node, so it needs one of them):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data recipe recipe.yaml --execute --output ./out --provider ollama\nsoup data recipe recipe.yaml --execute --output ./out --offline"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "nodes:\n  - {name: seed1, kind: seed, config: {path: prompts.jsonl}}\n  - {name: llm1, kind: llm_text, config: {prompt: \"Answer: {prompt}\"}}\n  - {name: judge1, kind: judge}\n  - {name: final, kind: sampler}\nedges:\n  - [seed1, llm1]\n  - [llm1, judge1]\n  - [judge1, final]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong><code>llm_text</code> and <code>judge</code> nodes need <code>--provider</code> or <code>--offline</code>.</strong> <code>--provider ollama</code>, <code>anthropic</code> or <code>vllm</code> runs those nodes against a live provider (<code>--model</code> defaults to <code>llama3.1</code>; <code>--base-url</code> applies to Ollama and vLLM and defaults to loopback); the finished line then reports <code>N provider calls, M failures.</code>, and a node whose every provider call fails stops the command with exit 1, naming the endpoint, while a partial run keeps the rows that succeeded. Without <code>--provider</code> and without <code>--offline</code> the command refuses with exit 2: <code>This recipe contains llm_text or judge nodes. Pass --provider &lt;ollama|anthropic|vllm&gt;, or explicitly opt in to placeholder output with --offline.</code> <code>--offline</code> is the explicit opt-in to the old behaviour: <code>llm_text</code> writes <code>llm_text(offline): &lt;rendered prompt&gt;</code> into each row and <code>judge</code> marks every row <code>true</code>, after a yellow <code>Offline recipe mode</code> note. <code>--provider</code> together with <code>--offline</code>, and <code>--model</code> or <code>--base-url</code> without <code>--provider</code>, exit 2, as does an unknown provider. The <code>--offline</code> run was reproduced on the v0.76.0 CLI with the recipe above and wrote <code>out/final.jsonl</code>; the provider path was not run here (it needs a model server). Through v0.75.2 the CLI passed no provider and always wrote the placeholder rows, silently. <code>seed</code>, <code>code</code>, <code>validator</code> and <code>sampler</code> need neither flag.</p><p>The kinds are <code>seed</code> (<code>config.path</code>, a JSONL file), <code>llm_text</code> (<code>config.prompt</code>, formatted per row), <code>code</code>, <code>judge</code>, <code>validator</code> (<code>config.regex</code>, searched in <code>config.field</code>, default <code>text</code>, or a JSON Schema in <code>config.schema</code>, which needs the <code>jsonschema</code> package) and <code>sampler</code>, which writes the merged rows of its inputs to <code>&lt;output&gt;/&lt;node name&gt;.jsonl</code> and does no subsampling. Node names match <code>[a-z0-9][a-z0-9_-]{0,63}</code>. A recipe has at most 256 nodes and 1,024 edges and fits in 1 MiB; cycles, self-loops, duplicate edges and edges that name a missing node are rejected.</p><nav><a href=\"__DOCS_BASE__/live-dashboard-ux\"><span>Previous</span><span>Live Dashboard</span></a><a href=\"__DOCS_BASE__/adapters\"><span>Next</span><span>soup adapters: git for LoRA</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

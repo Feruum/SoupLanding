@@ -1,0 +1,96 @@
+{
+  "slug": "advise",
+  "title": "soup advise — decide before you train",
+  "description": "soup advise <data.jsonl> — pre-flight decision engine. Classifies the task, profiles the dataset, ranks PROMPT_ENG / RAG / SFT / DPO / GRPO with row-count and reasoning-trace signals. Optional --probe adds heuristic ROI estimates (--probe-model runs a live probe). --record builds cross-project history at ~/.soup/advise_history.jsonl. New in v0.54.0.",
+  "source": "https://trysoup.dev/docs/advise",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "7fc89e41d7dedb5e15e965d4f3a510757ec080947013603922a7be4ca676fc66",
+  "headings": [
+    {
+      "level": 2,
+      "id": "usage",
+      "title": "Usage"
+    },
+    {
+      "level": 2,
+      "id": "heuristics",
+      "title": "Heuristics"
+    },
+    {
+      "level": 2,
+      "id": "probe-and-probe-model-an-roi-estimate-heuristic-by-default",
+      "title": "--probe and --probe-model — an ROI estimate, heuristic by default"
+    },
+    {
+      "level": 2,
+      "id": "record-a-history-file-shared-across-projects",
+      "title": "--record — a history file shared across projects"
+    },
+    {
+      "level": 2,
+      "id": "subcommands",
+      "title": "Subcommands"
+    },
+    {
+      "level": 2,
+      "id": "the-advise-config-block-is-not-read",
+      "title": "The advise: config block is not read"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\"><code>soup advise</code> — decide before you train</h1><p>Before you touch a GPU, ask: do you actually need to fine-tune? Or is your problem better solved with prompt engineering, RAG, DPO instead of SFT, or GRPO over rewards?</p><p><code>soup advise</code> (v0.54.0) is a <strong>pre-flight decision engine</strong>. It classifies your task, profiles your dataset, and emits a ranked verdict across:</p><ul><li><code>PROMPT_ENG</code> — your data is too small / your goal is solvable with a better prompt</li><li><code>RAG</code> — high-variance factual recall is better handled with retrieval</li><li><code>SFT</code> — supervised fine-tuning is the right baseline</li><li><code>DPO</code> — you already have preference pairs (<code>chosen</code>/<code>rejected</code>)</li><li><code>GRPO</code> — you have reasoning traces + ≥ 500 rows, RL over verifiable rewards wins</li></ul><h2 id=\"usage\">Usage</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup advise run data.jsonl --goal \"polite customer support chat\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Output (a real run on a 300-row customer-support tone dataset, with the Rich panel flattened to text):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "soup advise — verdict\nChoice:      SFT\nConfidence:  0.66\nTask:        style_shaping\nRows:        300\n\nWhy:\n  Task is style_shaping with 300 rows and healthy diversity (0.04). SFT is the right starting point.\n\nFlip when:\n  the prompt-engineering baseline already meets your target metric (run `soup advise --probe` to measure).\n\nNext: `soup advise explain` for the rubric, or `soup advise compare` for past verdicts."
+    },
+    {
+      "kind": "html",
+      "html": "<p>The panel carries the choice, a confidence, the task category, the row count, the reason and the condition that would flip it. The verdict is written to a local cache so <code>soup advise explain</code> can print the rubric for the last one.</p><p><strong>One printed command line does not run.</strong> On an SFT verdict the &quot;Flip when&quot; line tells you to run <code>soup advise --probe</code> (the other verdicts&#x27; lines do not), and that is the form Soup&#x27;s own message prints, but the <code>soup advise</code> group has no <code>--probe</code> option: typed as written it exits 2 with <code>No such option &#x27;--probe&#x27;</code>. The option belongs to the subcommand, so the form that works is <code>soup advise run data.jsonl --goal &quot;...&quot; --probe</code> (or <code>soup advise data.jsonl --probe</code>, which the argv rewrite turns into the same thing). An option placed before the dataset is left alone by that rewrite, which is why the printed form fails. This is a message defect in Soup, unchanged at v0.76.1, not something your invocation did wrong.</p><h2 id=\"heuristics\">Heuristics</h2><ul><li><strong>Task classification</strong>: keyword + structural signals. <code>tool_calls</code> field → tool_use; <code>&lt;think&gt;...&lt;/think&gt;</code> blocks → reasoning; chat-shaped messages → input-extraction. The <code>--goal</code> string carries ~10× the row weight when classifying.</li><li><strong>Dataset profile</strong>: row count, avg input/output chars, type-token diversity, label variance, <code>has_chosen_rejected</code>, <code>has_reasoning_traces</code>. Capped at 2,000-row sample for speed.</li><li><strong>Verdict rubric</strong>: preference pairs detected → DPO · reasoning traces with 500 rows or more → GRPO · under 50 rows → PROMPT_ENG (training will overfit) · high-variance factual → RAG · default → SFT</li></ul><h2 id=\"probe-and-probe-model-an-roi-estimate-heuristic-by-default\"><code>--probe</code> and <code>--probe-model</code> — an ROI estimate, heuristic by default</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup advise run data.jsonl --goal \"...\" --probe\nsoup advise run data.jsonl --goal \"...\" --probe --probe-model HuggingFaceTB/SmolLM2-135M --probe-device cpu"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--probe</code> adds an ROI table with a prompt-engineering, a RAG and an SFT row. <strong>On its own it is an offline heuristic over the shape of your data</strong> (output length, diversity, row count, label variance): no model is loaded, nothing is trained, and it returns in a moment. The <code>sft</code> row is labelled &quot;100-step LoRA probe&quot; and the <code>sft ETA</code> row is a per-step estimate, but at this level both are estimates, not measurements.</p><p>A measurement needs <code>--probe-model &lt;hf-id&gt;</code> (with <code>--probe-device cuda</code> or <code>cpu</code>; auto-detected when omitted). It loads that model, scores zero-shot and few-shot completions on a held-out slice with token-F1, LoRA-trains for 100 steps and reports the relative held-out-loss improvement (clamped to <code>[-0.2, 0.7]</code>), and it also measures how closely the base model already predicts your targets. The RAG row stays a heuristic in both modes, because Soup ships no retriever to measure. <code>--probe-model</code> implies <code>--probe</code>, and since v0.76.0 it prints the <code>ROI deltas (probe)</code> table by itself (#1448); before that, <code>soup advise run --probe-model X</code> ran the live probe and hid the table unless you also passed <code>--probe</code>. If the live probe cannot run (for example the model fails to load), it falls back to the heuristic without raising an error, so a table that looks heuristic after <code>--probe-model</code> means the live path did not run.</p><p>There is <strong>no time limit</strong> on the probe. The function that runs it accepts a 600-second <code>timeout_seconds</code> argument and ignores it (the source marks it &quot;reserved for a future hard wall-clock budget&quot;), so a live probe on a large model runs until it finishes.</p><h2 id=\"record-a-history-file-shared-across-projects\"><code>--record</code> — a history file shared across projects</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup advise run data.jsonl --goal \"...\" --record --notes \"first pass, 4k rows\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Appends a frozen <code>HistoryEntry</code> to <code>~/.soup/advise_history.jsonl</code> (atomic, file-locked via <code>fcntl.flock</code> on POSIX / <code>msvcrt.locking</code> on Windows, 64 KB per-line cap, 16 MiB file cap, 10k row cap). <code>--notes</code> attaches up to 4,096 characters to the entry. The log is one file for every project, and <code>soup advise compare</code> lists it.</p><p>Verdicts do read it back, but narrowly. The history bias is <strong>scoped to the current project</strong> (one project&#x27;s wins must not bias another&#x27;s), and it only counts entries that carry a measured <code>outcome</code> in <code>[-1, 1]</code>. Once a project has three or more accepted verdicts for the same choice with a recorded outcome, an average of +0.3 or better nudges that choice&#x27;s confidence up (and a strong SFT record can flip a marginal RAG call to SFT), while a negative average for GRPO makes it fall back to SFT. <code>--record</code> always writes <code>accepted=True</code> with <strong>no outcome</strong>, and no command at v0.76.0 writes one, so recording on its own does not change later verdicts. (<code>soup advise run --help</code> used to recommend a <code>--no-record</code> flag that does not exist; it now says &quot;Omit --record to skip&quot;.)</p><p>Override the path with <code>SOUP_ADVISE_HISTORY_PATH</code> — containment-checked to <code>$HOME</code> / <code>$CWD</code> / <code>tempfile.gettempdir()</code>. Default file perms: <code>0o600</code>.</p><h2 id=\"subcommands\">Subcommands</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup advise run data.jsonl --goal \"...\"   # explicit (also the default)\nsoup advise explain                       # print the full rubric\nsoup advise compare --limit 20            # prior verdicts from advise_history.jsonl, newest first"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The top-level argv preprocessor <code>_rewrite_advise_argv</code> injects <code>run</code> so <code>soup advise data.jsonl</code> works without typing the subcommand.</p><h2 id=\"the-advise-config-block-is-not-read\">The <code>advise:</code> config block is not read</h2><p>The config schema declares an <code>advise:</code> block with three keys: <code>goal</code> (a default goal string, up to 4096 characters), <code>probe</code> (default <code>false</code>) and <code>record</code> (default <code>false</code>). It is accepted by the schema, but nothing in v0.77.0 reads it. <code>soup advise</code> never opens <code>soup.yaml</code>, so the goal, the probe and the history record come only from <code>--goal</code>, <code>--probe</code> and <code>--record</code> on the command line, whatever the file says.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/autopilot\">Autopilot</a> — the literal next step after <code>soup advise</code></li><li><a href=\"__DOCS_BASE__/eval-design\">Eval design</a> — turn your data into evals</li><li><a href=\"__DOCS_BASE__/trace-to-preference\">Trace-to-preference</a> — distill production traffic into DPO pairs</li><li><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight &amp; tooling (v0.64)</a> — <code>soup tunability</code> picks the right base model after advise picks the right task; <code>soup plan</code> + <code>soup apply</code> then lock the plan with drift detection before training</li></ul><nav><a href=\"__DOCS_BASE__/training-intelligence\"><span>Previous</span><span>Training Intelligence</span></a><a href=\"__DOCS_BASE__/preflight-tooling\"><span>Next</span><span>Pre-flight &amp; Tooling</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

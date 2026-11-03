@@ -1,0 +1,245 @@
+{
+  "slug": "data-tools",
+  "title": "Data Tools",
+  "description": "Synthetic data generation (OpenAI, local, server, Ollama, Anthropic or vLLM providers) and augmentation (Ollama, Anthropic or vLLM). Rephrase, translate, style strategies. Since v0.76.0 soup data clean sanitises a dataset into a new file and never edits the input.",
+  "source": "https://trysoup.dev/docs/data-tools",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "a1fae262851ea37c6f8dd17ffdf17148a14b61434ee1f52cc3d46eec1ba37128",
+  "headings": [
+    {
+      "level": 2,
+      "id": "inspect",
+      "title": "Inspect"
+    },
+    {
+      "level": 2,
+      "id": "validate",
+      "title": "Validate"
+    },
+    {
+      "level": 2,
+      "id": "clean",
+      "title": "Clean"
+    },
+    {
+      "level": 2,
+      "id": "convert",
+      "title": "Convert"
+    },
+    {
+      "level": 2,
+      "id": "merge",
+      "title": "Merge"
+    },
+    {
+      "level": 2,
+      "id": "deduplicate",
+      "title": "Deduplicate"
+    },
+    {
+      "level": 2,
+      "id": "extended-statistics",
+      "title": "Extended Statistics"
+    },
+    {
+      "level": 2,
+      "id": "quality-scans",
+      "title": "Quality scans"
+    },
+    {
+      "level": 2,
+      "id": "synthetic-data-generation",
+      "title": "Synthetic Data Generation"
+    },
+    {
+      "level": 3,
+      "id": "multi-provider-support-v0-20-0",
+      "title": "Multi-Provider Support (v0.20.0+)"
+    },
+    {
+      "level": 3,
+      "id": "domain-templates-v0-20-0",
+      "title": "Domain Templates (v0.20.0+)"
+    },
+    {
+      "level": 3,
+      "id": "quality-pipeline-v0-20-0",
+      "title": "Quality Pipeline (v0.20.0+)"
+    },
+    {
+      "level": 2,
+      "id": "quality-filter",
+      "title": "Quality Filter"
+    },
+    {
+      "level": 2,
+      "id": "data-sampling-v0-23-0",
+      "title": "Data Sampling (v0.23.0+)"
+    },
+    {
+      "level": 2,
+      "id": "data-splitting-v0-23-0",
+      "title": "Data Splitting (v0.23.0+)"
+    },
+    {
+      "level": 2,
+      "id": "huggingface-dataset-hub-v0-24-0",
+      "title": "HuggingFace Dataset Hub (v0.24.0+)"
+    },
+    {
+      "level": 2,
+      "id": "dataset-registry-v0-24-0",
+      "title": "Dataset Registry (v0.24.0+)"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Tools</h1><p>Soup includes powerful CLI tools for preparing training datasets. Full augmentation guide: <a href=\"__DOCS_BASE__/data-augment\">Data augmentation</a>.</p><h2 id=\"inspect\">Inspect</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data inspect ./data/train.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Shows dataset statistics: sample count, token distribution, field analysis. For vision datasets, automatically shows image statistics (images referenced, missing image field, found on disk, outside the image directory, formats). <code>--rows N</code> (<code>-r</code>) sets how many sample rows it prints; the default is 5.</p><p><code>--image-dir DIR</code> (new in v0.76.0) names the directory the images live in. Without it, relative image paths resolve against the data file&#x27;s directory, the same way training resolves them, and an image that training would refuse as outside that directory is reported as outside rather than counted as found. See <a href=\"__DOCS_BASE__/data-formats#image-and-audio-paths\">Data formats</a> for the rules.</p><h2 id=\"validate\">Validate</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data validate ./data/train.jsonl\nsoup data validate ./data/train.jsonl --format alpaca\nsoup data validate ./data/train.jsonl --min-valid-fraction 0.9"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Checks for missing fields, encoding issues, and format compliance. Auto-detects format when <code>--format</code> is not specified.</p><p><strong>It agrees with the loader now, and it did not before v0.75.0.</strong> The validator used to judge a row by which top-level keys were present, while <code>load_dataset</code> runs the real converters and drops any row that comes back empty. Those are two different notions of valid, and they disagreed in two directions: the six formats with no key signature at all — <code>prm</code>, <code>pre_tokenized</code>, <code>input_output</code>, <code>video</code>, <code>multimodal</code> and <code>raft</code> — <strong>skipped validation entirely and reported every row valid regardless of content</strong>, and for the formats that were checked, key presence passed rows a converter drops on a value, such as a null field or a non-dict message. A file could validate clean and then fail in the middle of a training run.</p><p>The valid-row count is now computed by running the real conversion path per row, so the agreement is structural rather than a second, weaker check that drifts. When a row is dropped, the converter&#x27;s own reason is surfaced for the first few offenders, <code>row 3: chatml message must be a dict</code>, so the report says which rows and why rather than only a count. On upstream&#x27;s own datasets this shifted <strong>120 of 360 file-by-format verdicts</strong>, every one of them an over-count on a file that genuinely had zero valid rows in that format.</p><p>Since v0.76.0 <code>soup train</code> (and <code>--dry-run</code>) prints the same count when its loader drops rows, <code>Warning: N of M rows dropped: they do not convert as &#x27;&lt;format&gt;&#x27;. First: row &lt;i&gt;: &lt;reason&gt;.</code>, with, for a local file, a hint to run <code>soup data validate</code> (worded <code>List them all with:</code>; the command counts every dropped row and prints the reasons for the first three), and it exits 1 before loading the model when the data yields no training rows at all. See <a href=\"__DOCS_BASE__/data-formats#rows-that-do-not-convert\">Data formats</a>.</p><p><strong>The exit codes matter, because this is the first step of the PR gate <code>soup ci init</code> writes:</strong></p><div><table><thead><tr><th>Exit</th><th>Meaning</th></tr></thead><tbody><tr><td><code>0</code></td><td>At least one row is usable, and any <code>--min-valid-fraction</code> is met. A partially valid dataset still exits 0 when no minimum is given</td></tr><tr><td><code>2</code></td><td>A non-empty dataset with <strong>no usable rows</strong>, or one below <code>--min-valid-fraction</code>. This is the gate failing</td></tr><tr><td><code>3</code></td><td>An input or usage error: a missing file, a format that cannot be detected (an empty file with no <code>--format</code> included), an unknown <code>--format</code>, a <code>--min-valid-fraction</code> outside <code>[0.0, 1.0]</code>, or a mistyped flag</td></tr></tbody></table></div><p>Since v0.76.0 a bad invocation of <code>soup data validate</code> exits <strong>3</strong>, so 2 always means the data failed the check. Through v0.75.2 an input error exited 1 and a mistyped flag exited 2, the same code as a failed gate. <strong>A CI step that tests for exit 1 as &quot;bad input&quot; no longer matches; one that treats any non-zero as failure still works.</strong> One case still exits 1: a file extension the loader does not support (anything outside <code>.jsonl</code>, <code>.json</code>, <code>.csv</code>, <code>.parquet</code> and <code>.txt</code>) ends in an unhandled error, not a usage error. The other commands that follow the same 0 / 2 / 3 rule are listed on <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>.</p><p><strong>Rows that are not JSON objects (v0.77.0).</strong> A JSONL line that is not an object or not valid JSON, and a JSON array element that is not an object, is skipped with a warning that names the line or row (<code>Warning: line 2 is a JSON number, not an object</code>); the loader prints the first three warnings of each kind, then <code>... and N more</code>, and never prints the rejected content. Since v0.77.0 <code>soup data validate</code> lists the first three of each kind as issues (then <code>... and N more</code>) and counts each one as an invalid row in its <code>N/M rows valid</code> line, in <code>--min-valid-fraction</code> and in the exit code (#1908). A file whose every row was skipped exits 2 (<code>Validation failed: no usable rows remain.</code>) when <code>--format</code> names the format, and 3 without one (<code>no object rows remain: ... cannot detect a format. Pass --format to validate.</code>). A partially valid file without <code>--min-valid-fraction</code> still exits 0, so pass <code>--min-valid-fraction 1.0</code> when every row must convert. The training drop warning counts only the rows that reached the converter: <code>soup train</code> prints the loader&#x27;s warnings for the lines it skipped, but only <code>soup data validate</code> counts them.</p><blockquote><p><strong>Re-run this (v0.77.0).</strong> Through v0.76.1 <code>soup data validate</code> left those rows out of both counts: a four-line file with three lines of invalid JSON printed <code>Dataset is valid!</code> and <code>1/1 rows valid</code>, and passed <code>--min-valid-fraction 1.0</code> with exit 0, while a row such as <code>42</code> crashed the validator instead (<code>AttributeError</code>, exit 1). Validate such files again, and check any CI step that relied on the old result (#1887, #1908; #1860, #1873). Since v0.77.0 the workflow <code>soup ci init</code> writes runs the validate step with <code>--min-valid-fraction 1.0</code>. A workflow written by an earlier release keeps the old step until you regenerate it with <code>soup ci init --force</code> (#2079); see <a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a>.</p></blockquote><p><code>--min-valid-fraction</code> takes a float in <code>[0.0, 1.0]</code> and defaults to <code>0.0</code>, meaning no minimum. Two of those behaviours are new in v0.75.0: before it, a file with <strong>zero</strong> usable rows exited 0, and <code>--format bogus</code> exited 0 while reporting &quot;2/2 rows valid for bogus format&quot;, which quietly turned the CI gate into a pass for any file. An unknown format is an input error rather than a failed gate, deliberately, so a typo cannot be mistaken for a real rejection.</p><p>The accepted values for <code>--format</code> are <code>auto</code> plus the nineteen convertible formats: <code>alpaca</code>, <code>sharegpt</code>, <code>chatml</code>, <code>dpo</code>, <code>kto</code>, <code>llava</code>, <code>sharegpt4v</code>, <code>plaintext</code>, <code>embedding</code>, <code>audio</code>, <code>tool-calling</code>, <code>prm</code>, <code>pre_tokenized</code>, <code>input_output</code>, <code>video</code>, <code>multimodal</code>, <code>raft</code>, <code>asr</code> and <code>cross_encoder</code> (the last is new in v0.76.0 and is valid only with <code>task: cross_encoder</code>). The flag&#x27;s own <code>--help</code> text lists only seven of them and is stale; this list is the allowlist the code checks against.</p><h2 id=\"clean\">Clean</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data clean raw.jsonl --dry-run\nsoup data clean raw.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup data clean</code> (new in v0.76.0) strips control characters, zero-width spaces and byte-order marks, drops rows with an empty assistant turn, and optionally strips boilerplate, closes unclosed code fences, repairs tool-call JSON and prunes echo turns. It writes a new file and never modifies the input. The full reference is on <a href=\"__DOCS_BASE__/data-clean\">Clean a dataset with soup data clean</a>.</p><h2 id=\"convert\">Convert</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data convert ./data/train.jsonl --to sharegpt --output converted.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Transform between alpaca, sharegpt, and chatml formats.</p><h2 id=\"merge\">Merge</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data merge data1.jsonl data2.jsonl --output merged.jsonl --shuffle"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Combine multiple datasets with optional shuffling.</p><h2 id=\"deduplicate\">Deduplicate</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Requires: pip install \"soup-cli[data]\"\nsoup data dedup ./data/train.jsonl --threshold 0.8\n\n# Semantic near-dup removal over embedding cosine (v0.71.36, needs [train]):\nsoup data dedup ./data/train.jsonl --semantic -o clean.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Remove near-duplicate samples using MinHash, or add <code>--semantic</code> to catch <strong>reworded</strong> duplicates MinHash&#x27;s shingling scores as distinct. See <a href=\"__DOCS_BASE__/data-moat-ii\">Data Moat II</a> for the semantic path, plus <code>soup data topics</code> (coverage map) and <code>soup data canary</code> (memorization probe). <code>--output</code> defaults to <code>&lt;input&gt;_deduped.jsonl</code> and <code>--field</code> limits what is hashed or embedded to one field. <code>--device</code> (<code>auto</code>, <code>cpu</code> or <code>cuda</code>) and <code>--embed-model</code> (default <code>sentence-transformers/all-MiniLM-L6-v2</code>) apply to <code>--semantic</code> only.</p><h2 id=\"extended-statistics\">Extended Statistics</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data stats ./data/train.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Length distribution with histograms, token counts, and language detection.</p><h2 id=\"quality-scans\">Quality scans</h2><p><code>soup data pii</code>, <code>toxicity</code>, <code>score</code>, <code>langdetect</code>, <code>educational</code> and <code>decontaminate</code> are documented on <a href=\"__DOCS_BASE__/data-forge#soup-data-score-composite-quality-scorecard\">Data Forge</a>. Since v0.77.0 they read alpaca, preference, KTO and ShareGPT rows as well as <code>text</code> and <code>content</code> (#2037), warn with a count when some rows have no extractable text, and exit 1 before writing anything when no row has text. Their default <code>--output</code> names are <code>pii.jsonl</code>, <code>toxicity.jsonl</code>, <code>langdetect.jsonl</code>, <code>educational.jsonl</code> and, for <code>decontaminate</code>, <code>clean.jsonl</code>, in the current directory, so give <code>--output</code> a path other than your input file.</p><h2 id=\"synthetic-data-generation\">Synthetic Data Generation</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Generate using OpenAI API\nsoup data generate --prompt \"Create math word problems\" --count 100 --format alpaca\n\n# Use a different model\nsoup data generate --prompt \"Medical Q&A pairs\" --model gpt-4o --count 500\n\n# Deduplicate against existing data\nsoup data generate --prompt \"...\" --count 200 --dedup-with existing.jsonl\n\n# Use seed examples to guide style\nsoup data generate --prompt \"...\" --seed examples.jsonl --count 100\n\n# Use a local server (soup serve, Ollama, etc.)\nsoup data generate --prompt \"...\" --provider server --api-base http://localhost:11434/v1"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--api-base</code> follows one rule for the providers that take a URL (<code>openai</code>, <code>server</code> and <code>vllm</code>): plain <code>http</code> only for loopback (<code>localhost</code>, <code>127.0.0.1</code> or <code>::1</code>), <code>https</code> for a remote server, and, since v0.75.2, never an IP address in a private, link-local or reserved range, on either scheme (the error reads <code>api_base: private/link-local/reserved IP hosts are not allowed (SSRF protection)</code>). A host written only as numbers that is not a valid IPv4 address (<code>10.0.0.256</code>, <code>4294967296</code>) is refused too (v0.76.0), with <code>api_base: an all-numeric host that is not a valid IPv4 address is not allowed (SSRF protection)</code>. Reach a server on your network by its hostname over HTTPS. <code>0.0.0.0</code> is not loopback, so use <code>localhost</code>. The <code>ollama</code> provider accepts loopback only.</p><p><strong>Reply size cap (v0.77.0).</strong> An HTTP generation reply from the <code>openai</code>, <code>server</code>, <code>ollama</code>, <code>vllm</code> or <code>anthropic</code> provider is limited to 8 MiB of decoded content, checked while it streams; an oversized reply is refused before it is parsed, its body is not logged, and the error names the endpoint setting and the cap (#1929). <code>soup data gen-magpie</code> applies the same 8 MiB limit to a raw completion, drops that sample and keeps collecting within its attempt limit.</p><h3 id=\"multi-provider-support-v0-20-0\">Multi-Provider Support (v0.20.0+)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Generate via local Ollama instance\nsoup data generate --prompt \"...\" --provider ollama --model llama3.1\nsoup data generate --prompt \"...\" --ollama-model llama3.1  # shorthand\n\n# Generate via Anthropic Claude API (set ANTHROPIC_API_KEY env var)\nsoup data generate --prompt \"...\" --provider anthropic --model claude-3-haiku-20240307\n\n# Generate via local vLLM server\nsoup data generate --prompt \"...\" --provider vllm --model meta-llama/Llama-3.1-8B-Instruct"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"domain-templates-v0-20-0\">Domain Templates (v0.20.0+)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Code instruction pairs (Python, JS, Go, Rust, Java)\nsoup data generate --prompt \"...\" --template code --language Python --task-type function\n\n# Multi-turn conversations\nsoup data generate --prompt \"...\" --template conversation --turns 6 --topic \"science\"\n\n# QA from context document\nsoup data generate --prompt \"...\" --template qa --context document.txt\n\n# Preference data (DPO/KTO/ORPO)\nsoup data generate --prompt \"...\" --template preference --pref-task dpo\n\n# Chain-of-thought reasoning (GRPO)\nsoup data generate --prompt \"...\" --template reasoning --domain math"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--template reasoning</code> tells the generator how to end each solution, so the golds can be read by GRPO&#x27;s <code>accuracy</code> and <code>verifiable</code> math rewards: <code>math</code> rows end with <code>#### &lt;number&gt;</code> on its own line, and <code>logic</code> and <code>code</code> rows with an <code>Answer: &lt;answer&gt;</code> line. Before v0.76.0 the prompt asked only for &quot;the final answer&quot;, and a gold such as <code>So there are 42 apples.</code> made <code>soup train</code> refuse the dataset before generation (#1349). <code>--dedup-with</code> also applies to <code>--template preference</code> rows (DPO and KTO formats) since v0.76.0, together with within-run duplicates; before that, preference output skipped deduplication, so an earlier preference generation may contain duplicates.</p><p>The template flags default to <code>--language Python</code>, <code>--task-type function</code> (also <code>debug</code>, <code>explain</code>, <code>refactor</code>, <code>test</code>), <code>--turns 4</code> (2 to 10), <code>--topic &quot;general knowledge&quot;</code>, <code>--pref-task dpo</code> (also <code>kto</code>, <code>orpo</code>) and <code>--domain math</code> (also <code>logic</code>, <code>code</code>). The options that apply to every template:</p><div><table><thead><tr><th>Flag</th><th>Default</th><th>What it does</th></tr></thead><tbody><tr><td><code>--output</code>, <code>-o</code></td><td><code>generated.jsonl</code></td><td>Where the rows are written</td></tr><tr><td><code>--format</code>, <code>-f</code></td><td><code>alpaca</code></td><td>Row shape: <code>alpaca</code>, <code>sharegpt</code> or <code>chatml</code></td></tr><tr><td><code>--batch-size</code></td><td><code>5</code></td><td>Examples requested per API call</td></tr><tr><td><code>--temperature</code>, <code>-t</code></td><td><code>0.8</code></td><td>Sampling temperature</td></tr><tr><td><code>--requests-per-minute</code>, <code>--rpm</code></td><td><code>60</code></td><td>Rate limit on API calls</td></tr><tr><td><code>--api-key</code></td><td><code>OPENAI_API_KEY</code></td><td>Read from that environment variable when the flag is omitted; prefer the variable</td></tr><tr><td><code>--trust-remote-code</code></td><td>off</td><td>Local provider only: allow a model that ships custom Python (default deny)</td></tr></tbody></table></div><h3 id=\"quality-pipeline-v0-20-0\">Quality Pipeline (v0.20.0+)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Auto-validate after generation (remove malformed entries)\nsoup data generate --prompt \"...\" --validate\n\n# Auto-filter by quality (coherence scoring)\nsoup data generate --prompt \"...\" --filter\n\n# Auto-dedup (MinHash, requires: pip install \"soup-cli[data]\")\nsoup data generate --prompt \"...\" --dedup\n\n# Full quality pipeline: validate + filter + dedup\nsoup data generate --prompt \"...\" --quality-pipeline"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"quality-filter\">Quality Filter</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Filter by coherence score\nsoup data filter ./data/train.jsonl --coherence 0.3\n\n# Filter by perplexity + coherence\nsoup data filter ./data/train.jsonl --perplexity 500 --coherence 0.3\n\n# Add scores without removing samples\nsoup data filter ./data/train.jsonl --score-only"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Uses perplexity + coherence scoring to identify low-quality samples.</p><h2 id=\"data-sampling-v0-23-0\">Data Sampling (v0.23.0+)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Random sample\nsoup data sample ./data/train.jsonl --strategy random -n 1000\n\n# Diverse sample (TF-IDF clustering)\nsoup data sample ./data/train.jsonl --strategy diverse -n 500\n\n# Hard examples (by length)\nsoup data sample ./data/train.jsonl --strategy hard -n 500"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Give <code>--n</code> (a row count) or <code>--pct</code> (a percentage from 0 to 100). With neither the command exits 1, and when both are given <code>--pct</code> wins. <code>--seed</code> makes <code>random</code> and <code>diverse</code> reproducible; <code>hard</code> is deterministic and ignores it. The output defaults to <code>&lt;input&gt;_sampled_&lt;strategy&gt;.jsonl</code> beside the input (the flag&#x27;s own help text says <code>&lt;input&gt;_sampled.jsonl</code> and is stale), and an explicit <code>--output</code> must sit under the current directory.</p><h2 id=\"data-splitting-v0-23-0\">Data Splitting (v0.23.0+)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Split into train/val/test. --val and --test are integer PERCENTAGES,\n# not fractions; the train remainder is implied, and --train is accepted\n# for command parity rather than read.\nsoup data split ./data/train.jsonl --val 10 --test 10\n\n# Absolute row counts instead of percentages, with a reproducible seed\nsoup data split ./data/train.jsonl --val 500 --test 500 --absolute --seed 42\n\n# Stratified split. --stratify takes the field to stratify on, as a value.\nsoup data split ./data/train.jsonl --val 10 --stratify category\n\n# Semantic stratification (v0.73.2): cluster rows by TF-IDF + K-Means, then\n# split within each cluster. Cannot be combined with --stratify.\nsoup data split ./data/train.jsonl --val 10 --stratify-semantic --num-clusters 8"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--stratify-semantic</code> is lexical, not an embedding model: it clusters a TF-IDF matrix of each row&#x27;s text with K-Means (5 clusters unless <code>--num-clusters</code> says otherwise), needs scikit-learn from <code>pip install &quot;soup-cli[data]&quot;</code>, and refuses a dataset over 50,000 rows. <code>--num-clusters</code> without <code>--stratify-semantic</code> only prints a warning.</p><h2 id=\"huggingface-dataset-hub-v0-24-0\">HuggingFace Dataset Hub (v0.24.0+)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Search for datasets\nsoup data search \"math reasoning\"\n\n# Preview remote dataset metadata\nsoup data preview tatsu-lab/alpaca\n\n# Download to local JSONL\nsoup data download tatsu-lab/alpaca --output ./data/alpaca.jsonl --samples 1000"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"dataset-registry-v0-24-0\">Dataset Registry (v0.24.0+)</h2><p>Keep a local, named record of datasets (name, path and format) in <code>~/.soup/datasets.json</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Register a dataset (the path must sit under the current directory)\nsoup data register my-chat-data --path ./data/chat.jsonl --format chatml\n\n# List registered datasets\nsoup data registry\n\n# Remove an entry\nsoup data unregister my-chat-data"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>The registry is a lookup you list with <code>soup data registry</code>. <code>soup train</code> does not resolve registered names.</strong> <code>data.train: registry:my-chat-data</code> and <code>data.train: my-chat-data</code> are both treated as Hugging Face dataset ids (the console prints <code>Loading from HuggingFace: ...</code>), because neither has one of the supported file suffixes (<code>.jsonl</code>, <code>.json</code>, <code>.csv</code>, <code>.parquet</code>, <code>.txt</code>) or a <code>://</code>, and both fail there. Put the file path in <code>data.train</code>. (<code>soup data register --help</code> still says &quot;for use in soup.yaml&quot;; that text is out of date.)</p><nav><a href=\"__DOCS_BASE__/data-formats\"><span>Previous</span><span>Data Formats</span></a><a href=\"__DOCS_BASE__/data-clean\"><span>Next</span><span>Clean a dataset</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "slug": "v05311-grpo-prm-longlora",
+  "title": "v0.53.11 — GRPO variants live, PRM live, LongLoRA live, weighted preference",
+  "description": "Soup CLI v0.53.11: six GRPO objective variants (gspo/dapo/dr_grpo/bnpo/two_sided/rft) ship live loss kernels, 'task: prm' Process Reward Model live with per-step MSE and reward head, GRPOStabilityCallback (EMA, replay-buffer and TIS-alert counters, mostly record-only; see GRPO Plus), LongLoRA S² forward override (use_longlora is refused at config load since v0.76.0), weighted-sum preference combine (only a simpo + orpo blend trained at v0.76.0; blends naming dpo or ipo train since v0.77.0). 8,400 tests.",
+  "source": "https://trysoup.dev/docs/v05311-grpo-prm-longlora",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "5a6c7b3b147ccda3dc6855434fc7ba769fac3fc1a30026342ddb5822c945a39d",
+  "headings": [
+    {
+      "level": 2,
+      "id": "six-grpo-objective-variants-live",
+      "title": "Six GRPO objective variants live"
+    },
+    {
+      "level": 2,
+      "id": "task-prm-process-reward-model-live",
+      "title": "task: prm Process Reward Model — live"
+    },
+    {
+      "level": 2,
+      "id": "grpostabilitycallback-attached-mostly-record-only",
+      "title": "GRPOStabilityCallback (attached, mostly record-only)"
+    },
+    {
+      "level": 2,
+      "id": "longlora-s-forward-override-live",
+      "title": "LongLoRA S² forward override live"
+    },
+    {
+      "level": 2,
+      "id": "true-weighted-sum-preference-combine",
+      "title": "True weighted-sum preference combine"
+    },
+    {
+      "level": 2,
+      "id": "tests",
+      "title": "Tests"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">v0.53.11 — GRPO variants live, PRM live, LongLoRA live, weighted preference</h1><p>The capstone of the v0.50 / v0.49 / v0.40 deferred-stub debt. Five deep TRL trainer-subclassing items lifted.</p><h2 id=\"six-grpo-objective-variants-live\">Six GRPO objective variants live</h2><p><code>apply_variant_loss</code> ships real math kernels for every non-standard variant:</p><ul><li><code>gspo</code> — <strong>replaced in v0.75.0</strong> and no longer what this line used to describe. It was a group-stabilised, column-centered importance ratio; it is now the published <strong>Group Sequence Policy Optimization</strong> objective (Qwen Team, <a href=\"https://arxiv.org/abs/2507.18071\">arXiv:2507.18071</a>): a length-normalised <strong>sequence</strong> importance ratio with sequence-level surrogate clipping, masked tokens held at exactly 0.0 gradient, invariant to padding and to its placement, and invariant to batch permutation. <strong>An existing <code>gspo</code> config will not reproduce prior runs.</strong> The heuristic it replaced also centred the per-token log-ratio across the batch before applying the completion mask, so one padding token shifted the loss and gradient of every unmasked row sharing its column</li><li><code>dapo</code> — decoupled asymmetric clip</li><li><code>dr_grpo</code> — no length normalization</li><li><code>bnpo</code> — length-normalised PPO</li><li><code>two_sided</code> — symmetric <code>grpo_delta</code> clip</li><li><code>rft</code> — rejection-sampling fine-tuning</li></ul><p>(Changed in v0.76.0, #1232 and #1249: none of the six variants applied <code>grpo_beta</code> through v0.75.2. Each now adds a per-token KL penalty weighted by <code>grpo_beta</code> (default <code>0.1</code>), so an existing variant config will not reproduce a prior run, and <code>grpo_beta: 0</code> runs KL-free. The variant kernels also clamp the importance ratio before exponentiation (#1609). See <a href=\"__DOCS_BASE__/grpo-plus#the-kl-penalty-every-variant-applies-grpo-beta-v0-76-0\">The KL penalty</a>.)</p><p>Subclassing is done via <code>make_grpo_trainer_variant</code> (an <code>lru_cache</code> factory over <code>_GRPOTrainerVariant</code>) that overrides <code>compute_loss</code> to route through the kernel, with a defensive fallback to the original loss if TRL renames input attributes.</p><h2 id=\"task-prm-process-reward-model-live\"><code>task: prm</code> Process Reward Model — live</h2><p><code>PRMTrainerWrapper</code> loads <code>AutoModelForCausalLM</code> + <code>nn.Linear(hidden, 1)</code> as the reward head. <code>make_prm_trainer_class(HF Trainer)</code> factory subclasses Trainer and overrides <code>compute_loss</code> to:</p><ol><li>Gather hidden states at step-boundary tokens</li><li>Project to scalars through the linear head</li><li>MSE-loss against per-step labels</li></ol><p><code>_prepare_prm_dataset</code> tokenizes <code>{prompt, completions, labels}</code> with reserved-token truncation; <code>_build_collator</code> pads with <code>-1</code> sentinel for missing step positions.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: prm\nbase: deepseek-ai/deepseek-math-7b-base\ndata:\n  train: prm_steps.jsonl\n  format: prm   # {prompt, completions, labels}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>(Changed in v0.76.0, #1235, #1564, #1220: when the device was given as <code>cuda</code> this trainer loaded the base and the head in bf16 with no fp32 copy for the optimizer; since v0.74.0 that made the first step fail outside DeepSpeed. It now loads fp32 on every device string and trains on fp32 master weights, which upstream estimates at about 16 bytes per parameter before activations; without DeepSpeed the saved checkpoint is fp32. It also reads <code>optimizer</code>, <code>scheduler</code>, <code>warmup_ratio</code>, <code>weight_decay</code>, <code>max_grad_norm</code> and <code>gradient_accumulation_steps</code> now, which it did not, and <code>--resume</code> continues the run instead of restarting at step 0. These are rows of the <a href=\"__DOCS_BASE__/settings-refused-at-load#re-run-this\">v0.76.0 re-run table</a>.)</p><h2 id=\"grpostabilitycallback-attached-mostly-record-only\">GRPOStabilityCallback (attached, mostly record-only)</h2><p>The callback is attached to the GRPO trainer, but what it does at v0.76.0 is narrower than the v0.53.11 notes described (the file differs from v0.75.2 only by the gradient watchdog added in v0.76.0, described below). What the code contains, and what reaches a run:</p><ul><li>An EMA reference-model update, <code>(1-α) * ref + α * policy</code> per parameter. It only acts when the callback is handed a separate reference model, which the Hugging Face callback handler does not do, and a LoRA run carries none, so <code>ref_model_ema_alpha</code> changes nothing in practice (read from the code, not run on a GPU)</li><li>A bounded-deque replay buffer, which the trainer never feeds</li><li>A TIS (truncated importance sampling) alert counter, which nothing calls</li><li><code>ema_alpha</code>, <code>replay_size</code> and <code>tis_alerts</code> entries (for whichever of those keys you set) appended to <code>state.log_history</code></li></ul><p><a href=\"__DOCS_BASE__/grpo-plus#stability-knobs-accepted-mostly-record-only\">GRPO Plus</a> has the full accounting for the eight keys.</p><p>(Updated in v0.76.0: the eight keys are still mostly record-only. What changed is that every <code>task: grpo</code> run now carries a gradient watchdog that zeroes a non-finite gradient before the optimizer step, so that step updates nothing, whether or not you set any of those keys.)</p><h2 id=\"longlora-s-forward-override-live\">LongLoRA S² forward override live</h2><p>The v0.49.0 schema is now backed by a runtime. <code>shift_heads_for_s2</code> rolls the second half of attention heads by <code>group_size // 2</code> along the sequence axis (LongLoRA paper §3.2). <code>LongLoRAForwardOverride</code> is a context manager that monkey-patches every Llama / Mistral / Qwen / Phi attention module&#x27;s <code>forward</code>, restoring on exit. Idempotent <code>__del__</code> cleanup and best-effort exception swallow ensure training never crashes from a shape mismatch.</p><p>(Superseded in v0.76.0, #1240: <code>training.use_longlora: true</code> is refused at config load. Upstream&#x27;s message says the implementation leaks future tokens and is not S² shifted sparse attention, and that it stays refused until real S² attention exists. To extend the context, set <code>training.rope_scaling_type</code> (<code>linear</code>, <code>dynamic</code>, <code>yarn</code> or <code>llama3</code>) and train plain LoRA. The current account is under <a href=\"__DOCS_BASE__/long-context#longlora-s-shifted-sparse-attention-refused-since-v0-76-0\">LongLoRA S² shifted-sparse attention</a>.)</p><h2 id=\"true-weighted-sum-preference-combine\">True weighted-sum preference combine</h2><p><code>attach_weighted_preference_combine</code> now reads the four logprob tensors from TRL inputs (<code>policy_chosen_logps</code> / <code>policy_rejected_logps</code> / <code>reference_chosen_logps</code> / <code>reference_rejected_logps</code>) and computes each requested loss via the matching kernel:</p><ul><li><code>compute_dpo_term</code></li><li><code>compute_ipo_term</code></li><li><code>compute_simpo_term</code></li><li><code>compute_orpo_term</code></li></ul><p>Then combines via <code>combine_losses(terms, weights)</code>. BCO mixed with paired losses is still rejected at validation time. Through v0.75.2 there was a defence-in-depth fallback to the v0.40.1 primary-loss scaling when TRL renames the logps attributes; it was removed in v0.76.0 (see the note below the example). At v0.75.2 that fallback was the path to expect on TRL 0.29, whose DPO, ORPO and CPO trainers do not put those tensors in the batch (read from the source, not run on a GPU); see <a href=\"__DOCS_BASE__/preference-variety\">Preference Variety</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: preference\ntraining:\n  preference_loss_weights:\n    dpo: 0.7\n    simpo: 0.3"
+    },
+    {
+      "kind": "html",
+      "html": "<p>(Changed in v0.76.0, #1425, #1513 and #1556: the blend above no longer trains. Through v0.75.2 it printed <code>Multi-objective preference loss: 0.70·dpo + 0.30·simpo</code> at setup and then trained DPO alone, scaled by 0.7. Now a blend that cannot be computed stops the run at the first step, and only a blend that names <code>simpo</code> and <code>orpo</code> trains, for example <code>preference_loss_weights: {simpo: 0.6, orpo: 0.4}</code>. See <a href=\"__DOCS_BASE__/preference-variety#multi-objective-preference-loss-v0-40-1-blend-added-in-v0-53-11-narrowed-in-v0-76-0\">Multi-objective preference loss</a>.) (Since closed in v0.77.0, #1785: a blend whose largest weight is <code>dpo</code> or <code>ipo</code>, such as the one above, trains, with the reference run twice per step; a <code>dpo</code> or <code>ipo</code> term under a <code>simpo</code> or <code>orpo</code> primary trains too, #1828, except with <code>init_strategy: pissa</code>, <code>olora</code> or <code>loftq</code>, which is refused. <code>relora_steps</code> beside a blend that names <code>dpo</code> or <code>ipo</code> is refused at load, and a <code>bco</code> blend is still refused at trainer setup.)</p><h2 id=\"tests\">Tests</h2><ul><li><strong>8,330 → 8,400</strong> (+75) in <code>test_v05311.py</code> (54 initial + 21 review-fix coverage gaps from python / code / security / tdd review agents).</li><li>Math kernels are real and unit-tested. Full GPU smoke runs documented in the v0.53.11.1 follow-up plan.</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/grpo-plus\">GRPO Plus reference</a></li><li><a href=\"__DOCS_BASE__/long-context\">Long Context</a></li><li><a href=\"__DOCS_BASE__/preference-variety\">Preference Variety</a></li></ul><nav><a href=\"__DOCS_BASE__/v0539-live-ux\"><span>Previous</span><span>Live SSE &amp; Web UI</span></a><span></span></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

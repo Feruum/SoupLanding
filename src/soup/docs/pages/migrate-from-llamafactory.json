@@ -1,0 +1,87 @@
+{
+  "slug": "migrate-from-llamafactory",
+  "title": "Migrate from LLaMA-Factory to Soup CLI",
+  "description": "Migrate from LLaMA-Factory to Soup CLI with one command. Field mapping, side-by-side config example, and reasons to switch.",
+  "source": "https://trysoup.dev/docs/migrate-from-llamafactory",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "0f301ce6ddb9927851a01644309108ab4cc86505fdc76b9e3f4b149d8fec3eae",
+  "headings": [
+    {
+      "level": 2,
+      "id": "one-line-migration",
+      "title": "One-line migration"
+    },
+    {
+      "level": 2,
+      "id": "side-by-side-example",
+      "title": "Side-by-side example"
+    },
+    {
+      "level": 2,
+      "id": "why-migrate",
+      "title": "Why migrate?"
+    },
+    {
+      "level": 2,
+      "id": "dry-run-preview",
+      "title": "Dry-run preview"
+    },
+    {
+      "level": 2,
+      "id": "if-you-migrated-before-v0-77-0",
+      "title": "If you migrated before v0.77.0"
+    },
+    {
+      "level": 2,
+      "id": "if-you-migrated-before-v0-76-0",
+      "title": "If you migrated before v0.76.0"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Migrate from LLaMA-Factory to Soup CLI</h1><p>Switching from <strong>LLaMA-Factory</strong> to Soup CLI takes one command. Soup CLI offers a simpler YAML schema, 2–5× faster training via Unsloth, and a unified CLI for training, serving, and export.</p><h2 id=\"one-line-migration\">One-line migration</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup migrate --from llamafactory path/to/your/llamafactory_config.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>This produces a <code>soup.yaml</code> file equivalent to your LLaMA-Factory config, mapping:</p><div><table><thead><tr><th>LLaMA-Factory</th><th>Soup CLI</th></tr></thead><tbody><tr><td><code>model_name_or_path</code></td><td><code>base</code> (a root-level string, not <code>base.model</code>)</td></tr><tr><td><code>stage</code></td><td><code>task</code>: <code>sft</code> gives <code>sft</code>, <code>pt</code> gives <code>pretrain</code>, <code>rm</code> gives <code>reward_model</code>, and <code>dpo</code>, <code>kto</code> and <code>ppo</code> keep their names</td></tr><tr><td><code>finetuning_type: lora</code></td><td><code>training.lora.r</code> (LoRA is on when <code>r &gt; 0</code>)</td></tr><tr><td><code>finetuning_type: full</code></td><td><code>training.lora.r: 0</code> and <code>training.quantization: none</code>, a full fine-tune. Only <code>stage: sft</code> can do this: any other stage exits 1</td></tr><tr><td><code>lora_rank</code></td><td><code>training.lora.r</code></td></tr><tr><td><code>lora_alpha</code></td><td><code>training.lora.alpha</code></td></tr><tr><td><code>quantization_bit</code></td><td><code>training.quantization</code>: <code>4</code> gives <code>4bit</code>, <code>8</code> gives <code>8bit</code>; with <code>quantization_method: hqq</code> it gives <code>hqq:Nbit</code> (N of 1, 2, 3, 4, 5, 6 or 8), with <code>eetq</code> it gives <code>eetq</code> (8 only). No <code>quantization_bit</code> gives <code>none</code></td></tr><tr><td><code>pref_loss</code> (read only under <code>stage: dpo</code>)</td><td><code>task</code>: <code>sigmoid</code> gives <code>dpo</code>, and <code>ipo</code>, <code>orpo</code> and <code>simpo</code> give the task of the same name. Any other value exits 1</td></tr><tr><td><code>pref_beta</code></td><td><code>training.dpo_beta</code> for <code>dpo</code>, <code>training.kto_beta</code> for <code>kto</code>, <code>training.orpo_beta</code> for <code>orpo</code>, and <code>training.ipo_tau</code> under <code>pref_loss: ipo</code> (since v0.77.0). Under <code>pref_loss: simpo</code> it has no Soup equivalent and is dropped with a warning</td></tr><tr><td><code>simpo_gamma</code></td><td><code>training.simpo_gamma</code>, under <code>pref_loss: simpo</code> only (since v0.77.0)</td></tr><tr><td><code>lora_target</code></td><td><code>training.lora.target_modules</code>: <code>all</code>, or no <code>lora_target</code> at all (LLaMA-Factory&#x27;s default), gives <code>all-linear</code>; a comma-separated list becomes a list (since v0.77.0; through v0.76.1 it gave <code>auto</code>, which adapts two of the seven projections on Llama)</td></tr><tr><td><code>val_size</code></td><td><code>data.val_split</code>, and <code>0</code> when the key is absent, because LLaMA-Factory trains on every row by default (since v0.77.0; through v0.76.1 the split was dropped and Soup&#x27;s default of 0.1 applied)</td></tr><tr><td><code>dataset</code></td><td><code>data.train: ./&lt;dataset&gt;.jsonl</code>. The name is a LLaMA-Factory registry entry, so point it at the real file</td></tr><tr><td><code>per_device_train_batch_size</code></td><td><code>training.batch_size</code></td></tr><tr><td><code>cutoff_len</code></td><td><code>data.max_length</code> (sequence length lives under <code>data</code>)</td></tr><tr><td><code>template</code></td><td>nothing: Soup auto-detects the chat template from the tokenizer. Override with <code>data.chat_template</code> if you need to pin one.</td></tr></tbody></table></div><p>If <code>lora_rank</code> or <code>lora_alpha</code> is missing from the source, the importer writes LLaMA-Factory&#x27;s own defaults since v0.77.0: <code>r: 8</code>, and <code>alpha</code> of twice the rank (#1807, #1901). Through v0.76.1 it wrote Soup&#x27;s <code>r: 64</code> and <code>alpha: 16</code>. Every source key the importer does not map is now listed in one warning (<code>1 LLaMA-Factory key(s) not migrated (no Soup equivalent, or not read by soup migrate): do_train</code> for the example below). A <code>finetuning_type</code> of <code>freeze</code> or <code>oft</code> has no Soup equivalent: the importer warns and writes LoRA.</p><h2 id=\"side-by-side-example\">Side-by-side example</h2><p><strong>LLaMA-Factory config:</strong></p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "model_name_or_path: meta-llama/Llama-3.1-8B-Instruct\nstage: sft\ndo_train: true\nfinetuning_type: lora\nlora_rank: 16\nlora_alpha: 32\ndataset: alpaca_en\ntemplate: llama3\ncutoff_len: 2048\nper_device_train_batch_size: 2\ngradient_accumulation_steps: 8\nlearning_rate: 2.0e-4\nnum_train_epochs: 3"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Soup CLI equivalent</strong> (<code>soup migrate</code> itself writes <code>format: auto</code>, <code>val_split: 0.0</code>, <code>target_modules: all-linear</code>, <code>quantization: none</code> and no <code>backend</code> line, warns that <code>alpaca_en</code> is a LLaMA-Factory registry name, and lists <code>do_train</code> as not migrated; <code>backend: unsloth</code> and <code>format: alpaca</code> below are hand-written):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-8B-Instruct\ntask: sft\nbackend: unsloth            # root-level, NOT under training\n\ndata:\n  train: ./alpaca_en.jsonl  # LLaMA-Factory dataset names are registry entries; point at the real file\n  format: alpaca\n  max_length: 2048          # sequence length lives under data\n  val_split: 0.0            # the source has no val_size: LLaMA-Factory trains on every row\n\ntraining:\n  quantization: none        # the source has no quantization_bit; Soup's default would be 4-bit QLoRA\n  epochs: 3\n  lr: 2.0e-4                # the key is lr, not learning_rate\n  batch_size: 2\n  gradient_accumulation_steps: 8\n  lora:\n    r: 16                   # LoRA turns on when r > 0; there is no enabled flag\n    alpha: 32\n    target_modules: all-linear   # the source has no lora_target, which means all"
+    },
+    {
+      "kind": "html",
+      "html": "<p>With <code>backend: unsloth</code>, add <code>training.gradient_checkpointing: true</code> if you want Unsloth&#x27;s checkpointing: since v0.77.0 the Unsloth backend honours the key, and the default <code>false</code> turns checkpointing off (#1981).</p><p>To freeze layers, note that since v0.77.0 <code>training.freeze_layers</code> and <code>freeze_ratio</code> reach a LoRA run (a frozen layer gets no adapter, #2145) on <code>backend: transformers</code> only (with <code>backend: unsloth</code>, as above, they are refused at load), and they need a <strong>list</strong> of <code>lora.target_modules</code>: the string <code>all-linear</code> the importer writes is refused when the model is built, so replace it with <code>[q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]</code>. Through v0.76.1 the freeze did nothing on a LoRA run.</p><h2 id=\"why-migrate\">Why migrate?</h2><ul><li><strong>Faster training</strong> — <code>backend: unsloth</code> gives 2–5× speedup on Llama/Qwen/Gemma/Mistral</li><li><strong>Single YAML schema</strong> validated by Pydantic v2 (no silent typos)</li><li><strong>Unified CLI</strong> — <code>soup train</code>, <code>soup chat</code>, <code>soup eval</code>, <code>soup serve</code>, <code>soup export</code> all in one tool</li><li><strong>171 ready-made recipes</strong> — <code>soup recipes list</code></li><li><strong>Built-in GGUF/Ollama export</strong></li><li><strong>Dry-run migration</strong> — preview the config with <code>--dry-run</code> before writing</li></ul><h2 id=\"dry-run-preview\">Dry-run preview</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup migrate --from llamafactory config.yaml --dry-run"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Prints the converted config to stdout without writing. Without <code>--dry-run</code>, <code>soup migrate</code> writes <code>soup.yaml</code> in the current directory (<code>--output</code> picks another path) and asks before it overwrites a file that exists (<code>--yes</code> skips the question). It checks the result with Soup&#x27;s own config loader before writing, so the file it hands back loads.</p><p>Then run <code>soup doctor --config soup.yaml</code> to see the loader&#x27;s errors and warnings for the result. Its list of settings it knows to be unread is short, so a clean report is not a guarantee that every key takes effect.</p><h2 id=\"if-you-migrated-before-v0-77-0\">If you migrated before v0.77.0</h2><p>Regenerate and diff (#1807, #1901). Through v0.76.1 the importer:</p><ul><li>dropped <code>val_size</code>, so Soup&#x27;s <code>val_split: 0.1</code> held out a tenth of the rows where LLaMA-Factory trains on every row by default;</li><li>wrote <code>r: 64</code>, <code>alpha: 16</code> for a source without <code>lora_rank</code> or <code>lora_alpha</code>, where LLaMA-Factory trains <code>r: 8</code> at alpha 16;</li><li>turned <code>lora_target: all</code>, and a missing <code>lora_target</code>, into <code>target_modules: auto</code>, two of the seven projections on Llama;</li><li>dropped <code>pref_beta</code> under <code>pref_loss: ipo</code>.</li></ul><h2 id=\"if-you-migrated-before-v0-76-0\">If you migrated before v0.76.0</h2><p>Check the <code>soup.yaml</code> you generated, because the importer changed what it writes. Upstream&#x27;s changelog lists three results that were wrong:</p><ul><li>An unquantized source wrote no <code>quantization</code> line, so Soup loaded it as 4-bit QLoRA, and a full fine-tune source got LoRA <code>r=64</code> instead of a full fine-tune (#1215, #1302).</li><li><code>stage: dpo</code> with <code>pref_loss: ipo</code> became <code>task: dpo</code>. A <code>pref_loss</code> of <code>hinge</code>, <code>kto_pair</code> or any other value became <code>task: dpo</code> with no warning; it now exits 1 and names the value (#1214, #1560).</li><li><code>pref_loss: orpo</code> or <code>simpo</code> under a stage other than <code>dpo</code> became <code>task: orpo</code> or <code>task: simpo</code>; LLaMA-Factory reads <code>pref_loss</code> only under <code>stage: dpo</code>, so the stage&#x27;s own task is kept now.</li></ul><p>If your source was bf16 or a full fine-tune, or used one of those losses, the run you got may not have been the run you meant. Regenerate and diff. The same applies to Axolotl and Unsloth sources, see <a href=\"__DOCS_BASE__/migration#when-the-task-is-not-a-plain-sft-or-dpo-v0-76-0\">Migration</a>.</p><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/migrate-from-axolotl\">Migrate from Axolotl</a></li><li><a href=\"__DOCS_BASE__/configuration\">Configuration reference</a></li></ul><nav><a href=\"__DOCS_BASE__/dpo-training-guide\"><span>Previous</span><span>DPO training: align LLMs with human preferences</span></a><a href=\"__DOCS_BASE__/migrate-from-axolotl\"><span>Next</span><span>Migrate from Axolotl to Soup CLI</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

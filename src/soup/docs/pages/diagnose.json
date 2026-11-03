@@ -1,0 +1,78 @@
+{
+  "slug": "diagnose",
+  "title": "soup diagnose — seven failure-mode probes, one verdict",
+  "description": "soup diagnose <run-id> — post-training model report card on 7 failure modes (forgetting / refusal / format / mode-collapse / memorization / contamination / citation-recall). OK / MINOR / MAJOR verdict (thresholds 0.85 / 0.60), or NOT_RUN (exit 3) when a requested probe did not run + an embeddable SVG badge with one cell per probe. Pair with soup train --diagnose-gate <evidence> to exit 2 on a MAJOR regression after the checkpoint is saved. New in v0.56.0, citation probe added in v0.71.10.",
+  "source": "https://trysoup.dev/docs/diagnose",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "69025dfce18158c0c326c182c84b06c9a2c417b56f9e87bdc5fcf2c92e225ed6",
+  "headings": [
+    {
+      "level": 2,
+      "id": "usage",
+      "title": "Usage"
+    },
+    {
+      "level": 2,
+      "id": "not-run-a-probe-that-did-not-run-is-not-a-pass-v0-76-0",
+      "title": "NOT_RUN: a probe that did not run is not a pass (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "what-the-live-probes-read-v0-76-0",
+      "title": "What the live probes read (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "soup-train-diagnose-gate",
+      "title": "soup train --diagnose-gate"
+    },
+    {
+      "level": 2,
+      "id": "exit-codes",
+      "title": "Exit codes"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\"><code>soup diagnose</code> — seven failure-mode probes, one verdict</h1><p>After you finish training, the question is no longer &quot;did the loss go down&quot; — it&#x27;s &quot;did I quietly break something.&quot; <code>soup diagnose</code> (v0.56.0) is a post-training model report card that runs <strong>7 pure-function failure-mode probes</strong>:</p><div><table><thead><tr><th>Probe</th><th>What it catches</th></tr></thead><tbody><tr><td><code>forgetting</code></td><td>Per-task Δ accuracy with tolerance band — extends v0.25 <code>eval/forgetting</code>. Live, it is scored on <code>--holdout</code> prompts or a built-in general-knowledge set, never on your training rows (v0.76.0)</td></tr><tr><td><code>refusal</code></td><td>advbench / xstest delta over caller-supplied generators (<code>_MAX_REFUSAL_SCAN = 8192</code>)</td></tr><tr><td><code>format</code></td><td>JSON / regex / tool-call validity over the RLVR verifier set, with an explicit ReDoS probe (<code>compiled.search(&quot;a&quot; * 128)</code>)</td></tr><tr><td><code>mode_collapse</code></td><td>Pairwise n-gram-Jaccard distance over K completions (<code>k ∈ [2, 32]</code>, <code>ngram_n ∈ [1, 8]</code>)</td></tr><tr><td><code>memorization</code></td><td>Training-prefix echo via partial-prompt continuation (<code>_MAX_SCAN_ROWS = 1000</code>). Live, it scores clipped completion-bigram precision against the held-out suffix (v0.76.0)</td></tr><tr><td><code>contamination</code></td><td>n-gram overlap with public benchmarks (combined-complexity cap rejects when training rows × benchmark corpus &gt; 1e9)</td></tr><tr><td><code>citation</code></td><td>citation-recall regression on RAFT-shaped rows: does the answer still cite the supporting <code>[doc-id]</code>? (v0.71.10)</td></tr></tbody></table></div><p>Every probe is a pure function over a generator callable, which is why the same code path serves both modes. <strong>Since v0.71.7 <code>soup diagnose</code> can supply that generator itself</strong>: pass <code>--base-model</code> (with <code>--dataset</code>, and optionally <code>--holdout</code>, <code>--tokenizer</code>, <code>--device</code>, <code>--citation-style</code>, <code>--shuffle-seed</code> and <code>--allow-not-run</code>) and it loads the model and runs the probes for you. Without <code>--base-model</code> it stays a pure scorer over evidence you supply, and you wire in your own <code>GeneratorFn</code> around a serve backend.</p><h2 id=\"usage\">Usage</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup diagnose <run-id> \\\n  --evidence ./evidence.json \\\n  --output ./diagnose.json \\\n  --badge ./badge.svg \\\n  --attach-to-registry registry-id"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--attach-to-registry &lt;id&gt;</code> links the <code>--output</code> file to that registry entry as a <code>diagnose_report</code> artifact; <code>&lt;id&gt;</code> is an entry id, a unique id prefix, <code>name:tag</code> or <code>registry://&lt;id&gt;</code>. A requested attach is part of the command&#x27;s success: an unknown or ambiguous entry, or a registry that cannot be read, prints an error and exits 1 with the report left on disk, and the flag given without <code>--output</code> is refused before anything runs (exit 3). <strong>Before v0.76.0 it attached nothing.</strong> The command passed three positional arguments to a registry helper that takes only the entry id positionally, printed a yellow <code>Warning: could not attach to registry: TypeError: attach_artifact() takes 1 positional argument but 3 were given</code> and carried on with exit 0, so a report you believed was on a registry entry never was.</p><p>Verdict thresholds (composed in <code>compose_report</code>):</p><ul><li><code>≥ 0.85</code> → <strong>OK</strong></li><li><code>≥ 0.60</code> → <strong>MINOR</strong></li><li><code>&lt; 0.60</code> → <strong>MAJOR</strong></li><li><strong><code>NOT_RUN</code></strong> — see below; it is not a score</li></ul><h2 id=\"not-run-a-probe-that-did-not-run-is-not-a-pass-v0-76-0\"><code>NOT_RUN</code>: a probe that did not run is not a pass (v0.76.0)</h2><p>A live probe that was requested but produced no measurement, such as a <code>--dataset</code> or <code>--holdout</code> with no usable prompt and answer rows or a probe that raised, is reported as <code>NOT_RUN</code>, never as OK 1.00. The evidence column keeps the reason, including the exception text. <code>NOT_RUN</code> ranks above MINOR and below MAJOR in the overall verdict, and the table and the badge show it grey as <code>not run</code> instead of a score (the stored <code>0.0</code> in the JSON report is a placeholder, not a measurement).</p><p><strong><code>soup diagnose</code> exits 3 when the overall verdict is <code>NOT_RUN</code>.</strong> Pass <code>--allow-not-run</code> to keep exit 0 for runs that knowingly skip probes. MAJOR still exits 2 and wins over <code>NOT_RUN</code>. Probes that do not apply stay a neutral OK (<code>format</code> when the dataset targets are not JSON, <code>contamination</code> without a benchmark corpus, <code>citation</code> on non-RAFT rows, the dataset probes when no <code>--dataset</code> is given). On the <code>--evidence</code> path a mode left out of the file is still a neutral OK and is not gated, while a mode listed with <code>&quot;verdict&quot;: &quot;NOT_RUN&quot;</code> (score omitted or <code>0.0</code>) is <code>NOT_RUN</code>. A <code>--tokenizer</code> that cannot be resolved is an input error, exit 3, raised before any model loads. Run with no <code>--evidence</code> and no <code>--base-model</code>, it still prints every mode as <code>probe not run (no evidence)</code>, scores them OK and exits 0: that is the scorer with nothing to score, not a request that failed.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup diagnose my-run --evidence ./evidence.json"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"scores\": {\"forgetting\": {\"score\": 0.0, \"verdict\": \"NOT_RUN\"}, \"refusal\": {\"score\": 0.95}}}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>That evidence file makes the command above print the overall verdict <code>NOT_RUN</code> and exit 3; add <code>--allow-not-run</code> and it exits 0.</p><h2 id=\"what-the-live-probes-read-v0-76-0\">What the live probes read (v0.76.0)</h2><ul><li><strong><code>--holdout &lt;jsonl&gt;</code></strong> feeds the forgetting probe: the first 12 usable prompt and answer rows, or built-in general-knowledge prompts with reference answers when the flag is unset. <code>--dataset</code> keeps feeding the memorization, format and citation probes. If <code>--holdout</code> has no usable rows the forgetting probe reports <code>NOT_RUN</code>.</li><li><strong>Rows are read the way training reads them</strong>: ShareGPT <code>conversations</code>, Alpaca <code>instruction</code> plus <code>input</code> (and <code>system</code> when present), ChatML <code>messages</code> (the turns before the first assistant reply are the prompt), tool-calling rows, and DPO or KTO rows with string <code>prompt</code> and answer fields. Memorization needs text, not pairs, so it also runs on plaintext rows; the probes that need a pair report <code>NOT_RUN</code> when plaintext is all there is. LLaVA, ShareGPT4V and audio rows are skipped because the probe generators are text-only, and a row that carries both an <code>audio</code> field and <code>messages</code>, which used to be probed as text, is now <code>NOT_RUN</code>. A prompt over 8,192 characters or containing a NUL byte is skipped by the prompt and answer probes, and <code>Rows skipped: ...</code> reports the count per cause (for example <code>2 unreadable, 1 over-long</code>).</li><li><strong>Memorization</strong> compares adjacent normalised words, ignoring stopwords and words of two letters or fewer, or adjacent sub-word tokens with <code>--tokenizer</code>. It replaced the earlier set-Jaccard threshold, so memorization results saved by an older release are not directly comparable.</li></ul><blockquote><p><strong>Re-run this.</strong> A live <code>soup diagnose</code> from before v0.76.0 can mislead in four ways. The forgetting probe scored the first 12 rows of <code>--dataset</code>, the adapter&#x27;s own training data, which a fine-tuned adapter answers at least as well as its base, so it could read <code>OK 1.000</code> while general knowledge had been lost. A probe that never ran scored OK 1.00. A model answering in Cyrillic, Greek, Arabic, Hebrew, Hindi or CJK could read as MAJOR mode collapse, and <code>token_f1</code> forgetting probes scored zero retention, because the tokenizer discarded non-ASCII characters and standalone digits. And Alpaca prompts now include <code>input</code> and <code>system</code>, so scores on Alpaca data move. Re-run the report.</p></blockquote><p>Output: a frozen <code>FailureReport</code> (<code>run_id</code> / <code>base</code> / <code>adapter</code> / <code>scores</code> / <code>overall</code> / <code>soup_version</code> / <code>extras</code>) plus an embeddable SVG badge from <code>render_badge_svg</code>, one cell per probe (html-escaped — safe for HF model cards). Missing modes fill via <code>neutral_score</code>.</p><h2 id=\"soup-train-diagnose-gate\"><code>soup train --diagnose-gate</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --diagnose-gate ./evidence.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Runs <strong>after</strong> training has finished: the &quot;Training Complete!&quot; panel has printed, the adapter is already saved and the tracker has already recorded the run as finished. It reads the evidence JSON you pass (a <code>scores</code> object keyed by mode, each entry with a <code>score</code> and optionally a <code>verdict</code> and <code>evidence</code> string), runs no probe itself, and scores any mode you leave out as a neutral OK. If any supplied mode is <code>MAJOR</code> it prints the offending modes and exits 2, so a CI step fails. Since v0.76.0 a mode listed as <code>NOT_RUN</code> is refused too, with exit 3, and an evidence file that cannot be read exits 1. It does <strong>not</strong> withhold or delete the checkpoint, and the <code>--help</code> text for the flag (&quot;refuses to mark the run successful&quot;) overstates it. The <code>diagnose_report</code> artifact kind is registered in the v0.26 registry alongside <code>eval_suite</code> and <code>canaries</code> from v0.55.</p><h2 id=\"exit-codes\">Exit codes</h2><div><table><thead><tr><th>Code</th><th>Means</th></tr></thead><tbody><tr><td>0</td><td>Overall OK or MINOR, or <code>NOT_RUN</code> with <code>--allow-not-run</code>. With no evidence and no <code>--base-model</code> every mode is a neutral OK.</td></tr><tr><td>2</td><td>Overall MAJOR. Also an <code>--evidence</code> file that does not exist, an invalid <code>--citation-style</code> and a mistyped flag.</td></tr><tr><td>3</td><td>Overall <code>NOT_RUN</code> without <code>--allow-not-run</code>, <code>--attach-to-registry</code> without <code>--output</code>, or a bad <code>--tokenizer</code>.</td></tr><tr><td>1</td><td>An <code>--evidence</code> file that is not valid JSON, a live run that failed, an unwritable <code>--output</code>, or an attach that failed after the report was written.</td></tr></tbody></table></div><p><code>soup diagnose</code> is not one of the eleven commands that moved a mistyped flag from 2 to 3, so one code still means two things here: 2 is a MAJOR verdict and also a mistyped flag or a missing evidence file, and 3 is <code>NOT_RUN</code> and also an input error. See <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/eval-gate\">Eval-gated training</a> — pre-training gate at epoch boundaries</li><li><a href=\"__DOCS_BASE__/quant-check\">Quant-check</a> — quant-specific regression check</li><li><a href=\"__DOCS_BASE__/eval-design\">Eval design</a> — design the evidence your gate scores</li><li><a href=\"__DOCS_BASE__/eval-depth\">Eval depth (v0.65)</a> — 4 deeper failure-mode probes (behavior, capability, checklist, irt-subset) that stack on top of the 7 diagnose probes</li><li><a href=\"__DOCS_BASE__/post-train-xrays\">Post-train x-rays (v0.66)</a> — 4 mechanistic-interpretability probes (sae-diff, sleeper, interference, pack) — failure-mode coverage 7 → 11</li></ul><nav><a href=\"__DOCS_BASE__/quant-check\"><span>Previous</span><span>Quant-Lobotomy Check</span></a><a href=\"__DOCS_BASE__/post-train-xrays\"><span>Next</span><span>Post-train X-rays</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

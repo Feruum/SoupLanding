@@ -1,0 +1,124 @@
+{
+  "slug": "governance",
+  "title": "Governance & Provenance (v0.59.0)",
+  "description": "Soup CLI v0.59.0 governance & provenance. soup bom emit produces CycloneDX 1.6 ML-BOM + SPDX 2.3 AI-profile. soup attest emit writes SLSA-3 in-toto attestations per stage (extract/train/eval/export/publish), unsigned, ed25519 signed or, since v0.76.0, Sigstore keyless. soup audit-log keeps a HIPAA/SOC2-shaped JSONL trail at ~/.soup/audit.jsonl with credential masking (not PII redaction). soup train --annex-xi / --repro-receipt emits EU AI Act Annex XI/XII documentation. +93 tests.",
+  "source": "https://trysoup.dev/docs/governance",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "9467de0d336bbff93180fb0b9f60236a05ab1deb6557741027bd798cc028a2aa",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-bom-emit-ml-bill-of-materials",
+      "title": "soup bom emit — ML Bill of Materials"
+    },
+    {
+      "level": 2,
+      "id": "soup-attest-emit-slsa-3-in-toto-attestations",
+      "title": "soup attest emit — SLSA-3 in-toto attestations"
+    },
+    {
+      "level": 3,
+      "id": "provenance-records-are-not-attestations",
+      "title": "Provenance records are not attestations"
+    },
+    {
+      "level": 2,
+      "id": "soup-audit-log-hipaa-soc2-audit-trail",
+      "title": "soup audit-log — HIPAA/SOC2 audit trail"
+    },
+    {
+      "level": 3,
+      "id": "turning-it-off",
+      "title": "Turning it off"
+    },
+    {
+      "level": 2,
+      "id": "eu-ai-act-annex-xi-xii",
+      "title": "EU AI Act Annex XI/XII"
+    },
+    {
+      "level": 2,
+      "id": "co-energy-tracking-schema",
+      "title": "CO₂ energy tracking schema"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Governance &amp; Provenance (v0.59.0)</h1><p>Procurement-ready ML compliance from a single CLI. v0.59 ships 4 governance surfaces that previously required a stack of SaaS tools and a security team: CycloneDX/SPDX BOM emitter, in-toto / SLSA-3 attestation, HIPAA / SOC2 audit log, and EU AI Act Annex XI/XII auto-documentation.</p><h2 id=\"soup-bom-emit-ml-bill-of-materials\"><code>soup bom emit</code> — ML Bill of Materials</h2><p>Generates machine-learning Bills of Material in <strong>CycloneDX 1.6</strong> (with ML-BOM extension) or <strong>SPDX 2.3</strong> AI-profile formats — or both in a single invocation.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup bom emit \\\n  --name llama3-8b-finetuned --version 1.0.0 \\\n  --base-model meta-llama/Llama-3.1-8B-Instruct \\\n  --base-sha <64-hex> \\\n  --config-sha <64-hex> \\\n  --data-sha <64-hex> \\\n  --task sft --license apache-2.0 \\\n  --format both --output ./manifests/llama3-bom"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The three SHA values are SHA-256 digests that you supply, and each must be exactly 64 hex characters: a shortened or elided value exits 2 with <code>base_sha must be 64 hex chars</code>. Soup records them in the BOM and does not compute them or check them against anything. <code>sha256sum soup.yaml | cut -d&#x27; &#x27; -f1</code> prints one for a file.</p><p>Atomic file write (<code>tempfile.mkstemp</code> + <code>os.replace</code>) with symlink rejection (TOCTOU defense). <code>--format=both</code> produces <code>&lt;prefix&gt;.cdx.json</code> and <code>&lt;prefix&gt;.spdx.json</code> side by side.</p><p><code>--license</code> is written according to what it is. A listed SPDX id, in any case, goes into the document in its canonical spelling (<code>apache-2.0</code> becomes <code>Apache-2.0</code>, under <code>license.id</code> in CycloneDX and <code>licenseConcluded</code> in SPDX). An SPDX expression such as <code>Apache-2.0 OR MIT</code> is canonicalised and written under <code>expression</code>. Any other name goes under <code>license.name</code> in CycloneDX and becomes a <code>LicenseRef-</code> entry in SPDX 2.3, with its text in <code>hasExtractedLicensingInfos</code>. Since v0.76.0 the CycloneDX <code>serialNumber</code> is an RFC 4122 <code>urn:uuid:</code> value, and the SPDX document records the training data as a <code>BUILD_DEPENDENCY_OF</code> the model (the relationship was reversed before). The three spellings above were run through <code>soup bom emit --format both</code> on the v0.76.0 CLI.</p><p><strong>Since v0.73.3, <code>--attach-to-registry &lt;id&gt;</code> registers what it wrote as a <code>bom</code> artifact on that entry</strong>, so <a href=\"__DOCS_BASE__/compliance-pack\"><code>soup card</code></a> links it in the card&#x27;s artifact table for free. Those were the two compliance documents <code>soup card</code> existed to publish and could not reach, because the registry had no such artifact kinds. The flag needs <code>--output</code> (omitting it is a usage error, exit 2), and a lookup or attachment failure exits non-zero <strong>after leaving the emitted files on disk</strong>. With <code>--format both</code>, both files are attached.</p><h2 id=\"soup-attest-emit-slsa-3-in-toto-attestations\"><code>soup attest emit</code> — SLSA-3 in-toto attestations</h2><p>Per-stage attestation aligned with <strong>SLSA-3</strong> (Supply-chain Levels for Software Artifacts) and in-toto.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup attest emit --stage train \\\n  --subject adapter.safetensors --sha <64-hex> \\\n  --builder soup-cli \\\n  --invocation \"soup train --config soup.yaml\" \\\n  --sign unsigned --output ./attestations/train.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--attach-to-registry &lt;id&gt;</code> works here too, as an <code>attestation</code> artifact, and a signed statement attaches its detached <code>.sig</code> sidecar alongside, so the card links every file a verifier needs (v0.73.3).</p><p>Stages: <code>extract</code> / <code>train</code> / <code>eval</code> / <code>export</code> / <code>publish</code>. <code>--sha</code> must be the 64-hex SHA-256 of the artifact, and it is recorded as given: Soup does not hash <code>--subject</code> and does not check the value against the file, so compute it yourself (<code>sha256sum adapter.safetensors | cut -d&#x27; &#x27; -f1</code>). Backends: <code>unsigned</code> (default) writes the statement with an empty signature, so the statement itself is not tamper-evident; it records the subject digest you supplied. <code>ed25519</code> is <strong>live as of v0.71.2</strong> (<code>[sign]</code> extra; <code>soup attest verify &lt;statement&gt; --signature &lt;sig&gt;</code> does a canonical-JSON cryptographic verify). <code>sigstore</code> is <strong>live as of v0.76.0</strong> (<code>[sigstore]</code> extra, described below).</p><p><code>--invocation</code> is recorded in the statement at <code>predicate.buildDefinition.externalParameters.invocation</code>, signed or unsigned, up to 4096 characters (a longer value is refused, not cut). Through v0.75.2 it was stored under a key the statement builder never read, so it did not reach the statement. Without <code>--output</code> the statement is printed to standard output as the same JSON, verbatim.</p><p><strong><code>soup attest verify</code> without <code>--public-key</code> does not tell you who signed.</strong> It checks the signature against the public key stored in the <code>.sig</code> sidecar itself, so a statement re-signed by anyone with their own key and shipped with their own sidecar also passes (exit 0). That shows only that the statement and the sidecar agree with each other: the statement was signed by whoever holds the key recorded in the sidecar. It does not show who that is, and it does not show that the statement is the one the original signer produced, because an edited statement that was re-signed passes the same way. <code>--public-key &lt;pem&gt;</code> takes a key you obtained out of band: the key in the sidecar must then match it, or verification exits 3 with <code>Signed by an untrusted key</code>, and that is the only check that authenticates the signer. Exit 0 is a valid signature. Exit 3 is an invalid signature, a key mismatch, a statement that is not valid JSON, a sidecar that is neither ed25519 nor Sigstore (an <code>unsigned</code> sidecar included), an ed25519 sidecar with no public key when <code>--public-key</code> is not given, or a Sigstore sidecar with no bundle or verified without both <code>--cert-identity</code> and <code>--cert-oidc-issuer</code>. Exit 2 is an unreadable input (including an unreadable <code>--public-key</code> file, a sidecar that is not a JSON object or a sidecar over 16 MiB), a statement or sidecar path outside the current directory, <code>--cert-identity</code> without <code>--cert-oidc-issuer</code> (or the reverse), <code>--cert-identity</code> with a sidecar that is not Sigstore, or <code>--public-key</code> with a Sigstore sidecar. Exit 1 is a Sigstore verifier that is unavailable, which includes the <code>[sigstore]</code> extra not being installed (run on the v0.76.0 CLI). <code>soup attest verify</code> has no <code>--strict</code> option (that flag belongs to <code>soup adapters verify</code>). A pass also prints that the subject digest is asserted by the signer and is not re-checked against any file.</p><p><strong><code>--sign sigstore</code> is a real signing backend since v0.76.0.</strong> Install it with <code>pip install &quot;soup-cli[sigstore]&quot;</code> (<code>sigstore&gt;=4.4.0,&lt;5.0.0</code>; the extra is not part of <code>[all]</code>). Signing is keyless: it uses an ambient OIDC identity (for example GitHub Actions) to get a Fulcio certificate and submits to the Sigstore public-good Rekor log, so the signer&#x27;s identity ends up in a public transparency-log entry. A browser sign-in is never opened implicitly; pass <code>--interactive-oidc</code> to allow it. <code>soup attest emit --sign sigstore</code> requires <code>--output</code>, so the complete Sigstore bundle (certificate, signature and transparency proof) is written to the <code>&lt;output&gt;.sig</code> sidecar. Every local argument and path is checked before the signing request is made, so a bad path never creates a log entry; a write that fails after signing would still leave the public entry.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup attest emit --stage train --subject adapter-v1 --sha <64-hex> --sign sigstore --output att.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>An explicit Sigstore request never degrades to an unsigned statement. Without the extra, with no ambient credential and no <code>--interactive-oidc</code> (when the Sigstore trust root can be loaded; if it cannot, for example offline, the same run exits 1), without <code>--output</code>, or with <code>--key</code> (which belongs to ed25519), the command exits 2 and writes nothing; an OIDC, Fulcio or Rekor service that is unreachable at run time exits 1. Through v0.75.2 the same flag printed a &quot;Signing infra-blocked&quot; notice, wrote an <strong>unsigned</strong> statement and exited 0, so a pipeline that passed <code>--sign sigstore</code> believed it signed and did not. If you ran one, those statements carry no signature, and there is no <code>.sig</code> file next to them.</p><p>Verify with an identity and issuer that you trust, supplied out of band:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup attest verify att.json --signature att.json.sig \\\n  --cert-identity 'https://github.com/acme/repo/.github/workflows/release.yml@refs/heads/main' \\\n  --cert-oidc-issuer 'https://token.actions.githubusercontent.com'"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The two flags go together (either one alone exits 2) and a Sigstore sidecar cannot be verified without them (exit 3): the identity embedded in the bundle is not trusted on its own, which would reduce authentication to self-consistency. As with ed25519, a pass shows only that the signer asserted the statement; the subject digest is not re-checked against an artifact. <code>soup adapters sign --backend sigstore</code> does the same for an adapter directory; see <a href=\"__DOCS_BASE__/supply-chain-security#sigstore-keyless-signing-v0-76-0\">Supply chain security</a> for that command and for one difference between its verify side and this one. This is what shipped: upstream&#x27;s tests replace the signer with a mock and <code>benchmarks/</code> has no end-to-end record, and the refusals and exit codes above were run on the v0.76.0 CLI without the extra installed, so no real Fulcio or Rekor round trip is claimed here.</p><p>Since v0.77.0 <code>soup attest verify</code> also reads a statement and a signature file saved with a UTF-8 byte-order mark; the check itself is unchanged.</p><h3 id=\"provenance-records-are-not-attestations\">Provenance records are not attestations</h3><p>v0.77.0 adds provenance you can check: <code>soup train</code> records the SHA-256 of a local training file at startup, <code>soup registry push --data &lt;file&gt;</code> records a file&#x27;s SHA-256 as the entry&#x27;s <code>data_hash</code> (upstream&#x27;s help: &quot;the file registered as the training input, not proof of what the run trained on&quot;), and <code>soup ship --require-provenance</code> refuses offline evidence whose adapter, task file, training source, suites or verdict policy have drifted since it was stamped. A <code>--data-sha256</code> is caller-asserted. Upstream is exact about what these are: &quot;This is not a model run, attestation, signature or forgery protection. The unkeyed hashes detect drift; use the existing signing/attestation tools for a trust boundary.&quot; The signed statement on this page is that tool. See <a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> and <a href=\"__DOCS_BASE__/registry\">Registry</a>.</p><h2 id=\"soup-audit-log-hipaa-soc2-audit-trail\"><code>soup audit-log</code> — HIPAA/SOC2 audit trail</h2><p>Every command execution records timestamp, command-line, exit code, operator identity, and host into <code>~/.soup/audit.jsonl</code> (or <code>$SOUP_AUDIT_LOG_PATH</code>). <strong>Token-shaped values, the values of credential-named options and, since v0.76.1, the values of the two webhook options are masked before write; nothing else is redacted.</strong> The masking covers values that look like <code>hf_...</code>, <code>sk-...</code> or <code>Bearer ...</code>, plus (from v0.75.1) the values of options whose name contains <code>token</code>, <code>key</code>, <code>secret</code>, <code>password</code>, <code>passwd</code> or <code>credential</code> (apart from a fixed list of names that never carry one, such as <code>--max-tokens</code> and <code>--tokenizer</code>), described below. A Slack or Discord webhook URL carries its secret in the URL, and since v0.76.1 the values of <code>--slack-url</code> and <code>--discord-url</code> are masked too. Since v0.76.1 the name rule also applies to every long option typed on the command line, including one the command does not declare, and <code>--min-tokens</code>, a length threshold, is no longer masked. Through v0.76.0 a webhook URL matched neither rule and was recorded in full. Since v0.77.0, lines written by older versions get the same masking as new lines, applied once when the log is next written (#2065): the pass covers <code>audit.jsonl</code> and its rotated <code>audit.jsonl.1</code>, rewrites them through a temporary file beside them, and leaves an <code>audit.jsonl.masked-v1</code> marker when it is done, so a webhook URL that v0.76.0 or earlier recorded as typed is masked in the local log too. A pass that cannot replace the file leaves the log as it was, records the attempt in <code>audit.jsonl.masked-v1.tried</code> and is tried again a day later. It masks by option name, so it cannot restore a value an older version masked (such as <code>--min-tokens</code> before v0.76.1), and it changes only those two files, not a copy of the log you shipped elsewhere before it ran. With <code>--no-audit-log</code> or <code>SOUP_NO_AUDIT_LOG</code> nothing is written, so the pass waits for the next command that writes the log. Every other argument (a prompt passed with <code>--goal</code>, a file path, a model id), the operator&#x27;s OS user name and the host name are recorded as typed, so do not put personal data on a command line whose audit trail you ship to a collector.</p><blockquote><p><strong>Until v0.75.1 that masking was by value SHAPE, not by option name, and three credential flags fell through it.</strong> A value was masked if it looked like <code>hf_...</code>, <code>sk-...</code> or <code>Bearer ...</code>; anything else was written verbatim. So <code>--tool-auth-token</code>, <code>--auth-token</code> and <code>--api-key</code>, whose values usually look like none of those, were recorded in full, in a log this very page encourages you to collect centrally (0.71.3 to 0.75.0). Masking is now keyed on the <strong>option name</strong>, covering long and short forms and both <code>--opt value</code> and <code>--opt=value</code>. <strong>If you passed any of those three on an affected version and your audit log is collected anywhere, rotate those tokens and purge the log.</strong></p></blockquote>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Tail the most recent 100 records (rich table)\nsoup audit-log tail --limit 100\n\n# Raw JSONL for piping\nsoup audit-log tail --limit 50 --json\n\n# Rotate at a 500 MB cap\nsoup audit-log rotate --cap-mb 500"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both subcommands take <code>--path &lt;file&gt;</code> to act on a log other than the default (<code>$SOUP_AUDIT_LOG_PATH</code>, else <code>~/.soup/audit.jsonl</code>). Unlike <code>SOUP_AUDIT_LOG_PATH</code>, which is honoured only inside your home, current or temp directory, <code>--path</code> is not checked. <code>rotate</code> renames whatever file you name, audit log or not, to <code>&lt;file&gt;.1</code> when it is larger than <code>--cap-mb</code> (1 to 10000, default 100), replacing an existing <code>&lt;file&gt;.1</code>; otherwise, or when the file does not exist, it prints <code>No rotation needed</code>.</p><h3 id=\"turning-it-off\">Turning it off</h3><p>It is on by default for every command, so the opt-out belongs next to the feature rather than three pages away:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup --no-audit-log train --config soup.yaml   # global flag, before the subcommand\nSOUP_NO_AUDIT_LOG=1 soup train --config soup.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both suppress the one-line record entirely. The writer refuses to follow a symbolic link or reparse point at the log&#x27;s path on every platform; on Windows that guard is new in v0.76.0, because the no-follow flag it relied on does not exist there, so a link at <code>audit.jsonl</code> was followed before. <code>$SOUP_AUDIT_LOG_PATH</code> is the third control, and it moves the file rather than silencing it, which is what you want when the default location is the problem and the record is not.</p><h2 id=\"eu-ai-act-annex-xi-xii\">EU AI Act Annex XI/XII</h2><p><code>soup train</code> ships two new flags that emit the documentation required by the EU AI Act:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml \\\n  --annex-xi ./docs/annex-xi.md \\\n  --repro-receipt ./receipts/repro.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The reproducibility receipt captures every seed, kernel version, library version, and dataset hash needed to reproduce the run under SR 11-7 model-risk-management standards. Since v0.76.0 it also fills <code>driver_version</code> on a CUDA host.</p><p><strong>What Annex XI/XII records, and what it does not.</strong> Training compute (FLOPs), energy and CO2 are written as <code>not measured</code> unless something measured them: energy and CO2 exist only when the run used <code>soup train --track-energy</code>, and <strong>FLOPs are never measured by Soup</strong>, so that row always reads <code>not measured</code>. Through v0.75.2 the documents wrote <code>0</code> and <code>0.000 kWh</code> / <code>0.000 kg</code> for those rows as if they were measurements (#1446). <strong>If you filed an Annex XI or XII document written by an earlier release, regenerate it before relying on it:</strong> a compliance document with zeros presented as measurements misrepresents the run. Code read at the tag: <code>train_compute_flops=None,  # #1446: Soup does not measure FLOPs; never claim 0</code> in <code>commands/train.py</code>.</p><h2 id=\"co-energy-tracking-schema\">CO₂ energy tracking schema</h2><p>Energy is tracked by the CLI, not by a config block: <code>soup train --track-energy</code> (with <code>--energy-country</code>) records consumption <strong>offline</strong> via codecarbon, and <code>soup bom emit --energy</code> folds the measurement into the BOM and the Annex XI doc. There is no <code>co2:</code> key in <code>soup.yaml</code>, and no live grid-intensity lookup.</p><h2 id=\"numbers\">Numbers</h2><p>+93 new tests in v0.59.0 (9193 → 9286).</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a> — v0.71.35 wraps these commands into a regime-shaped workflow (<code>soup init --template</code>, <code>soup card</code>, <code>soup ci init</code>).</li><li><a href=\"__DOCS_BASE__/supply-chain-security\">Supply-chain security</a> — v0.60 LoRA backdoor scanner, Merkle signing, air-gap bundles.</li><li><a href=\"__DOCS_BASE__/registry\">Registry</a> — every BOM and attestation can be attached as an artifact.</li><li><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight &amp; tooling (v0.64)</a> — <code>soup license-advisor --target b2c|defense|embedded</code> returns ok/warn/block per (license, deploy-target, MAU) and composes with the v0.59 license-matrix on <code>soup adapters merge</code>.</li><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle (v0.67)</a> — <code>soup lock</code> SHA256(base || dataset || env) closure makes governance artifacts reproducible across teams.</li></ul><nav><a href=\"__DOCS_BASE__/correctness-first\"><span>Previous</span><span>Correctness First</span></a><a href=\"__DOCS_BASE__/supply-chain-security\"><span>Next</span><span>Supply-chain Security</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

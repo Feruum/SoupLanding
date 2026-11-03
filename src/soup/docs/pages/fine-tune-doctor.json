@@ -1,0 +1,96 @@
+{
+  "slug": "fine-tune-doctor",
+  "title": "Fine-tune Doctor (v0.71.27)",
+  "description": "Fine-tune Doctor (v0.71.27) — pure-CPU, zero-GPU pre-flight that catches silent fine-tune failures before a training step. soup data doctor <data> --model <id> runs 8 chat-template checks (template present/renders, generation markers, eos_in_labels — the #1 'never stops generating' bug, bos_duplication, system_role, unknown_roles, truncation_risk) with OK/MINOR/MAJOR verdicts and exit 2 on MAJOR; --show-mask N colours trained vs masked tokens through the real collator. soup data lint <data> flags DPO length_bias as a Cohen's d effect size, label_imbalance, near_duplicates (MinHash/LSH), identical_pairs, and prompt_leak. No competitor (Unsloth/Axolotl/LLaMA-Factory) ships these. Since v0.76.0 soup doctor --config soup.yaml also shows what the loader now refuses or warns about before you train.",
+  "source": "https://trysoup.dev/docs/fine-tune-doctor",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "0458ce16f68f664f8821b36ed7531de1b13a25d8237e9e687c8f3ebe97a74f3c",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-data-doctor-8-chat-template-checks",
+      "title": "soup data doctor — 8 chat-template checks"
+    },
+    {
+      "level": 3,
+      "id": "see-the-mask-don-t-guess-it",
+      "title": "See the mask, don't guess it"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-lint-the-preference-data-linter",
+      "title": "soup data lint — the preference-data linter"
+    },
+    {
+      "level": 2,
+      "id": "soup-doctor-config-what-the-loader-refuses-v0-76-0-and-v0-77-0",
+      "title": "soup doctor --config: what the loader refuses (v0.76.0 and v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "soup-bench-train-a-short-run-that-fails-if-the-model-was-not-training-v0-76-0",
+      "title": "soup bench train: a short run that fails if the model was not training (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Fine-tune Doctor (v0.71.27)</h1><p>Most fine-tunes don&#x27;t fail loudly. They fail silently: the model never stops generating, the assistant turns were never actually trained, or your DPO run quietly learns &quot;longer = better&quot; instead of the preference you meant. <strong>v0.71.27 &quot;Fine-tune Doctor&quot;</strong> is a pure-CPU, zero-GPU pre-flight that catches these before a single training step.</p><blockquote><p>We have not found these checks in Unsloth, Axolotl or LLaMA-Factory. Without them you find out after the GPU hour.</p></blockquote><h2 id=\"soup-data-doctor-8-chat-template-checks\"><code>soup data doctor</code> — 8 chat-template checks</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data doctor chats.jsonl --model meta-llama/Llama-3.1-8B"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It renders your data through the model&#x27;s <strong>real</strong> tokenizer and chat template, then runs eight checks:</p><div><table><thead><tr><th>#</th><th>Check</th><th>Catches</th></tr></thead><tbody><tr><td>1</td><td><code>chat_template</code> present</td><td>Tokenizer with no chat template at all</td></tr><tr><td>2</td><td><code>template_render</code></td><td>A template that throws on your rows</td></tr><tr><td>3</td><td><code>generation</code> markers</td><td>Missing <code>{% generation %}</code> spans (needed for response-only masking)</td></tr><tr><td>4</td><td><code>eos_in_labels</code></td><td><strong>The #1 &quot;model never stops generating&quot; bug</strong> — every assistant turn&#x27;s trained span must actually contain an EOS/EOT token (checked on every turn, not just the last)</td></tr><tr><td>5</td><td><code>bos_duplication</code></td><td>Template and tokenizer both prepending BOS</td></tr><tr><td>6</td><td><code>system_role</code></td><td>Mistral-style templates that reject a leading system turn</td></tr><tr><td>7</td><td><code>unknown_roles</code></td><td>Roles the template doesn&#x27;t understand</td></tr><tr><td>8</td><td><code>truncation_risk</code></td><td>p95 rendered length vs <code>max_length</code></td></tr></tbody></table></div><p>The verdict uses the same <strong>OK / MINOR / MAJOR</strong> taxonomy as <a href=\"__DOCS_BASE__/diagnose\">soup diagnose</a>: <strong>exit 0</strong> on OK/MINOR, <strong>exit 2</strong> on MAJOR, so it drops straight into CI. A missing path, an empty dataset or a tokenizer that fails to load is exit 1; a mistyped flag, preference data, or RAFT data without <code>--show-mask</code> is exit 2, the same code as MAJOR, because <code>soup data doctor</code> is not one of the commands that moved usage errors to 3 in v0.76.0. Its one exit 3 is described under <code>--mask-history</code> below. See <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>.</p><p><code>--max-length</code> (default 2048) is the length the <code>truncation_risk</code> check compares against, so pass the <code>data.max_length</code> you train with; it also truncates the <code>--show-mask</code> rows. The check is OK when the p95 rendered length is within it, MAJOR when at least 20% of the sampled rows are longer, and MINOR otherwise. <code>--sample</code> (default 200, at most 20000, otherwise exit 1) is how many rows the checks run on, spaced evenly across the file rather than taken from the top.</p><h3 id=\"see-the-mask-don-t-guess-it\">See the mask, don&#x27;t guess it</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data doctor chats.jsonl --model meta-llama/Llama-3.1-8B --show-mask 3"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--show-mask N</code> prints N sample rows with every token coloured <strong>trained vs masked</strong>, rendered through the <strong>real collator path</strong> (answer-only, per-message train-field, or RAFT span-mask), not a reimplementation. An assistant-mask bug becomes visible instantly. The flags <code>--train-on-responses-only</code> and <code>--train-on-messages-with-train-field</code> pick the exact masking strategy <code>soup train</code> would use, so what you see is what you&#x27;ll train.</p><p><strong><code>--mask-history</code> (v0.76.0)</strong> previews <code>data.mask_history</code>, which trains only the <strong>last</strong> assistant turn of each conversation and masks the earlier ones (<code>--no-mask-history</code> is the default). It needs response-only masking: combined with <code>--no-train-on-responses-only</code> or with <code>--train-on-messages-with-train-field</code> the command exits <strong>3</strong> before it loads a tokenizer or reads the dataset, with a message naming the flag in conflict. Those are the same two combinations <code>soup.yaml</code> refuses at load. <code>data.mask_history</code> is read by text SFT and distill training; the MLX backend, vision SFT and audio SFT ignore it.</p><p>Dataset-derived strings are stripped of control characters (C0, DEL and, since v0.76.0, the C1 range) before hitting your terminal, because Rich&#x27;s markup escape doesn&#x27;t neutralise raw ESC bytes; the <code>--output</code> JSON is unaffected.</p><h2 id=\"soup-data-lint-the-preference-data-linter\"><code>soup data lint</code> — the preference-data linter</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data lint prefs.jsonl              # word-count length bias\nsoup data lint prefs.jsonl --model Qwen/Qwen2.5-7B   # exact token-length bias"
+    },
+    {
+      "kind": "html",
+      "html": "<p>For <code>dpo / orpo / simpo / ipo / bco / kto</code> data it flags:</p><ul><li><strong><code>length_bias</code></strong> — chosen systematically longer than rejected (<strong>the #1 silent DPO degradation</strong>), reported as a <strong>Cohen&#x27;s d effect size</strong> so you know how bad it is, not just that it exists. It is MAJOR at |d| of 0.8 or more <strong>and</strong> mean lengths at least 10% apart, MINOR at |d| of 0.3 or more and at least 5% apart, so a consistent one-word gap between near-constant lengths is not flagged. For conversational <code>chosen</code> and <code>rejected</code> (message lists) it reads only the assistant turns.</li><li><strong><code>label_imbalance</code></strong> — KTO desirable:undesirable ratio out of balance.</li><li><strong><code>near_duplicates</code></strong> — MinHash/LSH near-dupes (reuses the <code>soup data dedup</code> kernel).</li><li><strong><code>identical_pairs</code></strong> — chosen == rejected, i.e. zero preference signal.</li><li><strong><code>prompt_leak</code></strong> — the prompt echoed verbatim inside the completion.</li></ul><p><code>--sample</code> sets how many rows the linter checks (default 2000, at most 50000, otherwise exit 3), spaced evenly across the file.</p><p>Exit codes: 0 for OK or MINOR, 2 for MAJOR, and <strong>3 for a rejected input</strong>: a missing path, an empty dataset, data that is not preference data (the message says to use <code>soup data doctor</code>), <code>--sample</code> above 50,000, an unwritable <code>--output</code>, or a mistyped flag. Before v0.76.0 a missing path was 1 and non-preference data was 2, the same code as MAJOR. The <code>soup data doctor</code> bound on <code>--sample</code> (20,000) is unchanged and still exits 1.</p><h2 id=\"soup-doctor-config-what-the-loader-refuses-v0-76-0-and-v0-77-0\"><code>soup doctor --config</code>: what the loader refuses (v0.76.0 and v0.77.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup doctor --config soup.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Run it on any config that loaded on an older release before you train with v0.77.0. Dozens of combinations that loaded on v0.75 have been refused since v0.76.0 with a message that names the field and what to change, and since v0.77.0 so are the 31 staged fields (validated, read by nothing) when set away from their default, each with a line ending <code>refused as of v0.77. Delete the line.</code>, plus <code>data.remove_unused_columns: true</code> and an explicit <code>training.quantization: 4bit</code> / <code>8bit</code> or <code>load_in_8bit: true</code> on a task that never quantises: see <a href=\"__DOCS_BASE__/config-refusals\">the settings refused at load</a>. A config that cannot load makes <code>soup doctor --config</code> exit <strong>2</strong>, after printing the loader&#x27;s error and <code>Config could not be loaded (see above).</code>; since v0.77.0 it no longer prints <code>All checks passed!</code> above a refusal (the environment tables and any issue list still print first, #2100, #2106). A config that loads exits 0. Unknown keys are reported together, and so are staged fields, one line each, but not in the same run (unknown keys come first), and a cross-field refusal prints only the first one it hits, so fix what it names and run the command again until it prints no error.</p><p>With a loadable config it then prints a <code>Config check</code> table: the settings your file switches on that its task and backend never read. For example <code>use_galore: true</code> on <code>backend: mlx</code> is listed as <code>ignored</code> (<code>GaLore has no MLX implementation</code>). <strong>That table is small and an empty one is not an all-clear.</strong> At v0.77.0 it has eight declared (task, backend, modality) entries: <code>sft</code> on <code>mlx</code> (12 settings), <code>dpo</code>, <code>orpo</code>, <code>simpo</code> and <code>kto</code> on <code>mlx</code> (9 each, the SFT list less its three masking switches), <code>sft</code> on <code>unsloth</code> (none left: its unread settings are refused at load), and <code>sft</code> on <code>transformers</code> with vision or audio data (one each, <code>data.mask_history</code>). It lists only settings you wrote and set away from their schema default; a field written at its default counts as unwritten. (At v0.76.x it had four entries: SFT on MLX with 18, SFT on Unsloth with 3, and vision and audio SFT with 2 each.) For any other combination, plain <code>sft</code> on <code>transformers</code> included, it prints <code>None of the N setting(s) known to be unread on task=... backend=... is switched on in this config.</code>, which means &quot;nothing to report&quot;, not &quot;every setting is read&quot;; upstream tracks the gap as #1815. See <a href=\"__DOCS_BASE__/mlx-backend#soup-doctor-config-the-settings-your-backend-does-not-read\">the MLX page</a> for the MLX entries.</p><h2 id=\"soup-bench-train-a-short-run-that-fails-if-the-model-was-not-training-v0-76-0\"><code>soup bench train</code>: a short run that fails if the model was not training (v0.76.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup bench train --config soup.yaml --steps 20 --warmup 3 --output bench-train.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Trains for a fixed number of optimizer steps in a scratch directory, saves nothing, and writes a JSON report with step timing, supervised tokens per second (tokens whose label is not -100, not padded tokens), peak allocated and reserved memory, and the device and library versions. The part that matters before a GPU hour is the verdict: the report is marked not valid, and the command exits <strong>1</strong> with the report still written, when the model was not actually training: no trainable parameter with storage, a gradient norm that is zero or not finite, trainable parameters bit-identical between the first and last step, or fewer steps than requested. It measures the SFT trainer on the transformers backend only; any other task or backend exits 1 with <code>Cannot bench this config</code>, and a light install without PyTorch exits 1 with the <code>[train]</code> hint. <code>--output</code> must stay under the working directory and is checked first (exit 2 if refused). Details are on <a href=\"__DOCS_BASE__/soup-bench\">the bench page</a>.</p><h2 id=\"numbers\">Numbers</h2><p>Validated live against the real <code>HuggingFaceTB/SmolLM2-135M-Instruct</code> tokenizer; the smoke pass found and fixed two genuine bugs. Part of the v0.71 release line, which closed at <strong>16,529 tests across 319 files</strong>.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/diagnose\">soup diagnose</a> — the post-training report card whose OK/MINOR/MAJOR taxonomy the doctor mirrors.</li><li><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight &amp; tooling</a> — <code>soup plan/apply</code>, <code>soup tunability</code>, hardware-fit, the rest of the &quot;catch it before GPU&quot; surface.</li><li><a href=\"__DOCS_BASE__/mcp-server\">MCP server</a> — <code>data_doctor</code> is one of the tools exposed to your coding agent.</li></ul><nav><a href=\"__DOCS_BASE__/preflight-tooling\"><span>Previous</span><span>Pre-flight &amp; Tooling</span></a><a href=\"__DOCS_BASE__/eval-gate\"><span>Next</span><span>Eval-Gated Training</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "slug": "serving",
+  "title": "Inference Server",
+  "description": "Serve fine-tuned models with transformers, vLLM, or SGLang backends. FastAPI inference server included.",
+  "source": "https://trysoup.dev/docs/serving",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "c50d4fa2c503612ab1d6efe355c77be550fb43eb7c10ae392bb10c5f358ba101",
+  "headings": [
+    {
+      "level": 2,
+      "id": "transformers-backend",
+      "title": "Transformers Backend"
+    },
+    {
+      "level": 2,
+      "id": "vllm-backend-2-4x-faster",
+      "title": "vLLM Backend (2-4x Faster)"
+    },
+    {
+      "level": 2,
+      "id": "kv-cache-type",
+      "title": "KV-cache type"
+    },
+    {
+      "level": 2,
+      "id": "sglang-backend",
+      "title": "SGLang Backend"
+    },
+    {
+      "level": 2,
+      "id": "a-page-you-visit-cannot-drive-your-server-v0-75-1",
+      "title": "A page you visit cannot drive your server (v0.75.1)"
+    },
+    {
+      "level": 2,
+      "id": "binding-to-a-non-loopback-host-v0-74-0",
+      "title": "Binding to a non-loopback host (v0.74.0)"
+    },
+    {
+      "level": 2,
+      "id": "the-code-routes-need-the-token-on-every-bind-v0-77-0",
+      "title": "The code routes need the token on every bind (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "device-selection-v0-76-0",
+      "title": "Device selection (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "speculative-decoding",
+      "title": "Speculative decoding"
+    },
+    {
+      "level": 2,
+      "id": "auto-quant-is-refused-v0-76-0",
+      "title": "--auto-quant is refused (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "batch-inference-cuda-graphs-and-benchmarks-v0-76-0",
+      "title": "Batch inference, CUDA graphs and benchmarks (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "multi-adapter-serving-v0-22-0",
+      "title": "Multi-Adapter Serving (v0.22.0+)"
+    },
+    {
+      "level": 2,
+      "id": "api-endpoints",
+      "title": "API Endpoints"
+    },
+    {
+      "level": 2,
+      "id": "tool-endpoints-what-bounds-them",
+      "title": "Tool endpoints: what bounds them"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Inference Server</h1><p>Deploy fine-tuned models as an OpenAI-compatible API server.</p><h2 id=\"transformers-backend\">Transformers Backend</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[serve]\"\nsoup serve --model ./output --port 8000"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Simple HTTP API using HuggingFace Transformers. Good for testing and low-traffic use.</p><h2 id=\"vllm-backend-2-4x-faster\">vLLM Backend (2-4x Faster)</h2><blockquote><p><strong>Install <code>[serve-fast]</code> in a different environment from <code>[train]</code>.</strong> Their accelerator stacks can resolve different <code>torch</code> builds: <code>pip install vllm</code> into a training environment can silently replace the <code>torch</code> Soup was installed against, producing an environment outside the bounds Soup declares, with no warning at install time. Since v0.73.3, <a href=\"__DOCS_BASE__/preflight-tooling\"><code>soup env check</code></a> catches that after the fact, exit 3, without needing a lock file. Not creating it is cheaper.</p></blockquote>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[serve-fast]\"\nsoup serve --model ./output --backend vllm\n\n# Multi-GPU with tensor parallelism\nsoup serve --model ./output --backend vllm --tensor-parallel 2\n\n# Control GPU memory usage\nsoup serve --model ./output --backend vllm --gpu-memory 0.8\n\n# Cap the context vLLM reserves KV cache for (v0.73.0, vLLM only)\nsoup serve --model ./output --backend vllm --max-model-len 8192"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Recommended for production. Uses PagedAttention for high throughput. <code>--max-model-len</code> is the knob to reach for when vLLM refuses to start because the model&#x27;s declared context window would need more KV cache than the card has: lower it and the engine reserves less. A value below 1 exits 1, and on any other backend the flag prints a warning and is ignored. The <code>[serve-fast]</code> extra floors <code>vllm&gt;=0.4.3</code> since v0.76.0 (#892): the backend now hands the engine a token-id mapping, which vLLM accepts as the first argument only from 0.4.3 on.</p><h2 id=\"kv-cache-type\">KV-cache type</h2><p>The KV cache is usually the second-largest thing in VRAM while serving, after the weights, and it grows with context length rather than with model size.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --kv-cache-type bf16   # or f16, q8_0 (fp8 is accepted by the config but cannot be served)"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><code>bf16</code> and <code>f16</code> set the cache dtype and need no extra dependency.</li><li><code>q8_0</code> is an 8-bit cache through the HQQ backend: <code>pip install hqq</code>. With neither <code>hqq</code> nor <code>optimum-quanto</code> installed the command exits 2 with the install hint rather than falling back quietly. With only <code>optimum-quanto</code> installed the server starts anyway, and the cache it asks transformers for is still HQQ&#x27;s (what a request then returns was not checked).</li><li><code>fp8</code> is accepted by the config and <strong>cannot be served today</strong>: the transformers backend has no fp8 KV-cache path, and the vLLM / SGLang routing that would provide one is not wired, so it raises either way. The Hopper SM 9.0 check only picks which error you see.</li></ul><p><strong>Transformers backend only.</strong> Routing this flag through vLLM and SGLang is still open upstream: with <code>--backend vllm</code>, <code>sglang</code> or <code>mii</code>, <code>--kv-cache-type</code> exits 2 with a message ending <code>Use --backend transformers.</code></p><h2 id=\"sglang-backend\">SGLang Backend</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[sglang]\"\nsoup serve --model ./output --backend sglang\n\n# Multi-GPU\nsoup serve --model ./output --backend sglang --tensor-parallel 2"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Alternative high-throughput backend with RadixAttention. It serves <code>/v1/chat/completions</code>, <code>/v1/models</code> and <code>/health</code>; the Anthropic-shaped <code>/v1/messages</code> endpoint is served by the transformers and vLLM backends, not by SGLang.</p><p><strong>A LoRA adapter passed as <code>--model</code> is applied since v0.77.0</strong> (#1732). The adapter is served on its base model (read from <code>adapter_config.json</code>, or <code>--base</code>) and registered in the engine under the name <code>adapter</code>, and every request names it, streaming or not; a full model&#x27;s requests name no adapter and are unchanged. SGLang applies an adapter only to requests that name it, and through v0.76.1 Soup registered the adapter at startup but never named it, so every answer came from the base model while <code>/v1/models</code> and each response reported the adapter (#1724). <strong>If you evaluated or shipped an adapter through <code>--backend sglang</code>, those answers were the base model&#x27;s: run them again.</strong> The backend now needs SGLang 0.5.1 or later, which the <code>[sglang]</code> extra installs (<code>sglang&gt;=0.5.1</code>; it was <code>&gt;=0.2.0</code>) and <code>soup doctor</code> checks: older releases refuse to start an engine with a LoRA adapter unless its radix cache is turned off, which Soup does not do.</p><p><strong>v0.74.0 ported the two vLLM repairs that were still standing here.</strong> The prompt goes through the model&#x27;s own chat template rather than a third hand-rolled copy, so a served model no longer sees a format it was never trained on, and <code>finish_reason</code> reports <code>length</code> on a truncated response instead of a hardcoded <code>stop</code>, on both the sync and streaming paths. (At v0.74.0, live verification of that port against a real SGLang runtime on Linux was an open follow-up. Since v0.76.0 this backend also posts token ids instead of a string when a chat template rendered the prompt; upstream&#x27;s changelog reports that change measured end to end on SGLang 0.5.9. See <a href=\"#api-endpoints\">Prompt encoding</a>.)</p><blockquote><p><strong>Breaking in v0.74.0: this backend now obeys <code>--trust-remote-code</code>.</strong> It had hardcoded it on at both runtime call sites, so a custom-code model executed its own repository code on this backend whether or not you opted in. The warning panel said so, but a notice is not a gate. A custom-code model now <strong>fails to load</strong> here without the flag, which is the same default-deny every other backend has had since v0.36. The same release also gave this backend the model&#x27;s own chat template instead of a hand-rolled <code>User:</code>/<code>Assistant:</code> prompt, and a real <code>finish_reason</code> of <code>length</code> when a response hits <code>max_tokens</code> instead of a hardcoded <code>stop</code>.</p></blockquote><h2 id=\"a-page-you-visit-cannot-drive-your-server-v0-75-1\">A page you visit cannot drive your server (v0.75.1)</h2><p>Until v0.75.1, on the <strong>default loopback bind with no token at all</strong>, <code>/v1/tools/python</code>, <code>/v1/tools/bash</code>, <code>/v1/tools/web_search</code> and <code>/v1/thumbs</code> checked neither the <code>Host</code> header nor <code>Origin</code> (0.53.7 to 0.75.0), and the adapter activate and deactivate routes could be driven by a cross-site request from any page (0.30.0 to 0.75.0). A web page the operator merely visited could therefore reach them through DNS rebinding. A token nobody was asked to set is not a control. Everything in this section describes the default transformers backend; the vLLM, SGLang and MII backends have none of these checks, as set out at the end of the section.</p><p>The check that shipped has <strong>two tiers, and the difference is deliberate</strong>:</p><div><table><thead><tr><th>Routes</th><th>Check</th><th>Refusal</th></tr></thead><tbody><tr><td>Tool routes, <code>/v1/thumbs</code>, adapter activate and deactivate</td><td><code>Host</code> must name the bound address, and any <code>Origin</code> must name the same</td><td><strong>421</strong> for a foreign or missing <code>Host</code> (not on a wildcard bind, see below), <strong>403</strong> for a foreign <code>Origin</code></td></tr><tr><td><code>/v1/chat/completions</code>, <code>/v1/messages</code>, <code>GET /v1/adapters</code></td><td><code>Origin</code> only</td><td><strong>403</strong> for a foreign <code>Origin</code></td></tr><tr><td><code>/health</code>, <code>/metrics</code>, <code>/v1/models</code></td><td>none, by choice</td><td>they carry no generation cost and list no adapters (<code>/health</code> does report the name of the active one)</td></tr></tbody></table></div><p><strong>One exception, and it is the bind people use to reach the server from another machine.</strong> On a wildcard bind (<code>--host 0.0.0.0</code> or <code>::</code>) there is no single name to compare <code>Host</code> against, so the <code>Host</code> check is skipped and only <code>Origin</code> is tested, which must equal the request&#x27;s own <code>Host</code>. A page that rebinds its own hostname to your server sends exactly that pair, so on a wildcard bind this check does <strong>not</strong> stop DNS rebinding. It still refuses a cross-site request whose <code>Origin</code> names a different site from its <code>Host</code>. Bind to the specific address you serve on to get the full check, and on any non-loopback bind treat the bearer token as the real control for the routes it covers.</p><p><strong>Why the generation routes get only the narrower half:</strong> an inference route is the one a reverse proxy legitimately fronts under some other hostname, so refusing a foreign <code>Host</code> there would refuse every proxied deployment. A request carrying no <code>Origin</code> at all, which means curl, the OpenAI and Anthropic SDKs, and any proxy, is unaffected. What the <code>Origin</code> check buys is that a page the operator visits cannot drive generation or enumerate loaded adapters, which CORS alone does not prevent: CORS stops that page <strong>reading</strong> the reply, not sending the request.</p><p>The limit is stated upstream rather than left to be discovered, and it is worth repeating: none of this covers a non-browser client, which sends no <code>Origin</code> and can name the bind address in <code>Host</code>. For such a client the bearer token (<code>--tool-auth-token</code>) is the only protection, and it covers <strong>only</strong> the tool routes, <code>/v1/thumbs</code> and the three <code>/v1/adapters</code> routes. <strong>Generation (<code>/v1/chat/completions</code>, <code>/v1/messages</code>), <code>/v1/models</code>, <code>/health</code> and <code>/metrics</code> check no token on any backend</strong>, so a non-loopback bind publishes the model to whoever can reach the port. Put an authenticating reverse proxy in front of it, or keep it on loopback.</p><p>Two changes ride along. The tool token is now compared in <strong>constant time</strong> rather than with <code>!=</code>. And <code>GET /v1/adapters</code>, activate and deactivate now require that token too, with the check running <strong>before</strong> the 404 branches, so an unauthenticated probe cannot learn which adapter names are loaded from an &quot;unknown adapter&quot; reply. Through v0.75.0 those three routes ignored the token even when one was set (only the tool routes and <code>/v1/thumbs</code> checked it), so on a non-loopback bind anyone who could reach the port could list your adapters and switch the one being served. One disclosed consequence: <code>soup loop</code>&#x27;s deploy step posts without an authorization header, so against a token-protected endpoint it now fails closed. (Since closed in v0.77.0: <code>soup loop watch --tool-auth-token</code> or <code>SOUP_TOOL_AUTH_TOKEN</code> sends the token, #1184; see <a href=\"__DOCS_BASE__/soup-loop\">soup loop</a>.)</p><h2 id=\"binding-to-a-non-loopback-host-v0-74-0\">Binding to a non-loopback host (v0.74.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --host 0.0.0.0 --tool-auth-token \"$TOKEN\""
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Without the token that command now exits 2</strong>, where it used to print a warning and start anyway. The reason is that the endpoint the token protects changed underneath it: <code>/v1/tools/bash</code> was re-enabled behind real operating-system namespace and sandbox isolation, so it <strong>actually executes code</strong> now, and a warning is not a sufficient control over an executing endpoint reachable from the network. Where strict isolation is unavailable, Windows included, the endpoint fails closed with HTTP 501 rather than falling back to something weaker. It is not a filesystem sandbox, and the docs say so rather than implying one: the isolation cuts the network, and the code still runs as the server&#x27;s user (see <a href=\"#tool-endpoints-what-bounds-them\">Tool endpoints: what bounds them</a>).</p><p>The exit-2 rule applies to any <code>--host</code> other than <code>127.0.0.1</code>, <code>localhost</code> or <code>::1</code>, a LAN address included, and it runs before the backend is chosen. <strong>Only the transformers backend reads the token and has the <code>Origin</code> and <code>Host</code> checks above.</strong> The vLLM, SGLang and DeepSpeed-MII backends have loopback-only CORS and no <code>Origin</code>, <code>Host</code> or token check, and the tool, thumbs and adapter routes do not exist on them. So <code>--backend vllm --host 0.0.0.0 --tool-auth-token &quot;$TOKEN&quot;</code> starts, and the token protects nothing, because no route on that app reads it. For those backends the network is the only boundary: keep them on loopback or behind an authenticating proxy.</p><p><strong>Since v0.76.0 the server says this at startup.</strong> On any bind beyond loopback it prints a yellow <code>Note:</code>. On the transformers backend it reads that <code>--tool-auth-token</code> is checked on the tool, thumbs and adapter routes only, and that <code>/v1/chat/completions</code>, <code>/v1/messages</code>, <code>/v1/models</code>, <code>/health</code> and <code>/metrics</code> answer every client that can reach the port without a token; on a wildcard bind a second line adds that the <code>Host</code> header is not compared. On vLLM, SGLang and MII the note says that no route checks the token, generation included. The <code>--host</code> help string was updated to say the same. Nothing about the scope itself changed: the notice describes what this page already described. Since v0.77.0 the <code>--tool-auth-token</code> help string matches the guard: without the token, it says, <code>/v1/tools/python</code> and <code>/v1/tools/bash</code> answer 401 on every bind and a non-loopback <code>--host</code> is refused. (Through v0.76.1 it still said &quot;Strongly recommended&quot; for a non-loopback host.) A token given through <code>SOUP_TOOL_AUTH_TOKEN</code> passes the same host guard as the flag.</p><h2 id=\"the-code-routes-need-the-token-on-every-bind-v0-77-0\">The code routes need the token on every bind (v0.77.0)</h2><p><strong>Since v0.77.0 <code>/v1/tools/python</code> and <code>/v1/tools/bash</code> need <code>--tool-auth-token</code> on every bind, loopback included</strong> (#2174). A server started without a token answers both with 401 before the request&#x27;s content is used, and the reply names the fix: <code>Authentication required: /v1/tools/python and /v1/tools/bash need a token on every bind. Start soup serve with --tool-auth-token &lt;secret&gt; (or set SOUP_TOOL_AUTH_TOKEN) and send &#x27;Authorization: Bearer &lt;secret&gt;&#x27;.</code> A server that has a token answers a missing or wrong one with 401 <code>Invalid or missing bearer token</code>. <code>--tool-auth-token</code> also reads <code>SOUP_TOOL_AUTH_TOKEN</code>, which keeps the token off the command line and out of the shell history:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "export SOUP_TOOL_AUTH_TOKEN=\"$(python -c 'import secrets; print(secrets.token_urlsafe(32))')\"\nsoup serve --model ./output\ncurl -X POST http://127.0.0.1:8000/v1/tools/python \\\n  -H \"Authorization: Bearer $SOUP_TOOL_AUTH_TOKEN\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"code\": \"print(1)\"}'"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup serve</code> still starts without a token on loopback, and the other routes keep their rule: <code>/v1/tools/web_search</code>, <code>/v1/thumbs</code> and the three adapter routes take a token on a loopback bind only when the server has one, and generation, <code>/v1/models</code>, <code>/health</code> and <code>/metrics</code> take none on any bind. This is the transformers backend; the vLLM, SGLang and MII apps have no tool routes. The isolation the two routes now require (see <a href=\"#tool-endpoints-what-bounds-them\">Tool endpoints</a>) cuts the network, but the code still runs as the server&#x27;s user, so use a long random token. Through v0.76.1 both code routes answered a tokenless loopback request.</p><h2 id=\"device-selection-v0-76-0\">Device selection (v0.76.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --device cuda:1\nsoup serve --model ./output --device cpu"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--device</code> takes <code>cuda</code>, <code>cuda:&lt;index&gt;</code>, <code>mps</code> or <code>cpu</code>, in any case (<code>mlx</code> is also accepted and loads like <code>cpu</code>). Any other value exits 2 and names the accepted ones before the model loads. On the transformers backend the base model, a merged model and the speculative draft model all follow the same rule:</p><div><table><thead><tr><th><code>--device</code></th><th>Placement</th><th>Dtype</th></tr></thead><tbody><tr><td><code>cpu</code></td><td>Pinned to the CPU</td><td>float32</td></tr><tr><td><code>cuda:&lt;index&gt;</code>, <code>mps</code></td><td>Pinned to that device</td><td>float16</td></tr><tr><td><code>cuda</code></td><td><code>device_map=&quot;auto&quot;</code></td><td>float16</td></tr></tbody></table></div><p>An explicit <code>--kv-cache-type bf16</code> or <code>f16</code> still sets the load dtype on every device. Through v0.75.2 the argument never reached the loader, so <code>--device cpu</code> still placed the model on a visible GPU and <code>cuda:N</code> was accepted and ignored.</p><p><strong>This changes the default on a machine with no GPU.</strong> The device is auto-detected when you do not pass <code>--device</code>, so the rule applies without the flag: on a CPU-only host the model now loads in float32 pinned to the CPU, which doubles its RAM use. Upstream&#x27;s changelog gives a 7B model as about 28 GB instead of 14 GB. The placement rules above are the transformers backend&#x27;s, as the flag&#x27;s own help says.</p><h2 id=\"speculative-decoding\">Speculative decoding</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Transformers backend\nsoup serve --model ./output --speculative-decoding small-draft-model --num-speculative-tokens 5\n\n# vLLM backend\nsoup serve --model ./output --backend vllm --speculative-decoding small-draft-model"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A smaller draft model proposes tokens the target verifies in one pass, keeping the target&#x27;s exact output. Whether that is actually faster depends on the pair, so measure it rather than assume: <a href=\"__DOCS_BASE__/soup-draft\"><code>soup draft measure</code></a> reports the real acceptance rate and plain-vs-assisted throughput, and on the pair we validated it came out at 0.55 to 0.64x, a net <strong>slowdown</strong>. A high acceptance rate does not settle it either: upstream&#x27;s documentation cites a Llama-3.1-8B target with a Llama-3.2-1B draft on one H100, where 81.3% acceptance still ran at 0.48x of plain decoding. Since v0.76.0 <code>measure</code> also reports a break-even acceptance rate and a best draft length.</p><h2 id=\"auto-quant-is-refused-v0-76-0\"><code>--auto-quant</code> is refused (v0.76.0)</h2><p><code>soup serve --auto-quant</code> exits 2. Soup cannot compare GGUF, AWQ, GPTQ, FP8 and an unquantized baseline before a serving engine has loaded them, and through v0.75.2 the flag timed three calls to a stub that returned a constant, so its choice came from timer noise. On vLLM that choice could force AWQ, GPTQ or FP8 on a checkpoint that did not declare it. vLLM now follows the checkpoint&#x27;s own quantization metadata. If you served with <code>--auto-quant</code> on vLLM before, check which quantization the engine actually loaded. To serve a quantized model, quantize the checkpoint explicitly (see <a href=\"__DOCS_BASE__/export\">Model Export</a>) and serve that without the flag.</p><h2 id=\"batch-inference-cuda-graphs-and-benchmarks-v0-76-0\">Batch inference, CUDA graphs and benchmarks (v0.76.0)</h2><p><code>soup infer</code> takes <code>--batch-size N</code> to generate several prompts together, and an experimental <code>--cuda-graphs</code> that replays CUDA graphs for decoding on a resident, unquantized Qwen2 or Llama model. <code>soup bench</code> is now a command group with <code>infer</code> and <code>train</code>. Details, and what each flag refuses, are on <a href=\"__DOCS_BASE__/soup-bench\">the <code>soup bench</code> page</a>. Upstream&#x27;s record for <code>--cuda-graphs</code>: on one RTX 5070 Laptop, unpinned, Qwen2.5-1.5B FP16, the slowest run with graphs decoded 2.9x faster than the fastest run without (<a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.76.0/benchmarks/gate-v0.76.0-cuda-graph-decode.md\"><code>benchmarks/gate-v0.76.0-cuda-graph-decode.md</code></a>). <code>soup serve</code> has no <code>--cuda-graphs</code> flag.</p><h2 id=\"multi-adapter-serving-v0-22-0\">Multi-Adapter Serving (v0.22.0+)</h2><p>Serve multiple LoRA adapters on a single base model:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./base --adapters chat=./adapters/chat --adapters code=./adapters/code"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Select an adapter per request with an <code>adapter</code> field in the request body. It is not the <code>model</code> field: <code>model</code> is ignored for selection, so <code>&quot;model&quot;: &quot;chat&quot;</code> quietly runs whichever adapter is active, or the base model.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"adapter\": \"chat\", \"messages\": [{\"role\": \"user\", \"content\": \"Hello!\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A request with no <code>adapter</code> uses the one chosen with <code>POST /v1/adapters/activate/&lt;name&gt;</code>, or the base model if none is active, and an unknown name is a 404. <code>--adapters</code> needs <code>--backend transformers</code>, and every adapter path must sit under the working directory.</p><p><strong>Canary routing (v0.76.0).</strong> Through v0.75.2 <code>soup loop canary</code> recorded a canary adapter and its traffic share in <code>.soup/loop.yaml</code> and <code>soup serve</code> never read them, so no request was ever routed. Since v0.76.0 the transformers backend hashes a request&#x27;s conversation key (<code>conversation_id</code> in the body, or an <code>X-Conversation-Id</code> header) and sends it to the canary adapter or to the stable model at the recorded share. It does so only when the canary adapter was loaded with <code>--adapters</code>, the request names no <code>adapter</code> of its own (an explicit choice is honoured), and the request carries a key; any other request follows normal activation. Each routed generation&#x27;s outcome is buffered and flushed to disk after 64 outcomes or two seconds, so the stats <code>soup loop watch</code> reads can lag traffic by up to that window. See <a href=\"__DOCS_BASE__/soup-loop\">soup loop</a>.</p><h2 id=\"api-endpoints\">API Endpoints</h2><p>Every backend exposes the same OpenAI-compatible core:</p><ul><li><code>POST /v1/chat/completions</code> — chat completions (streaming supported, except on the DeepSpeed-MII backend)</li><li><code>GET /v1/models</code> — list available models</li><li><code>GET /health</code> — health check (the DeepSpeed-MII backend has none)</li></ul><p>Beyond that core the backends differ. <code>POST /v1/messages</code> and <code>GET /metrics</code> are served by the transformers and vLLM backends only, and <code>/metrics</code> answers whether or not <code>--dashboard</code> is passed; on SGLang and MII <code>--dashboard</code> prints a warning and collects nothing. The adapter, tool and thumbs routes exist on the transformers backend only.</p><p><strong>Streaming on the transformers backend is not token by token.</strong> A <code>stream: true</code> request generates the whole reply first and then sends it word by word, split on spaces. That is why <code>--structured-output</code> and <code>--reasoning-parser</code> can apply to the whole reply before the first chunk leaves. Since v0.76.0 a streamed request honours both (#1607); through v0.75.2 it skipped them, so a streamed reply ignored the output constraint and carried the reasoning block. <code>--reasoning-parser</code> is read by the transformers backend only: on vLLM, SGLang and MII the flag is accepted and nothing reads it.</p><p><strong>Prompt encoding.</strong> Since v0.75.0 the transformers backend encodes a rendered chat template with no tokenizer special tokens, so a Llama-3, Gemma or Mistral template no longer sends a doubled BOS. Since v0.76.0 the vLLM, SGLang and DeepSpeed-MII backends do the same (#867, #890, #891): when the model&#x27;s chat template rendered the prompt, Soup encodes it itself and hands the engine token ids instead of a string, so the engine cannot add a second BOS in front of the one the template already rendered.</p><ul><li><strong>vLLM</strong> receives <code>{&quot;prompt_token_ids&quot;: [...]}</code>.</li><li><strong>SGLang</strong> receives the ids as <code>input_ids</code> on its <code>/generate</code> endpoint. This path uses <code>httpx</code>, which the <code>[sglang]</code> extra now declares.</li><li><strong>DeepSpeed-MII</strong> receives a prompt object that carries the ids, through a tokenizer wrapper. If the engine reports a prompt length different from the one Soup encoded, the server logs a warning naming both numbers.</li></ul><p><code>usage.prompt_tokens</code> drops by one on a template that renders its own BOS. A model with no chat template falls back to a generic <code>User:</code> / <code>Assistant:</code> prompt and the server says so at startup; a template that fails to render falls back the same way for that request and logs a warning; that fallback carries no special tokens of its own and is still sent to the engine as a string, which the engine tokenizes as it always did. For vLLM and SGLang, upstream&#x27;s changelog reports the change checked against a running engine; the MII path is covered by a test against MII&#x27;s tokenizer contract. Through v0.75.2, on a template that renders its own BOS, these three engines ran on the doubled-BOS prompt, so a verdict, benchmark or <code>usage</code> number taken through them on an earlier release was measured on a prompt that differed from training by one token. See <a href=\"__DOCS_BASE__/soup-ship#inference-prompts-now-match-training-v0-75-0\">what changed for <code>soup ship</code></a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "curl http://localhost:8000/v1/chat/completions \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"model\": \"output\",\n    \"messages\": [{\"role\": \"user\", \"content\": \"Hello!\"}]\n  }'"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Compatible with OpenAI SDK:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "python",
+      "code": "from openai import OpenAI\nclient = OpenAI(base_url=\"http://localhost:8000/v1\", api_key=\"unused\")\nresponse = client.chat.completions.create(\n    model=\"output\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello!\"}],\n)"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Note:</strong> <code>max_tokens</code> is capped at 16,384 per request. Error details are never exposed in HTTP responses.</p></blockquote><h2 id=\"tool-endpoints-what-bounds-them\">Tool endpoints: what bounds them</h2><p>The transformers backend also serves <code>POST /v1/tools/python</code> (body <code>{&quot;code&quot;: &quot;...&quot;}</code>), <code>POST /v1/tools/bash</code> (body <code>{&quot;command&quot;: &quot;...&quot;}</code>) and <code>POST /v1/tools/web_search</code>, behind the bearer-token and Origin/Host checks described above. On the code routes the order is: the <code>Host</code> and <code>Origin</code> check (421 or 403), then the token (401), then the payload (400), then the isolation rule below (501), so without a token the reply is 401 even on a host where the route would answer 501. A body that is not a JSON object is answered 422 by FastAPI before the token check, and one that is not valid JSON gets 422 before the <code>Host</code> check too. At v0.77.0 every request to <code>/v1/tools/web_search</code> that passes the auth (401) and payload (400) checks answers 403 <code>web_search disabled (empty domain allowlist)</code>: no flag or config key sets its domain allowlist, and the search backend behind it returns nothing unless Python code replaces <code>app.state.web_search_backend</code>. A <code>code</code> or <code>command</code> longer than 65,536 characters is a 400. The Python and bash routes run in the same sandbox code as the <a href=\"__DOCS_BASE__/rlvr\">RLVR</a> code reward, with the same limits:</p><div><table><thead><tr><th>Limit</th><th>Value</th></tr></thead><tbody><tr><td>Wall clock</td><td>5 seconds. A timeout returns <code>timed_out: true</code> (bash reports exit code 124).</td></tr><tr><td>Output</td><td>10,000 bytes of stdout and stderr combined. Past that the process is killed and the call returns exit code 1 (the bash route also returns <code>sandbox output exceeded limit</code> in <code>stderr</code>; the Python route returns an empty <code>stderr</code>).</td></tr><tr><td>Memory and CPU (POSIX)</td><td>512 MB of address space and 5 seconds of CPU time.</td></tr><tr><td>Other POSIX limits</td><td>10 MB largest file, no core dumps, 256 open files, 64 processes.</td></tr><tr><td>Working directory</td><td>A fresh temporary directory per call.</td></tr><tr><td>Environment</td><td>A minimal allowlist (<code>PATH</code>, <code>LANG</code>, <code>LC_ALL</code>, <code>TMPDIR</code>, <code>TERM</code>, <code>TZ</code> and the Windows runtime variables), so tokens and API keys in the server&#x27;s environment are not passed to the child.</td></tr><tr><td>Concurrency</td><td>At most 4 sandboxed processes at a time, shared by both routes.</td></tr></tbody></table></div><p>What isolates the process depends on the platform, and since v0.77.0 <strong>both code routes refuse to run without it</strong> (#2166; the bash route has done so since v0.74.0). The Python route answers 501 <code>python sandbox requires OS-level isolation</code> without running anything:</p><ul><li><strong>Linux:</strong> new user, network and PID namespaces through <code>os.unshare</code>, which exists only in Python 3.12 and later, and the kernel has to allow unprivileged user namespaces. On Python 3.11, the oldest Python v0.77.0 supports, the strategy is <code>best-effort</code>, so both routes answer <strong>501</strong>, and a kernel or container that refuses the namespaces gives a 501 on both routes too.</li><li><strong>macOS:</strong> the code or command runs under <code>sandbox-exec</code> with a default-deny profile that blocks the network and limits writes to <code>/tmp</code>, <code>/private/tmp</code> and <code>/var/folders</code>.</li><li><strong>Windows:</strong> both routes answer 501.</li></ul><p>Through v0.76.1 <code>/v1/tools/python</code> still ran where the bash route refused: on Windows, on Linux with Python 3.10 or 3.11, and where the namespaces could not be created. There it ran inside the same RLVR sandbox code, with the timeout, the output cap, the environment allowlist and, on POSIX, the memory and CPU limits, plus a Python-level socket patch that its own source called bypassable, but without OS-level isolation. The RLVR <code>code</code> reward keeps that best-effort sandbox; only the two serving routes changed (see <a href=\"__DOCS_BASE__/rlvr\">RLVR</a>).</p><p>None of this is a filesystem jail. The isolation cuts the network, and the code runs as the server&#x27;s user with a scrubbed environment: on Linux it can read and write every file that user can and send signals to that user&#x27;s processes; on macOS the profile allows reading every file, writing only in the temporary directories and signalling only the run itself. In upstream&#x27;s words the token is the only thing between a caller and code execution as the server&#x27;s user, so use a long random one, keep the server on loopback or behind a proxy that terminates TLS (the Bearer header crosses plain HTTP in clear text), and run <code>soup serve</code> in a container, a VM or under a dedicated unprivileged account for any caller you do not fully trust. Two details of the Python route&#x27;s response: <code>stderr</code> is always empty, and <code>timed_out</code> is <code>true</code> for any failed run (a non-zero exit or an output overflow), not only for a timeout (upstream tracks this as #2194). Since v0.77.0 a launch failure is a 501 instead, like a missing isolation.</p><nav><a href=\"__DOCS_BASE__/soup-ship\"><span>Previous</span><span>Ship Verdict</span></a><a href=\"__DOCS_BASE__/export\"><span>Next</span><span>Model Export</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

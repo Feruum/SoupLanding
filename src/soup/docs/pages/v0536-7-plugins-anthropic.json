@@ -1,0 +1,97 @@
+{
+  "slug": "v0536-7-plugins-anthropic",
+  "title": "v0.53.6 / v0.53.7 — Plugins live, Anthropic API, tool endpoints",
+  "description": "Soup CLI v0.53.6 / v0.53.7: SoupPluginCallback attached by the 14 trainers that wire it (for plugins registered in the same process), Anthropic-compatible '/v1/messages' endpoint, n-gram speculative decoding in the generate path (no flag enables it), 'soup data recipe --execute' DAG runner (6 node kinds; since v0.76.0 an llm_text or judge node needs --provider or --offline and exits 2 with neither), '/v1/tools/python' + '/v1/tools/web_search', 6 trainer plugins lazy-imported, heading-aware Markdown ingest, AOT preprocess to Arrow shards.",
+  "source": "https://trysoup.dev/docs/v0536-7-plugins-anthropic",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "38f77c009a766e13ce035b1bae6c03b2f93f84d96d0ab4412adb39f6b1895800",
+  "headings": [
+    {
+      "level": 2,
+      "id": "v0-53-6-soupplugincallback-live",
+      "title": "v0.53.6 — SoupPluginCallback live"
+    },
+    {
+      "level": 2,
+      "id": "anthropic-compatible-v1-messages-endpoint",
+      "title": "Anthropic-compatible /v1/messages endpoint"
+    },
+    {
+      "level": 2,
+      "id": "n-gram-speculative-decoding",
+      "title": "N-gram speculative decoding"
+    },
+    {
+      "level": 2,
+      "id": "v0-53-7-data-recipe-dag-live-runner",
+      "title": "v0.53.7 — Data Recipe DAG live runner"
+    },
+    {
+      "level": 2,
+      "id": "tool-endpoints-live",
+      "title": "Tool endpoints live"
+    },
+    {
+      "level": 2,
+      "id": "trainer-plugins-lazy-imported-live",
+      "title": "Trainer plugins lazy-imported live"
+    },
+    {
+      "level": 2,
+      "id": "markdown-data-forge-polish",
+      "title": "Markdown + data forge polish"
+    },
+    {
+      "level": 2,
+      "id": "tests",
+      "title": "Tests"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">v0.53.6 / v0.53.7 — Plugins live, Anthropic API, tool endpoints</h1><h2 id=\"v0-53-6-soupplugincallback-live\">v0.53.6 — SoupPluginCallback live</h2><p>The v0.45.0 BasePlugin protocol is now wired into every HF Trainer via <code>SoupPluginCallback</code>. One bad plugin can&#x27;t crash training — exceptions in plugin hooks are caught and logged, the trainer keeps going.</p><p>A plugin takes effect when your own Python entry point calls <code>register_plugin(...)</code> and then runs the trainer in the same process, as the <a href=\"__DOCS_BASE__/plugins\">Plugin System</a> page shows. <code>soup plugins list</code>, <code>enable</code> and <code>disable</code> run in a process of their own and see nothing that a stock <code>soup</code> command registered, and nothing is auto-discovered at startup, so <code>soup train</code> on its own never fans Trainer events into a plugin you installed.</p><p>(Since closed in v0.76.0: Soup now discovers installed distributions that publish the <code>soup_cli.plugins</code> entry-point group, when you run <code>soup plugins</code> and again when a training run builds the plugin callback. A third-party entry point stays <code>disabled</code>, with none of its code imported, until you run <code>soup plugins enable &lt;name&gt;</code>, which saves the opt-in in <code>~/.soup/plugins.json</code> and imports it. <code>soup plugins install</code> now exits 2 and installs nothing. See <a href=\"__DOCS_BASE__/plugins#discovery-and-opt-in-v0-76-0\">Discovery and opt-in</a>.)</p><h2 id=\"anthropic-compatible-v1-messages-endpoint\">Anthropic-compatible <code>/v1/messages</code> endpoint</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --backend transformers\n# POST http://localhost:8000/v1/messages — Anthropic Messages shape"
+    },
+    {
+      "kind": "html",
+      "html": "<p>v0.53.6 ships the transformers backend; v0.53.7 adds vLLM parity plus Anthropic-shape SSE streaming.</p><h2 id=\"n-gram-speculative-decoding\">N-gram speculative decoding</h2><p><code>prompt_lookup_num_tokens</code> is plumbed through <code>_generate_response</code>, so n-gram (prompt-lookup) decoding can stand in as a draft where a draft model is overkill. It is a Python-level hook: no <code>soup serve</code> flag or <code>soup.yaml</code> key builds the n-gram config at v0.77.0 (nothing outside <code>utils/ngram_spec.py</code> constructs one), so the server cannot turn it on (see <a href=\"__DOCS_BASE__/plugins#n-gram-speculative-decoding\">Plugin System</a>).</p><h2 id=\"v0-53-7-data-recipe-dag-live-runner\">v0.53.7 — Data Recipe DAG live runner</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data recipe --execute --output ./out recipe.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Runs the validated DAG node by node, in topological order. <strong>Through v0.75.2, from the CLI the <code>llm_text</code> and <code>judge</code> nodes were offline stubs</strong>: the command passed no provider, so <code>llm_text</code> wrote <code>llm_text(offline): &lt;rendered prompt&gt;</code> into each row and <code>judge</code> passed every row with <code>true</code>, silently. The provider path (<code>ollama</code>, <code>anthropic</code>, <code>vllm</code>) existed only on the Python function <code>run_recipe</code>, which also takes <code>resume=True</code>; the CLI has no resume option.</p><p>(Since closed in v0.76.0, #817 and #922: <code>soup data recipe --execute</code> takes <code>--provider ollama|anthropic|vllm</code> with optional <code>--model</code> and <code>--base-url</code>, or the explicit opt-in <code>--offline</code> for the placeholder behaviour. A recipe with an <code>llm_text</code> or <code>judge</code> node and neither flag exits 2 and writes nothing. The full rules are under <a href=\"__DOCS_BASE__/plugins#data-recipe-dag\">Data Recipe DAG</a>.) The six node kinds:</p><ul><li><code>seed</code> — load a starting JSONL (<code>config.path</code>, under the working directory, not a symlink)</li><li><code>llm_text</code> — <code>config.prompt</code>, formatted per row; placeholder text under <code>--offline</code>, as above</li><li><code>code</code> — RLVR-sandbox code execution (<code>config.code</code>)</li><li><code>judge</code> — keeps the rows an LLM judge answers OK to; with <code>--offline</code> it keeps every row</li><li><code>validator</code> — keeps rows that match <code>config.regex</code> (tested against <code>config.field</code>, default <code>text</code>) and/or validate against a JSON Schema in <code>config.schema</code> (applied to the whole row; needs the <code>jsonschema</code> package). At least one of the two is required; there is no pydantic mode</li><li><code>sampler</code> — writes every row it receives to <code>&lt;output&gt;/&lt;node-name&gt;.jsonl</code>; it does not subsample</li></ul><p>A recipe is a YAML file of <code>nodes</code> and <code>edges</code>. This one runs end to end offline with <code>soup data recipe --execute --offline --output ./out recipe.yaml</code> (without <code>--offline</code> or <code>--provider</code> it exits 2, because it has an <code>llm_text</code> and a <code>judge</code> node) and writes <code>./out/out.jsonl</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "nodes:\n  - {name: seed1, kind: seed, config: {path: prompts.jsonl}}\n  - {name: llm1, kind: llm_text, config: {prompt: \"Answer: {prompt}\"}}\n  - {name: judge1, kind: judge}\n  - {name: out, kind: sampler}\nedges:\n  - [seed1, llm1]\n  - [llm1, judge1]\n  - [judge1, out]"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Node names match <code>[a-z0-9][a-z0-9_-]*</code>. At most 256 nodes, 1,024 edges and a 1 MiB file; cycles, self-loops, duplicate edges and unknown node kinds are rejected, and the recipe file must not be a symlink. After each node a checkpoint and a per-node sidecar (<code>.checkpoint.json</code>, <code>.node-&lt;name&gt;.jsonl</code>) are written into the output directory.</p><h2 id=\"tool-endpoints-live\">Tool endpoints live</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "POST /v1/tools/python      # RLVR sandbox + 5s timeout + 512MB RLIMIT; since v0.77.0 501 where OS-level isolation is unavailable\nPOST /v1/tools/web_search  # bearer-auth; 403 at v0.77.0, see below\nPOST /v1/tools/bash        # runs under OS-level isolation since v0.74.0; 501 where that isolation is unavailable (Windows included)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>(Since v0.77.0 both code routes need <code>--tool-auth-token</code> on every bind, loopback included, and answer 401 without it, and <code>/v1/tools/python</code> answers 501 wherever <code>/v1/tools/bash</code> does (#2166, #2174). The isolation cuts the network; the code still runs as the server&#x27;s user. See <a href=\"__DOCS_BASE__/serving\">Inference Server</a>.)</p><p>(At v0.77.0 a request to <code>/v1/tools/web_search</code> on the transformers backend that passes the auth (401) and payload (400) checks answers 403 <code>web_search disabled (empty domain allowlist)</code>: no flag or config key sets the allowlist, and the search backend returns nothing unless Python code replaces it. The vLLM, SGLang and DeepSpeed-MII backends have no tool routes. See <a href=\"__DOCS_BASE__/serving\">Inference Server</a>.)</p><h2 id=\"trainer-plugins-lazy-imported-live\">Trainer plugins lazy-imported live</h2><p>6 trainer plugins ship with v0.53.7 lazy-import wiring. (At v0.77.0 nothing calls them: there is no <code>soup.yaml</code> key for them and no command reaches <code>instantiate_trainer_plugins</code>, so the six names are a library allowlist, not something a run can turn on.)</p><ul><li><code>grokfast</code> — gradient grokking filter</li><li><code>spectrum</code> — top-k parameter selection</li><li><code>llmcompressor</code> — compressed inference export</li><li><code>sonicmoe</code> — MoE routing acceleration</li><li><code>cce_plugin</code> — Cut Cross-Entropy as a plugin</li><li><code>math_verify</code> — math RLVR plugin</li></ul><h2 id=\"markdown-data-forge-polish\">Markdown + data forge polish</h2><ul><li><code>soup data ingest</code> now does heading-aware Markdown splits (one JSONL row per section)</li><li><code>soup data decontaminate --benchmark-file &lt;path&gt;</code> accepts operator-supplied corpora</li><li><code>soup data forge --judge-provider {ollama,anthropic,vllm}</code> live</li><li><code>soup data preprocess</code> AOT-tokenizes → Arrow shards (live)</li></ul><h2 id=\"tests\">Tests</h2><ul><li>v0.53.6: <strong>7,998 → 8,051</strong> (+53)</li><li>v0.53.7: <strong>8,051 → 8,162</strong> (+111)</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/plugins\">Plugins &amp; integrations</a></li><li><a href=\"__DOCS_BASE__/data-forge\">Data Forge</a></li></ul><nav><a href=\"__DOCS_BASE__/v0532-modality-live\"><span>Previous</span><span>Modality II live trainers</span></a><a href=\"__DOCS_BASE__/v0538-10-remote-hubs\"><span>Next</span><span>Remote data &amp; alt hubs</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

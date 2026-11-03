@@ -1,0 +1,119 @@
+{
+  "slug": "adapter-lifecycle",
+  "title": "Adapter Lifecycle Finish (v0.67.0)",
+  "description": "Soup CLI v0.67.0 adapter lifecycle finish — six surfaces that complete v0.57 git-for-LoRA. soup adapters merge --strategy cmaes runs pure-Python rank-mu CMA-ES over LoRA merge weights. VeRA / VB-LoRA vector banks (~512 bytes/user vs ~30 MB/LoRA). MoLE per-token gating over task LoRAs. soup adapters pr renders GitHub-shaped review-ready Markdown. soup lock writes SHA256(base || dataset || env) closure for reproducible team runs (soup lock check exits 2 on drift since v0.76.0, and 3 for a missing or unreadable lock). soup adapters bisect binary-searches training history. +165 tests, 11,021 total.",
+  "source": "https://trysoup.dev/docs/adapter-lifecycle",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "e126f2adcf5d3ed19e26973dcb326f368848cba62d67b425d8404a4dcffa0034",
+  "headings": [
+    {
+      "level": 2,
+      "id": "cma-es-merge-evolutionary-search-over-lora-weights",
+      "title": "CMA-ES merge — evolutionary search over LoRA weights"
+    },
+    {
+      "level": 2,
+      "id": "vera-vb-lora-vector-bank-multi-tenant-adapter-economics",
+      "title": "VeRA / VB-LoRA vector bank — multi-tenant adapter economics"
+    },
+    {
+      "level": 2,
+      "id": "mole-per-token-gating-over-task-loras",
+      "title": "MoLE — per-token gating over task LoRAs"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-pr-github-shaped-adapter-pull-requests",
+      "title": "soup adapters pr — GitHub-shaped adapter pull requests"
+    },
+    {
+      "level": 2,
+      "id": "soup-lock-shared-run-lockfile",
+      "title": "soup lock — shared run lockfile"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-bisect-binary-search-over-training-history",
+      "title": "soup adapters bisect — binary search over training history"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Adapter Lifecycle Finish (v0.67.0)</h1><p>Six surfaces that complete what v0.57 <code>soup adapters</code> started. Adapters are now first-class versioned, collaborative, multi-tenant, evolvable, lockfile-tracked, bisect-able artifacts. We are not aware of a hosted vendor offering this set: evolutionary merge is mostly research demo, VeRA-style storage cuts against per-GPU-hour pricing, MoLE routing needs both a training and a serving stack, and adapter PRs need weights, eval and history together.</p><h2 id=\"cma-es-merge-evolutionary-search-over-lora-weights\">CMA-ES merge — evolutionary search over LoRA weights</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters merge ./lora_a ./lora_b ./lora_c --strategy cmaes \\\n  --eval ./tasks.jsonl --budget 1h --output ./merged"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Sakana-style evolutionary merge.</strong> Pure-Python rank-mu CMA-ES (no <code>cma</code> dependency). Softmaxes N-1 logits onto the simplex, samples a population, keeps the elite half, plateau-detects after 3 generations without improvement (<code>converged=True</code>).</p><ul><li>2..16 adapters; population <code>[2, 256]</code>; generations <code>[1, 10K]</code></li><li>Budget <code>[60s, 24h]</code> — reuses v0.57 <code>blame.parse_budget</code></li><li>An eval-fn failure scores a sentinel -1e9 so one broken eval does not crash the run; since v0.77.0 a search in which <strong>every</strong> evaluation failed exits 2 and writes no merge (#1808, #1905)</li><li><strong>Live as of v0.71.4</strong> — the full loop merges, materialises, and scores each candidate against the eval suite and writes the best-weighted merge. <code>--canary</code> and <code>--strict-verdict</code> are refused with <code>--strategy cmaes</code> (exit 2); they belong to the other strategies</li><li><code>--eval</code> is a <strong><code>.jsonl</code> file of eval tasks</strong> (<code>prompt</code>, plus optional <code>expected</code>, <code>scoring</code> and <code>category</code>), the same file <code>soup eval custom --tasks</code> reads. A <code>.yaml</code> suite is not read; since v0.77.0 the &quot;requires --eval&quot; error says so (<code>the loader accepts .jsonl only</code>), where through v0.76.1 it said &quot;YAML/JSONL&quot;. A wrong suite fails every evaluation, and since v0.77.0 that stops with <code>cmaes merge failed: every evaluation failed ... No merge is written</code>, exit 2. Through v0.76.1 it finished with exit 0, a <code>Best score</code> of -1000000000.0000 in the final panel and a &quot;converged&quot; merge built from the first random sample: re-run such a merge (see <a href=\"__DOCS_BASE__/adapters\">the adapters page</a>). A search where only some candidates failed still finishes, so check the <code>Best score</code> line</li></ul><h2 id=\"vera-vb-lora-vector-bank-multi-tenant-adapter-economics\">VeRA / VB-LoRA vector bank — multi-tenant adapter economics</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "python",
+      "code": "from soup_cli.utils.vector_bank import BankEntry, VectorBank, write_bank, estimate_bank_size\n\nbank = VectorBank(\n    name=\"customer-personalisation\",\n    base_model=\"meta-llama/Llama-3-8B\",\n    projection_seed=0,\n    vector_dim=128,\n    entries=(\n        BankEntry(user_id=\"user_1\", scaling=(0.31, -0.07, 0.0, ...)),  # 128 floats\n        BankEntry(user_id=\"user_2\", scaling=(0.0, 0.0, 0.0, ...)),\n    ),\n)\nwrite_bank(bank, \"./bank.json\")\n# 128-D scaling vector at fp32 ≈ 512 bytes / user\n# vs. ~30 MB per rank-16 LoRA on Llama-3-8B"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>entries</code> is a tuple of <code>BankEntry(user_id, scaling)</code>, each <code>scaling</code> a tuple of exactly <code>vector_dim</code> floats; the <code>...</code> above stands for the rest of them, so the snippet needs real vectors to run. <code>projection_seed</code> and <code>vector_dim</code> are required.</p><p><strong>Shared random projection P (vector_dim × vector_dim) + per-user scaling vector v_u.</strong> Thousands of per-user adapters at MB-each instead of hundreds-of-MB per LoRA. Atomic JSON I/O + cwd containment + symlink rejection + 16 MiB cap.</p><p><code>estimate_bank_size(num_users=..., vector_dim=...)</code> (keyword-only) for sizing. <strong>Live as of v0.71.12</strong> — <code>soup serve --bank &lt;bank.json&gt; [--bank-strength S]</code> reconstructs the projection + per-user vectors and installs a decode-time hook; the active user is chosen per request via the <code>X-User-Id</code> header (unknown/absent id is a zero-delta no-op, so no cross-request leak).</p><h2 id=\"mole-per-token-gating-over-task-loras\">MoLE — per-token gating over task LoRAs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# soup.yaml\ntask: moe_lora_routing\ntraining:\n  mole_task_adapters:        # the live form: paths to the frozen task LoRAs\n    - ./adapters/coder\n    - ./adapters/math\n  mole_temperature: 1.0      # softmax sharpness\n  mole_top_k: 2"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Mixture of LoRA Experts.</strong> Gating network routes per-token activations to top-K task adapters via softmax over hidden state. Backend-cross-validator rejects <code>mlx</code>. <strong>Live as of v0.71.12</strong> — <code>mole_task_adapters: [...]</code> trains a real per-token gating network that blends N frozen task LoRAs (only the router trains); the gate is saved as <code>mole_gate.pt</code>.</p><p><strong>Changed in v0.76.0, and one of these means a finished run may be wrong.</strong> The gate is the only tensor MoLE trains. On a CUDA device named plainly <code>cuda</code> it was cast to bf16 with no fp32 master copy, so its gradient and AdamW moments were bf16 as well and most AdamW steps rounded away; a gate trained that way on CUDA kept most of its initial weights (#1266). The gate is now fp32 on every device string and is created on the base model&#x27;s device. <code>mole_gate.pt</code> is saved in fp32, and <code>soup serve --mole</code> loads it and a bf16 file from an earlier run alike. <strong>If you trained a router gate on CUDA before v0.76.0, retrain it.</strong> Also new: <code>soup train --resume</code> now takes effect for <code>task: moe_lora_routing</code>. Before, the trainer&#x27;s <code>train()</code> call received no checkpoint, so a resumed run started again from step 0 and overwrote the checkpoints; now each <code>checkpoint-N</code> carries its own <code>mole_gate.pt</code> and a resume restores it with the adapters frozen again (#1220).</p><h2 id=\"soup-adapters-pr-github-shaped-adapter-pull-requests\"><code>soup adapters pr</code> — GitHub-shaped adapter pull requests</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters pr \"Better politeness on EU support tickets\" \\\n  --base-sha <64-hex> --adapter ./candidate \\\n  --eval ./eval_delta.json --samples ./sample_diffs.json \\\n  --output ./PR.md"
+    },
+    {
+      "kind": "html",
+      "html": "<p>PR = <code>{base SHA, dataset diff, adapter weights, eval-delta report}</code> rendered as <strong>review-friendly Markdown</strong> with eval-delta table + per-sample baseline/candidate diffs:</p><div><table><thead><tr><th>Metric</th><th>Baseline</th><th>Candidate</th><th>Δ</th></tr></thead><tbody><tr><td>judge_score</td><td>7.4</td><td>8.2</td><td>+0.8</td></tr><tr><td>retry_rate</td><td>12.1%</td><td>4.6%</td><td>-7.5%</td></tr></tbody></table></div><p><code>_md_table_escape</code> neutralises the backtick, <code>|</code>, <code>\\n</code>, <code>\\r</code> and <code>\\t</code> in operator-controlled cells. JSON output also available for v0.68 GitHub Action. Bounds: ≤64 deltas, ≤256 samples, ≤32 KiB per sample.</p><h2 id=\"soup-lock-shared-run-lockfile\"><code>soup lock</code> — shared run lockfile</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup lock write --base-model meta-llama/Llama-3-8B \\\n  --base-sha <64hex> --dataset-sha <64hex> --env-hash <64hex> \\\n  --output soup.lock\n\nsoup lock show soup.lock\nsoup lock check --base-model ... --base-sha ... --dataset-sha ... --env-hash ..."
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup lock check</code> exits <strong>2</strong> on drift and <strong>3</strong> when the lock file is missing or unreadable, the SHA is not 64 hex characters, or the call is mistyped. That is a move in v0.76.0: through v0.75.2 drift was 3 and a missing lock was 2, so a CI step written for the old codes reads them the wrong way round. <code>soup lock show</code> on a missing file is now 3 as well. <code>soup lock write</code> did not move: it still exits 2 for a missing environment lock or a malformed SHA.</p><p>Closure of <code>(base_model_sha, dataset_sha, env_hash)</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "closure_sha = SHA256(base_sha || dataset_sha || env_hash)"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--env-hash</code> is optional on <code>soup lock write</code>. Left out, it is derived from <code>soup-env.lock</code> in the current directory (the file <code>soup env lock</code> writes), or from the file named by <code>--env-lock &lt;path&gt;</code>; the command exits 2 if that file is missing. An explicit <code>--env-hash</code> wins and <code>--env-lock</code> is then not read. <code>soup lock check</code> has no such fallback and still requires <code>--env-hash</code>.</p><p>Commit <code>soup.lock</code> to git so the whole team coordinates on the same reproducible run. <code>soup_version</code> + <code>created_at</code> are <strong>advisory only</strong> — legitimate operator upgrades don&#x27;t trigger drift. Composes with v0.64 <code>soup env lock</code> (provides env_hash) and v0.64 <code>soup plan</code> (provides base/dataset hashes from config).</p><h2 id=\"soup-adapters-bisect-binary-search-over-training-history\"><code>soup adapters bisect</code> — binary search over training history</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters bisect ./ckpt-0500 ./ckpt-1000 ./ckpt-1500 ./ckpt-2000 \\\n  --eval-command \"soup eval gate --suite evals/gate.yaml --baseline baseline.json --model {ckpt}\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Binary search over ordered checkpoint history. Operator supplies a shell <strong>template</strong> with <code>{ckpt}</code> placeholder — Soup uses <code>shlex.split</code> after <code>shlex.quote(ckpt)</code> (argv-list mode, <strong>no <code>shell=True</code></strong>). Probes both endpoints first (short-circuits all-OK / all-broken), then ~log₂(n) midpoint probes. <strong>Exit 2 on <code>BROKEN_AT</code></strong> (2 is also the usage-error code).</p><p><strong>The eval command is the pass/fail test, and it must exit non-zero on a bad checkpoint.</strong> Bisect treats exit 0 as PASS and anything else as FAIL, including a command whose executable is not found or that times out after an hour. <code>soup eval gate</code> does exit non-zero when the gate fails (2 since v0.76.0, 1 before), which includes a score that drops past its regression threshold against the baseline, and that is why the example uses it. A usage error from the gate command (exit 3) is non-zero too, and bisect reads it as a failed checkpoint, so run the command once by hand before you let it search. <code>soup eval custom --model {ckpt} --tasks ./regression.jsonl</code> does <strong>not</strong> work as the test: it exits 0 whenever the eval completes, whatever the accuracy, so every checkpoint passes and the verdict is <code>ALL_OK</code> even if the model collapsed.</p><p>After bisect finds the broken checkpoint, <a href=\"__DOCS_BASE__/adapters\"><code>soup adapters blame</code></a> is the intended follow-up for row-level attribution, but its CLI scores are synthetic at v0.77.0 (unchanged since v0.76.0), so do not rely on them.</p><h2 id=\"numbers\">Numbers</h2><p>+165 tests in v0.67.0 (10,836 → <strong>11,021</strong>), 7 new test files. CMA-ES eval-wiring went live in v0.71.4, VeRA multi-tenant serve in v0.71.17, and the MoLE gating kernel in v0.71.12.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/adapter-arithmetic\">Adapter algebra (v0.71.34)</a> — task arithmetic over LoRA deltas, the newest member of this command family.</li><li><a href=\"__DOCS_BASE__/adapters\">Adapters (v0.57)</a> — diff / merge / blame / branch / checkout, the foundation v0.67 builds on.</li><li><a href=\"__DOCS_BASE__/adapter-check\">Is the adapter alive</a> — v0.76 <code>soup adapters check</code> and <code>soup adapters audit</code>, for the adapter a merge or a bisect hands you.</li><li><a href=\"__DOCS_BASE__/post-train-xrays\">Post-train x-rays</a> — v0.66 influence-function blame, the intended follow-up to <code>bisect</code> (its CLI scores are synthetic at v0.77.0).</li><li><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight &amp; tooling</a> — v0.64 <code>soup env lock</code> + <code>soup plan</code> are the inputs to <code>soup lock</code>.</li></ul><nav><a href=\"__DOCS_BASE__/soup-loop\"><span>Previous</span><span>soup loop: the production data flywheel</span></a><a href=\"__DOCS_BASE__/adapter-arithmetic\"><span>Next</span><span>Adapter Algebra</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

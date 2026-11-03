@@ -1,0 +1,166 @@
+{
+  "slug": "speculative-decoding",
+  "title": "Smart Inference Server (v0.30.0)",
+  "description": "vLLM and transformers speculative decoding in Soup CLI. --auto-spec auto-pairs draft models for Llama 3.1/3.3/4, Qwen 2.5/3, Mistral Large, Mixtral, DeepSeek V3/R1, Gemma 2/3, and picks up a draft you trained yourself with soup draft distill before the built-in table. Whether speculative decoding is actually faster depends on the pair, so measure it rather than assume: soup draft measure reports the real acceptance rate and plain-vs-assisted throughput, and on the pair Soup validated it came out at 0.55 to 0.64x, a net slowdown.",
+  "source": "https://trysoup.dev/docs/speculative-decoding",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "d09553dc7ffbb0398d62573e167d1586a83ad3609cef2258d75850880a90ecfe",
+  "headings": [
+    {
+      "level": 2,
+      "id": "speculative-decoding",
+      "title": "Speculative decoding"
+    },
+    {
+      "level": 2,
+      "id": "prefix-caching-vllm",
+      "title": "Prefix caching (vLLM)"
+    },
+    {
+      "level": 2,
+      "id": "structured-output",
+      "title": "Structured output"
+    },
+    {
+      "level": 2,
+      "id": "dynamic-lora-hot-swap",
+      "title": "Dynamic LoRA hot-swap"
+    },
+    {
+      "level": 2,
+      "id": "metrics-and-the-dashboard-flag",
+      "title": "/metrics (and the --dashboard flag)"
+    },
+    {
+      "level": 2,
+      "id": "opentelemetry-tracing",
+      "title": "OpenTelemetry tracing"
+    },
+    {
+      "level": 3,
+      "id": "a-local-trace-file-with-no-collector",
+      "title": "A local trace file, with no collector"
+    },
+    {
+      "level": 3,
+      "id": "capturing-thumbs-from-the-served-model",
+      "title": "Capturing thumbs from the served model"
+    },
+    {
+      "level": 2,
+      "id": "deepspeed-mii-backend",
+      "title": "DeepSpeed-MII backend"
+    },
+    {
+      "level": 2,
+      "id": "auto-quant-is-refused-v0-76-0",
+      "title": "--auto-quant is refused (v0.76.0)"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Smart Inference Server (v0.30.0)</h1><p><code>soup serve</code> graduated from a basic OpenAI-compatible wrapper into a production-grade serving stack. Speculative decoding, prefix caching, structured output, dynamic LoRA hot-swap, a <code>/metrics</code> endpoint, and OpenTelemetry tracing all ship in v0.30.0. (The <code>--dashboard</code> flag that came with <code>/metrics</code> draws nothing at v0.76.1; see below.)</p><h2 id=\"speculative-decoding\">Speculative decoding</h2><p>Use a smaller draft model to propose tokens the target verifies in one pass. Whether it is faster depends entirely on the pair: <a href=\"__DOCS_BASE__/soup-draft\"><code>soup draft measure</code></a> (v0.71.33) is how you find out before you enable it.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Transformers backend — uses HF assisted generation\nsoup serve --model ./output --speculative-decoding small-draft-model --num-speculative-tokens 5\n\n# vLLM backend — uses vLLM native speculative decoding\nsoup serve --model ./output --backend vllm --speculative-decoding small-draft-model\n\n# Auto-pair: Soup picks the draft from the base model recorded in the adapter\nsoup serve --model ./output --backend vllm --auto-spec"
+    },
+    {
+      "kind": "html",
+      "html": "<p>With the default <code>--hub hf</code>, <code>soup serve --model</code> takes a local directory, not a Hub id; a path that does not exist exits 1 with &quot;Model path not found&quot;. With <code>--hub modelscope</code> or <code>--hub modelers</code>, a <code>--base</code> repo id that is not a local path is fetched first, and otherwise a <code>--model</code> repo id is. <code>--auto-spec</code> looks the draft up from the base model recorded in the adapter&#x27;s <code>adapter_config.json</code> (or from <code>--base</code>), so the base has to be one of the large families in its pairing table: Llama 3.1 / 3.3 / 4, Qwen 2.5 / 3, Mistral Large, Mixtral, DeepSeek V3 / R1, and Gemma 2 / 3 at their large sizes. Anything without a known draft pairing prints a yellow &quot;no draft&quot; note and falls back to standard decoding. A draft you trained yourself with <a href=\"__DOCS_BASE__/soup-draft\"><code>soup draft distill</code></a> is picked up <strong>before</strong> this built-in table, when the names match exactly (see <a href=\"__DOCS_BASE__/soup-draft#the-local-draft-registry\">the local draft registry</a>: an absolute path, or on Windows a <code>--model</code> path with a directory in it, never matches).</p><blockquote><p>Before you enable any of this, measure it. <a href=\"__DOCS_BASE__/soup-draft\"><code>soup draft measure</code></a> (v0.71.33) reports the draft&#x27;s real acceptance rate and plain-vs-assisted throughput on your own pair. On the pair we validated, assisted decoding came out at 0.55 to 0.64x, a net <strong>slowdown</strong>, and upstream&#x27;s documentation cites a larger pair (a Llama-3.1-8B target, a Llama-3.2-1B draft, one H100) where 81.3% acceptance still ran at 0.48x of plain decoding. Treat a speedup as something to verify rather than assume.</p></blockquote><h2 id=\"prefix-caching-vllm\">Prefix caching (vLLM)</h2><p>For RAG and agent workloads with a shared system prompt:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --backend vllm --prefix-cache"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The first request with a given prefix warms the cache; subsequent requests skip the shared prefix compute entirely.</p><h2 id=\"structured-output\">Structured output</h2><p>Constrain output to a JSON schema or regex pattern.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# JSON schema (file must live under cwd)\nsoup serve --model ./output --structured-output json --json-schema product.json\n\n# Regex (length-capped at 2048 chars, null bytes rejected)\nsoup serve --model ./output --structured-output regex --regex-pattern '\\d{3}-\\d{4}'"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Schemas serialised over 64 KB are rejected. JSON schemas must declare a top-level <code>type</code> field. Constraints are validated at startup, not per-request. This applies on the transformers backend only. With <code>--backend vllm</code> or <code>sglang</code> the mode is still checked at startup (an unknown mode, or <code>json</code> without <code>--json-schema</code> or <code>regex</code> without <code>--regex-pattern</code>, exits 1) and then not applied; with <code>--backend mii</code> the flags are accepted and nothing reads them. On all three, replies are not constrained.</p><p>On the transformers backend the constraint applies to streamed (<code>stream: true</code>) requests since v0.76.0 (#1607); through v0.75.2 a streamed request ignored it. A streamed reply from that backend is generated in full and then sent word by word, so the constraint shapes the whole reply before the first chunk leaves. See <a href=\"__DOCS_BASE__/serving#api-endpoints\">Inference Server</a>.</p><h2 id=\"dynamic-lora-hot-swap\">Dynamic LoRA hot-swap</h2><p>Switch the active adapter at runtime without restarting the server.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./base-model --adapters chat=./chat-adapter --adapters code=./code-adapter"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "curl -X POST http://localhost:8000/v1/adapters/activate/chat\n# → {\"active\": \"chat\", \"status\": \"ok\"}\n\ncurl -X POST http://localhost:8000/v1/adapters/deactivate\n# → {\"active\": null, \"status\": \"ok\"}\n\ncurl http://localhost:8000/v1/adapters\n# → {\"adapters\": [{\"name\": \"chat\", \"active\": true}, ...], \"active\": \"chat\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Names match <code>^[a-zA-Z0-9][a-zA-Z0-9-]*$</code>. Activate/deactivate is thread-safe behind a lock, and since v0.75.1 both also check the <code>Host</code> and <code>Origin</code> headers, answering 421 or 403 rather than acting. Until then a cross-site request from any page the operator merely visited could switch the adapter every subsequent completion ran against (0.30.0 to 0.75.0). The same release put the tool token in front of <code>GET /v1/adapters</code>, activate and deactivate, with the check running <strong>before</strong> the 404 branches so an unauthenticated probe cannot learn which adapter names are loaded from an &quot;unknown adapter&quot; reply. See <a href=\"__DOCS_BASE__/serving\">which routes get which check</a>.</p><p>A single request can also name its own adapter with an <code>adapter</code> field in the JSON body, which uses that adapter for that call without changing the active one. The <code>model</code> field is ignored for this, so <code>&quot;model&quot;: &quot;chat&quot;</code> does not select anything. See <a href=\"__DOCS_BASE__/serving#multi-adapter-serving-v0-22-0\">Multi-Adapter Serving</a>.</p><h2 id=\"metrics-and-the-dashboard-flag\"><code>/metrics</code> (and the <code>--dashboard</code> flag)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --dashboard"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "curl http://localhost:8000/metrics\n# {\n#   \"requests_total\": 1234,\n#   \"tokens_generated_total\": 456789,\n#   \"active_requests\": 3,\n#   \"latency_p50_ms\": 185.2,\n#   \"latency_p95_ms\": 720.0,\n#   \"latency_samples\": 1000\n# }"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Latency percentiles are computed from the last 1000 requests; counters include failure paths so the figures reflect true reliability. The transformers and vLLM backends serve <code>/metrics</code> whether or not <code>--dashboard</code> is passed. The flag only records intent: nothing is drawn in the terminal, whatever its <code>--help</code> text says; the SGLang and DeepSpeed-MII backends do not serve it at all, and <code>--dashboard</code> there prints a warning instead of collecting anything.</p><h2 id=\"opentelemetry-tracing\">OpenTelemetry tracing</h2><p>Emit per-request spans to your OTLP collector.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install opentelemetry-sdk opentelemetry-exporter-otlp\n\nsoup serve --model ./output \\\n  --trace --trace-endpoint http://localhost:4317"
+    },
+    {
+      "kind": "html",
+      "html": "<p>OTLP endpoint hardening: scheme allowlist, plain HTTP only for loopback, and a private, link-local, shared-space (<code>100.64.0.0/10</code>), deprecated site-local (<code>fec0::/10</code>) or <code>0.0.0.0</code> IP address rejected on either scheme, which is stricter than <code>HF_ENDPOINT</code>, where the address is checked only over plain HTTP. A host written only as numbers that is not a valid IPv4 address (for example <code>4294967296</code>) is rejected as well, since it is neither an address nor a hostname. Hostnames are not resolved. Missing SDK is a no-op with a warning. Tracing is set up on the transformers backend only: with <code>--backend vllm</code> or <code>sglang</code>, a <code>--trace-endpoint</code> given with <code>--trace</code> is still checked at startup and no span is emitted; with <code>--backend mii</code>, <code>--trace</code> is accepted and nothing reads it.</p><h3 id=\"a-local-trace-file-with-no-collector\">A local trace file, with no collector</h3><p>If you do not want to stand up a collector to answer &quot;what did it actually reply, and how slowly&quot;:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --trace-log ./traces.jsonl --trace-log-cap-mb 100"
+    },
+    {
+      "kind": "html",
+      "html": "<p>One JSON object appended per chat completion, carrying <code>ts</code>, <code>prompt</code>, <code>response</code>, <code>latency_ms</code> and <code>tokens</code>. The path must stay under the working directory. It rotates at the cap (1 to 10000 MB, default 100) keeping one backup, and refuses to write through a symlink on the backup path. Transformers backend only: with <code>--backend vllm</code>, <code>sglang</code> or <code>mii</code>, <code>--trace-log</code> is accepted and no trace line is written.</p><p>To turn these traces into preference data, <code>soup data from-traces --format soup-serve</code> reads a <strong>directory</strong> of <code>*.jsonl</code> files, so point <code>--logs</code> at the directory that holds the trace file (for example <code>--trace-log ./traces/serve.jsonl</code>, then <code>--logs ./traces</code>). Since v0.76.0 a single file there is refused with exit 1 (#1557); through v0.75.2 it wrote an empty output and exited 0 with <code>Wrote 0 preference pair(s)</code>. The records <code>--trace-log</code> writes carry no preference <code>signal</code>, so a harvest of this directory on its own reports that no trace carried one; <code>soup ingest</code> writes the signal that <code>from-traces</code> reads.</p><p><strong>Secrets are redacted before the line is written</strong>, not after: Hugging Face tokens, <code>sk-</code> keys and <code>Bearer</code> values are stripped, because a trace file is the most likely thing in a serving directory to get pasted into an issue. A write failure never takes down the request handler.</p><h3 id=\"capturing-thumbs-from-the-served-model\">Capturing thumbs from the served model</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --record-thumbs ./feedback.db"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Turns on <code>POST /v1/thumbs</code> and writes into the same local SQLite that <a href=\"__DOCS_BASE__/anti-trend-insurance\"><code>soup local-rl</code></a> harvests, so a served model feeds the preference flywheel without anyone recording feedback by hand. Path contained under cwd, transformers backend only. Since v0.77.0 the pre-wired harvest of <code>soup loop</code> can read that database too: <code>soup loop init ... --pre-wired --thumbs-db ./feedback.db</code> (or <code>SOUP_LOOP_THUMBS_DB</code>) turns its thumbs into preference pairs; the file must stay under the working directory and must already be a thumbs database, so start the server first (see <a href=\"__DOCS_BASE__/soup-loop\">soup loop</a>).</p><h2 id=\"deepspeed-mii-backend\">DeepSpeed-MII backend</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --backend mii"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Loopback-only CORS, <code>max_tokens</code> capped at 16384, streaming disabled (no SSE for MII v0.x). Pipeline crashes return generic 500 with no stack-trace leak.</p><h2 id=\"auto-quant-is-refused-v0-76-0\"><code>--auto-quant</code> is refused (v0.76.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model ./output --auto-quant   # exits 2 with the [serve] extra installed"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup serve --auto-quant</code> exits 2 with an explanation (with the <code>[serve]</code> extra installed; without it the command stops earlier with exit 1 and the install hint, because the FastAPI and uvicorn import check runs before the refusal). Soup cannot compare GGUF, AWQ, GPTQ, FP8 and an unquantized baseline before a serving engine has loaded them. Through v0.75.2 the flag timed three calls to a stub that returned a constant and presented the fastest few hundred nanoseconds as a quality-gated evaluation; on vLLM that result could force AWQ, GPTQ or FP8 on a checkpoint that did not declare it. vLLM now follows the checkpoint&#x27;s own quantization metadata, so if you served with <code>--auto-quant</code> on vLLM before, check which quantization the engine actually loaded. To serve a quantized model, quantize the checkpoint explicitly (see <a href=\"__DOCS_BASE__/export\">Model Export</a>), then serve it without the flag.</p><nav><a href=\"__DOCS_BASE__/hf-hub-integration\"><span>Previous</span><span>HuggingFace Hub</span></a><a href=\"__DOCS_BASE__/soup-draft\"><span>Next</span><span>Draft &amp; Spec Decoding</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

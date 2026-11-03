@@ -1,0 +1,124 @@
+{
+  "slug": "observability",
+  "title": "Observability & Dev UX (v0.34.0)",
+  "description": "soup why explains training anomalies (NaN, plateau, divergence, gradient norm, LR bounds) in plain English. soup tui Textual dashboard. soup train --profile torch.profiler trace. .crash bundles with redacted secrets. New in v0.34.0.",
+  "source": "https://trysoup.dev/docs/observability",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "d2c616b2c8e1c5f6da13b47450e02771f9dbee6164f9c1924210b7a4c75520ab",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-why",
+      "title": "soup why"
+    },
+    {
+      "level": 2,
+      "id": "soup-tui",
+      "title": "soup tui"
+    },
+    {
+      "level": 2,
+      "id": "soup-train-profile",
+      "title": "soup train --profile"
+    },
+    {
+      "level": 2,
+      "id": "stopping-and-checkpointing-a-run-that-is-already-going",
+      "title": "Stopping and checkpointing a run that is already going"
+    },
+    {
+      "level": 2,
+      "id": "crash-bundles-crash-files",
+      "title": "Crash bundles — .crash files"
+    },
+    {
+      "level": 2,
+      "id": "per-run-cost",
+      "title": "Per-run cost"
+    },
+    {
+      "level": 2,
+      "id": "soup-rewind",
+      "title": "soup rewind"
+    },
+    {
+      "level": 2,
+      "id": "soup-runs-replay",
+      "title": "soup runs replay"
+    },
+    {
+      "level": 2,
+      "id": "global-log-level",
+      "title": "Global --log-level"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Observability &amp; Dev UX (v0.34.0)</h1><p>Tools that explain why a run misbehaved instead of dumping a stack trace.</p><h2 id=\"soup-why\"><code>soup why</code></h2><p>Heuristic explainer — reads the most recent (or named) run and surfaces plain-English diagnoses with concrete next steps.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup why                 # most recent run\nsoup why run_2026_abc    # specific run id (or prefix)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Detects: NaN/Inf loss, plateau (≥30 steps with &lt;0.5% change), divergence (loss &gt; 3× initial), persistent high gradient norm, learning rate outside the typical [1e-6, 5e-3] band. Pure rule-based — no model calls.</p><h2 id=\"soup-tui\"><code>soup tui</code></h2><p>Full-screen Textual dashboard. Two-pane: run list (left) + selected-run detail (right). <code>r</code> refreshes, <code>q</code> quits.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[tui]\"\nsoup tui --refresh 1.0 --limit 50"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"soup-train-profile\"><code>soup train --profile</code></h2><p>Records a <code>torch.profiler</code> Chrome-trace over an early-steps window (default <code>wait=1, warmup=1, active=5, repeat=1</code>).</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --profile\n# → ./output/profiles/<run_id>.trace.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Open in <code>chrome://tracing</code> or Perfetto.</p><p>Since v0.76.0 the trace is written: a callback steps the profiler on every training step. Through v0.75.2 the command announced the trace path and wrote nothing, because nothing in the code stepped the profiler (#1448). A trainer that exposes no step hook prints <code>--profile: this trainer has no step hook, so no trace will be written</code> and writes none. The default window is 1 wait, 1 warmup and 5 active steps, so the profiler needs at least that many training steps to have anything to write; that last point is arithmetic from the schedule, not something this page ran.</p><h2 id=\"stopping-and-checkpointing-a-run-that-is-already-going\">Stopping and checkpointing a run that is already going</h2><p>Plan on losing everything since the last scheduled save. v0.44 shipped two helpers for this moment, a Ctrl+C graceful-save handler and a <code>.checkpoint_now</code> trigger-file watcher, but <strong>neither is wired into <code>soup train</code> at v0.77.0</strong>.</p><p><strong>Ctrl+C is an ordinary <code>KeyboardInterrupt</code>.</strong> <code>soup train</code> installs no handler that writes a checkpoint on the way out: the interrupt reaches the CLI&#x27;s top level, which prints <code>Interrupted.</code> and exits with code 130. Only the checkpoints written on the <code>training.save_steps</code> schedule (default 100) survive, and <code>soup train --resume auto</code> continues from the newest one.</p><p><strong>There is no trigger file.</strong> Nothing polls a <code>.checkpoint_now</code> file in the output directory, so touching one does nothing. The two modules, <code>soup_cli.utils.graceful_save</code> and <code>soup_cli.utils.checkpoint_trigger</code>, exist with unit tests, but a search of <code>src/</code> at the v0.77.0 tag finds no caller of either outside the modules themselves, even though upstream&#x27;s operations document still describes both as live. Lower <code>save_steps</code> if you need a tighter recovery point.</p><h2 id=\"crash-bundles-crash-files\">Crash bundles — <code>.crash</code> files</h2><p>When training fails, Soup auto-writes a self-contained <code>.crash</code> JSON to <code>./.soup-crashes/crash_&lt;utc&gt;_&lt;hex&gt;.crash</code> containing:</p><ul><li>Redacted error trace</li><li>Classified failure kind (<code>oom</code> / <code>nan</code> / <code>cuda</code> / <code>dataloader</code> / <code>nccl</code> / <code>other</code>)</li><li>GPU state at crash time</li><li>Env summary</li><li>Last-50 metric rows</li><li>Recursively-redacted config (<code>hf_*</code> / <code>sk-*</code> / <code>Bearer ...</code> tokens become <code>&lt;redacted&gt;</code>)</li></ul><p>The output_dir is reduced to <code>os.path.basename</code> so <code>$HOME</code> doesn&#x27;t leak. Bundle truncated to 1 MB.</p><h2 id=\"per-run-cost\">Per-run cost</h2><p>Every completed run stores an estimated cost (<code>$</code> per run) computed from the captured GPU device name and duration.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs show <run_id>\n# Cost: $4.21  Duration: 1h 38m  GPU: RTX 4090"
+    },
+    {
+      "kind": "html",
+      "html": "<p>CPU / MPS / unknown GPUs render <code>—</code> (no fabricated zeros).</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup cost --config soup.yaml             # estimate before training\nsoup cost --config soup.yaml --gpu H100  # specific GPU\nsoup cost --config soup.yaml --json      # machine-readable"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--json</code> prints a JSON array with one object per provider and GPU (<code>provider</code>, <code>gpu</code>, <code>cost_per_hr</code>, <code>duration_hrs</code>, <code>total_cost</code>) instead of the table. If the training data cannot be read, the estimate assumes 10,000 examples; the table prints a warning saying so and <code>--json</code> does not.</p><h2 id=\"soup-rewind\"><code>soup rewind</code></h2><p>Finds which dataset rows were in the batch when a loss spiked. It is documented on its own page: <a href=\"__DOCS_BASE__/rewind\">Rewind</a>.</p><h2 id=\"soup-runs-replay\"><code>soup runs replay</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs replay <run_id>"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Replay summary + downsampled loss curve from history (no live training restart).</p><h2 id=\"global-log-level\">Global <code>--log-level</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup --log-level verbose train --config soup.yaml\nsoup --log-level debug runs show <id>"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Tiers: <code>quiet | normal | verbose | debug</code>. Wires a Rich-formatted logger on the <code>soup</code> namespace; <code>debug</code> enables timestamps + module paths.</p><nav><a href=\"__DOCS_BASE__/soup-cans-v2\"><span>Previous</span><span>Soup Cans v2 + LR Finder</span></a><a href=\"__DOCS_BASE__/live-dashboard-ux\"><span>Next</span><span>Live Dashboard</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

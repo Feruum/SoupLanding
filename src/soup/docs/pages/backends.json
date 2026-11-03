@@ -1,0 +1,334 @@
+{
+  "slug": "backends",
+  "title": "Backends & Performance",
+  "description": "Training backends: transformers, Unsloth (2-5x speedup), and MLX for Apple Silicon. FlashAttention, Liger Kernel, DeepSpeed ZeRO 2/3, ZeRO++, FSDP2, and pipeline parallelism (validated, then run data-parallel).",
+  "source": "https://trysoup.dev/docs/backends",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "a4ef6afb0a657452b5f07ec519ca5ea6396d554079ef48ad8d5e0f79343810db",
+  "headings": [
+    {
+      "level": 2,
+      "id": "apple-silicon-mlx-backend-v0-25-0",
+      "title": "Apple Silicon MLX Backend (v0.25.0)"
+    },
+    {
+      "level": 2,
+      "id": "unsloth-backend-2-5x-faster-training",
+      "title": "Unsloth Backend (2-5x Faster Training)"
+    },
+    {
+      "level": 2,
+      "id": "performance-optimizations",
+      "title": "Performance Optimizations"
+    },
+    {
+      "level": 2,
+      "id": "long-context-training-128k",
+      "title": "Long-Context Training (128k+)"
+    },
+    {
+      "level": 2,
+      "id": "multi-gpu-training",
+      "title": "Multi-GPU Training"
+    },
+    {
+      "level": 3,
+      "id": "deepspeed",
+      "title": "DeepSpeed"
+    },
+    {
+      "level": 3,
+      "id": "fsdp2-pytorch-native",
+      "title": "FSDP2 (PyTorch Native)"
+    },
+    {
+      "level": 2,
+      "id": "no-gpu-at-all-train-on-a-serverless-cloud-one",
+      "title": "No GPU at all: train on a serverless cloud one"
+    },
+    {
+      "level": 3,
+      "id": "lambda-cloud-v0-74-0",
+      "title": "Lambda Cloud (v0.74.0)"
+    },
+    {
+      "level": 3,
+      "id": "runpod-v0-77-0",
+      "title": "RunPod (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "quantization-aware-training-qat",
+      "title": "Quantization-Aware Training (QAT)"
+    },
+    {
+      "level": 2,
+      "id": "advanced-lora-variants",
+      "title": "Advanced LoRA Variants"
+    },
+    {
+      "level": 3,
+      "id": "dora-weight-decomposed-lora",
+      "title": "DoRA (Weight-Decomposed LoRA)"
+    },
+    {
+      "level": 3,
+      "id": "lora-differentiated-learning-rates",
+      "title": "LoRA+ (Differentiated Learning Rates)"
+    },
+    {
+      "level": 3,
+      "id": "galore-memory-efficient-full-parameter-training",
+      "title": "GaLore (Memory-Efficient Full-Parameter Training)"
+    },
+    {
+      "level": 3,
+      "id": "neftune-noisy-embeddings",
+      "title": "NEFTune (Noisy Embeddings)"
+    },
+    {
+      "level": 3,
+      "id": "rslora-rank-stabilized-lora",
+      "title": "rsLoRA (Rank-Stabilized LoRA)"
+    },
+    {
+      "level": 2,
+      "id": "moe-model-support",
+      "title": "MoE Model Support"
+    },
+    {
+      "level": 3,
+      "id": "adapting-routed-expert-tensors-directly-v0-74-0",
+      "title": "Adapting routed expert tensors directly (v0.74.0)"
+    },
+    {
+      "level": 2,
+      "id": "curriculum-learning-v0-23-0",
+      "title": "Curriculum Learning (v0.23.0+)"
+    },
+    {
+      "level": 2,
+      "id": "freeze-training-v0-24-0",
+      "title": "Freeze Training (v0.24.0+)"
+    },
+    {
+      "level": 2,
+      "id": "loss-watchdog-v0-24-0",
+      "title": "Loss Watchdog (v0.24.0+)"
+    },
+    {
+      "level": 2,
+      "id": "sample-packing-v0-23-0",
+      "title": "Sample Packing (v0.23.0+)"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Backends &amp; Performance</h1><p>Soup has three training backends: <code>transformers</code> (default), <code>unsloth</code> (2-5x faster on CUDA), and <code>mlx</code> (native Apple Silicon, new in v0.25.0).</p><h2 id=\"apple-silicon-mlx-backend-v0-25-0\">Apple Silicon MLX Backend (v0.25.0)</h2><p>Train on M1–M4 Macs without CUDA or emulation:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[mlx]\""
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: mlx-community/Llama-3.1-8B-Instruct-4bit\nbackend: mlx\ntask: sft       # sft, dpo, orpo, simpo or kto; every other task is refused on mlx"
+    },
+    {
+      "kind": "html",
+      "html": "<p>See the <a href=\"__DOCS_BASE__/mlx-backend\">MLX backend guide</a> for the five supported tasks (native DPO, ORPO, SimPO and KTO since v0.77.0), what each refuses, diagnostics and MLX-native recipes.</p><h2 id=\"unsloth-backend-2-5x-faster-training\">Unsloth Backend (2-5x Faster Training)</h2><p>Use the Unsloth backend for significantly faster training and up to 80% less VRAM:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[fast]\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Add one line to your config:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-8B-Instruct\ntask: sft\nbackend: unsloth    # 2-5x faster, -80% VRAM\n\ndata:\n  train: ./data/train.jsonl\n  format: alpaca\n\ntraining:\n  epochs: 3\n  lr: 2e-5\n  quantization: 4bit\n  gradient_checkpointing: true   # keeps Unsloth's checkpointing kernel on (v0.77.0)\n  lora:\n    r: 64\n    alpha: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Works with the tasks that have an unsloth setup: SFT (text only: since v0.77.0 SFT with <code>modality: vision</code> or <code>audio</code> on <code>backend: unsloth</code> is refused at config load, where it used to run the transformers setup without a word, #2015), DPO, GRPO, PPO, KTO, ORPO, SimPO, IPO, BCO, <code>preference</code>, Pretrain, Embedding and TTS. The other ten (<code>reward_model</code>, <code>prm</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>distill</code>, <code>unlearn</code>, <code>moe_lora_routing</code>, <code>online_dpo</code> and <code>asr</code>) have no unsloth setup, so <code>backend: unsloth</code> is refused at config load for them (#1357). Before v0.76.0 seven of them (<code>reward_model</code>, <code>prm</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>unlearn</code> and <code>moe_lora_routing</code>) loaded and trained on plain transformers while <code>soup train</code> printed <code>unsloth (fast mode)</code>; <code>distill</code> was refused by #1186 in the same release, and <code>asr</code> and <code>online_dpo</code> already had their own refusals.</p><p>On the unsloth backend <code>lora.use_dora</code>, <code>use_vera</code> and a non-random <code>init_strategy</code>, <code>moe_lora</code>, <code>freeze_layers</code>, <code>freeze_ratio</code>, <code>rope_scaling_type</code>, <code>quantization_aware: fp8</code>, <code>fp8_attention</code> and <code>nvfp4</code> are refused at load: unsloth builds its own adapter and kernels and never reads them. Since v0.77.0 so are <code>quantization: 8bit</code> (Soup&#x27;s Unsloth loader passes <code>load_in_4bit</code> only, so <code>8bit</code> loaded the model in 16-bit with no word, #1946; use <code>4bit</code>, <code>none</code>, or <code>backend: transformers</code> for 8-bit), a non-default <code>moe_aux_loss_coeff</code> (that setup never applies the auxiliary loss, #1749), and <code>lora.rank_pattern</code> / <code>alpha_pattern</code> (the loader attaches every adapter from one scalar <code>lora.r</code> and <code>lora.alpha</code>, #2153; an empty <code>{}</code> still loads).</p><p><strong>Gradient checkpointing is honoured on Unsloth since v0.77.0</strong> (#1981). It was hardcoded to Unsloth&#x27;s checkpointing kernel, so <code>training.gradient_checkpointing: false</code> changed nothing. Now <code>false</code>, the schema default, turns checkpointing off, and <code>true</code> (or a tier) enables Unsloth&#x27;s kernel; layer streaming keeps it off because it already checkpoints every layer. <strong>A config that leaves the key unset now trains without checkpointing on Unsloth</strong>: set <code>gradient_checkpointing: true</code> to keep the memory you had. <code>lora.use_rslora</code> is applied on Unsloth since v0.77.0 too; see <a href=\"#rslora-rank-stabilized-lora\">rsLoRA</a> below.</p><blockquote><p><strong>Tip:</strong> Soup auto-detects unsloth. When it is installed, <code>soup train</code> prints a hint if you haven&#x27;t enabled it yet and your config would load with it: there is no hint for a task with no unsloth setup, or for a config using <code>freeze_layers</code>, <code>rope_scaling_type</code> or <code>moe_lora</code>.</p></blockquote><h2 id=\"performance-optimizations\">Performance Optimizations</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  use_liger: true             # Liger Kernel fused ops (measured once: 12.9% less VRAM, 1.051x throughput)\n  use_flash_attn: true        # FlashAttention v2/v3 auto-detection\n  gradient_checkpointing: true  # Required for long sequences"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both keys are read by the SFT trainer only (and by <code>tts</code>, which trains through it); on any other task they are refused at config load (v0.76.0, #806), and with <code>stream_layers: true</code> too, because streaming builds the model itself and never reaches either kernel. The Liger figure is a single measurement from v0.73.0 and replaced an earlier &quot;20-60% memory savings&quot; claim that upstream corrected in the same release, so treat it as a data point on one setup, not a promise.</p><p><code>use_flash_attn</code> needs a CUDA device and asks <code>transformers</code> which implementation is installed: FlashAttention 3 if it reports one (that is the separate <code>flash_attn_3</code> package, not <code>flash-attn</code>), otherwise FlashAttention 2, otherwise nothing. Before v0.73.0 the FlashAttention 3 branch tested <code>flash_attn.__version__</code> for a 3.x number, which no real install reports, so on Hopper hardware the setting silently fell back to FlashAttention 2 or SDPA while the docs advertised 3. v0.73.0 fixed the detection (#334). Upstream is explicit that this makes detection honest and does not make FlashAttention 3 measurable on its test hardware, so this site publishes no FlashAttention 3 speed or memory figure.</p><p>Install optional packages:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[liger]\"       # Liger Kernel\npip install flash-attn --no-build-isolation  # FlashAttention\npip install \"soup-cli[ring-attn]\"   # Ring FlashAttention"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"long-context-training-128k\">Long-Context Training (128k+)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  rope_scaling_type: yarn       # linear, dynamic, yarn, llama3\n  gradient_checkpointing: true\n\ndata:\n  max_length: 131072            # Up to 1M tokens supported"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>rope_scaling_type</code> is read by <code>task: sft</code>, <code>tts</code> and <code>pretrain</code> on <code>backend: transformers</code> (for <code>sft</code>, the plain text path without <code>stream_layers</code>), and it only does something when <code>data.max_length</code> is larger than the model&#x27;s native context: the scaling factor is that ratio, worked out for you. Since v0.76.0 the RoPE configuration is built <strong>before</strong> the model is constructed, because transformers 5 derives the rotary frequencies in the model constructor. Through v0.75.2 the trainer wrote the factor into <code>model.config</code> after the model had loaded, which in a check on a small randomly initialised Llama changed neither the rotary frequencies nor the outputs while the run printed <code>Long-context enabled</code> (#793). On any other task, on <code>backend: mlx</code> or <code>unsloth</code>, on vision or audio SFT, or with <code>stream_layers: true</code>, the key is now refused at config load (#1697), and <code>longrope</code> is refused everywhere (#1239). <code>yarn_factor</code>, <code>yarn_attn_factor</code>, <code>yarn_beta_fast</code> and <code>yarn_beta_slow</code> are read, with <code>rope_scaling_type: yarn</code> only. See <a href=\"__DOCS_BASE__/long-context\">Long context</a> for the details and the Llama 3.1 composition rule.</p><p><code>use_ring_attention</code> is different: it is accepted and checked before training (CUDA, at least two GPUs, <code>ring-flash-attn</code> installed, <code>max_length</code> of 8192 or more), and nothing in v0.77.0 applies Ring FlashAttention to the model afterwards, so sequence parallelism does not happen.</p><h2 id=\"multi-gpu-training\">Multi-GPU Training</h2><h3 id=\"deepspeed\">DeepSpeed</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --deepspeed zero2          # ZeRO Stage 2\nsoup train --config soup.yaml --deepspeed zero3          # ZeRO Stage 3\nsoup train --config soup.yaml --deepspeed zero2_offload  # Stage 2 + optimizer offload\nsoup train --config soup.yaml --deepspeed zero3_offload  # Stage 3 + CPU parameter offload only, the optimizer stays on the GPU (v0.73.0)"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"fsdp2-pytorch-native\">FSDP2 (PyTorch Native)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --fsdp full_shard    # Like ZeRO-3\nsoup train --config soup.yaml --fsdp shard_grad    # Like ZeRO-2\nsoup train --config soup.yaml --fsdp full_offload  # With CPU offload"
+    },
+    {
+      "kind": "html",
+      "html": "<p>To span several machines, <code>soup train</code> takes <code>--nodes</code>, <code>--node-rank</code>, <code>--master-addr</code> and <code>--master-port</code> (v0.76.0); see <a href=\"__DOCS_BASE__/multi-gpu#multi-node-launch\">Multi-GPU Mastery</a>.</p><h2 id=\"no-gpu-at-all-train-on-a-serverless-cloud-one\">No GPU at all: train on a serverless cloud one</h2><p>The rest of this site is about making a small card work. If you have no card, <code>--cloud modal</code> renders a self-contained <a href=\"https://modal.com/\">Modal</a> app from your <code>soup.yaml</code> and runs it on a per-second-billed GPU. <code>--cloud lambda</code> and, since v0.77.0, <code>--cloud runpod</code> are described below.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[modal]\"    # only needed to submit live\n\n# Plan-only, the DEFAULT: write the stub and print the modal run command.\nsoup train --config soup.yaml --cloud modal --gpu a100\n\n# Submit live (authenticate once with `modal setup`, or set\n# MODAL_TOKEN_ID and MODAL_TOKEN_SECRET).\nsoup train --config soup.yaml --cloud modal --gpu a100 --cloud-submit"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--gpu</code> accepts <code>t4</code>, <code>l4</code>, <code>a10g</code>, <code>a100</code> (the default), <code>a100-80gb</code>, <code>l40s</code> and <code>h100</code>.</p><p><strong>Plan-only is the default and that is deliberate</strong>: nothing is submitted, and nothing is billed, until you add <code>--cloud-submit</code>. You get the generated <code>soup_modal_app.py</code> and the exact command, so you can read what would run before it does.</p><p>Your config is <strong>base64-embedded as data</strong>, not interpolated as code, so nothing in the YAML can execute in the generated stub and no secret is written into it. The image pins <code>soup-cli[train]</code> to the version you are running locally, writes the embedded config inside the container, and runs <code>soup train</code> on the chosen GPU.</p><p><strong>Where the checkpoints end up is the part that was missing until v0.75.1, and the answer used to be nowhere.</strong> The container is ephemeral, so when the run finished it took the outputs with it, while the entrypoint printed a line telling you to download checkpoints from a directory that had none. Outputs now go to a Modal volume named <code>soup-outputs</code>, created on first use, in a directory named after the run, committed in a <code>finally</code> so a crashed run keeps what it produced, and downloaded into your local output directory at the end <strong>including after a failure</strong>. When the download completes, the command also prints a <code>modal volume get soup-outputs /&lt;run name&gt; &lt;output dir&gt; --force</code> line that fetches the files again (they land under <code>&lt;output dir&gt;/&lt;run name&gt;</code>). If the download fails after a failed run, it prints <code>Could not download outputs after the failed run: ...</code> and re-raises the training error, which is the one to read.</p><p><strong>Both cloud paths now refuse an <code>output</code> that leaves the working directory, at plan time.</strong> An absolute path, or one reaching upward with <code>..</code>, is rejected before anything is provisioned rather than after. That matters most for the case it was written for: a <code>soup.yaml</code> shared between people, where the output path was written on somebody else&#x27;s machine.</p><h3 id=\"lambda-cloud-v0-74-0\">Lambda Cloud (v0.74.0)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --cloud lambda"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--gpu</code> takes one of exactly four Lambda instance types: <code>a10</code>, <code>a6000</code>, <code>a100</code> and <code>h100</code>. That list is shorter than Modal&#x27;s, so a value that works there (<code>t4</code>, <code>l4</code>, <code>a10g</code>, <code>l40s</code>) is refused here. You need <code>LAMBDA_API_KEY</code>, <code>LAMBDA_SSH_KEY_NAME</code> and <code>LAMBDA_SSH_PRIVATE_KEY</code> in the environment, with the public key already registered in your Lambda account; <code>LAMBDA_REGION</code> is optional and defaults to <code>us-tx-1</code>. Output paths must be relative. <strong>Keep the local controller running until it reports termination</strong>: shutting down the guest does not stop the billing, the controller does. Since v0.76.0 the controller polls training status over short SSH connections with keepalive probes instead of holding one session open. It tolerates network drops for up to 15 minutes, with exponential backoff capped at 60 seconds, before it terminates the instance to prevent runaway billing, and the checkpoint copy back is retried for the same window. Since v0.77.0, when <code>soup train</code> on the instance exits non-zero, the controller fetches the last 50 lines of <code>/home/ubuntu/soup/train.log</code> over SSH (at most 50,000 bytes, control characters stripped) and prints them under <code>Remote log tail (last 50 lines):</code> before it terminates the instance (#1774); if that fetch fails it prints <code>Could not fetch remote log tail: ...</code> and terminates the instance anyway. That log holds only <code>soup train</code>&#x27;s own output, so a failure earlier, in the instance setup or the install, is not in it.</p><p>Plan-only by default, like Modal. Since v0.77.0 <code>--cloud-submit</code> starts the local controller with an isolated interpreter (<code>python -I</code>) and only the environment it needs: the Lambda settings, the variables <code>ssh</code> and <code>scp</code> use, and the proxy, certificate, SSH-agent and library-path settings; the printed manual command is <code>python -I &lt;stub&gt;</code> (#2091). The design decision worth knowing is where the credential lives: <strong>the API key never enters the instance</strong>. Termination belongs to a local controller, and its <code>finally</code> both terminates the instance and polls to confirm that the termination actually happened, rather than firing the call and assuming.</p><blockquote><p><strong>That guarantee had a hole until v0.75.1, and it cost money rather than data.</strong> Pressing Ctrl+C during <code>--cloud-submit</code> killed the controller a quarter of a second later, while it was still inside the <code>finally</code> that terminates the paid instance, so the instance could keep running and keep billing. Two narrower windows survived the first fix and were closed after it: a signal arriving between the process being spawned and the guarded region being entered, and one landing on the &quot;still waiting&quot; notice, which is written from the interrupt handler itself. <code>soup</code> now waits for the controller across the interrupt. <strong>Check your Lambda console for a still-running instance if you ever interrupted a submit on an earlier version.</strong> Two scopes upstream states rather than implies: the fix is Linux and macOS, because the POSIX signal test needs a real process group and is skipped on Windows, and the one way left to skip the cleanup is to kill the controller process itself from another terminal, which can still leave the instance running. Upstream is explicit that the Lambda submission path still needs a paid live-validation pass before it can be described as provider-validated; plan-only rendering and the lifecycle boundaries are covered by offline tests.</p></blockquote><h3 id=\"runpod-v0-77-0\">RunPod (v0.77.0)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Plan-only, the default: writes soup_runpod_app.py and contacts nothing\nsoup train --config soup.yaml --cloud runpod --gpu rtx4090\n\n# Submit live (both variables are required; the second is a path)\nexport RUNPOD_API_KEY=...\nexport RUNPOD_SSH_PRIVATE_KEY=~/.ssh/id_ed25519\nsoup train --config soup.yaml --cloud runpod --gpu rtx4090 --cloud-submit"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--gpu</code> takes <code>a100</code> (the default, an 80 GB SXM card), <code>h100</code>, <code>a40</code>, <code>rtx3090</code> or <code>rtx4090</code>; any other value exits 2 with that list. No extra is needed: the controller uses Python&#x27;s standard library and your local OpenSSH <code>ssh</code> and <code>scp</code>. <code>RUNPOD_SSH_PRIVATE_KEY</code> is the <strong>path</strong> of a private key whose OpenSSH public key sits beside it as <code>&lt;path&gt;.pub</code>; only the public key goes into the Pod. Without both variables <code>--cloud-submit</code> prints <code>RunPod not configured. Set RUNPOD_API_KEY, RUNPOD_SSH_PRIVATE_KEY</code> and exits 1.</p><p>A live run creates one Secure Cloud Pod reachable over SSH, installs the Soup version you are running, runs <code>soup train --yes</code> there, copies the configured output directory back and deletes the Pod. <strong>Choose a fresh relative <code>output</code></strong>: the plan refuses one that already exists (<code>Cloud plan failed: output_dir already exists; choose a fresh directory for retrieval</code>, exit 2) and one outside the working directory. As with Modal, your config is embedded as data, and the plan refuses one that carries your <code>RUNPOD_API_KEY</code> value or an inline credential field (<code>api_key</code>, <code>token</code>, <code>hf_token</code>, <code>password</code> and the like). <strong>Local files are not uploaded</strong>, so the base model and the dataset must be reachable from the Pod. The local controller starts with an isolated interpreter (<code>python -I</code>) and an allow-listed environment, and runs <code>ssh</code> and <code>scp</code> by the absolute path found on <code>PATH</code>, without <code>RUNPOD_API_KEY</code> in their environment.</p><p>The controller makes one attempt and copies the results once, with a 15-minute limit, into a new directory next to the output path; a failed or timed-out copy removes that directory when it is empty and names it in the error otherwise. It deletes the Pod afterwards, on failure and on Ctrl+C too, and polls until RunPod reports it gone; an unconfirmed deletion exits non-zero and names the run to look for in the RunPod console. A failed copy still deletes the Pod, so what did not come back cannot be fetched from it later.</p><p><strong>It has not been run against a real RunPod account yet</strong> (tracked as #2098): upstream&#x27;s checks use mocked API and SSH transports, so the provider&#x27;s behaviour, the copy back and the billing termination are still to be validated live. Watch the RunPod console on a first run.</p><p><strong><code>--cloud</code> takes <code>modal</code>, <code>lambda</code> or <code>runpod</code>.</strong> Any other value exits 2 with <code>Invalid --cloud: &lt;value&gt;. Supported: modal, lambda, runpod.</code> Through v0.76.1 <code>--cloud runpod</code> was a recognised name with no implementation behind it, and exited 2.</p><h2 id=\"quantization-aware-training-qat\">Quantization-Aware Training (QAT)</h2><p><code>training.quantization_aware: true</code> (int8 QAT) is <strong>refused at config load on every task and backend as of v0.76.0</strong> (#1222). It never ran quantization-aware training. Where it was applied, it ran torchao&#x27;s post-training int8 weight-only quantization over every Linear layer after LoRA, the adapter&#x27;s own layers included, and froze them all, so a LoRA run had zero trainable parameters; elsewhere (<code>backend: mlx</code>, <code>backend: unsloth</code>, the other tasks&#x27; trainers, layer streaming) it was not applied at all. Remove the key. The &quot;5-10% slower, better quality&quot; claim that stood on this page described a feature that did not train.</p><p>Two other values of the same key are separate features with their own code paths:</p><ul><li><code>quantization_aware: fp8</code> is FP8 training, covered on <a href=\"__DOCS_BASE__/training-speed-memory#fp8-training-ada-and-newer\">Speed and memory</a>. Install <code>pip install &quot;soup-cli[qat]&quot;</code> for it.</li><li><code>quantization_aware: quest</code> is an experimental mixed W4/A4 plus A16 route retained from an evaluation-only result. It requires <code>task: sft</code>, <code>backend: transformers</code>, <code>modality: text</code>, <code>quantization: none</code>, <code>lora.r: 0</code>, an explicit integer <code>batch_size</code> and <code>auto_mixed_precision: false</code>, and it refuses layer streaming, <code>nvfp4</code>, <code>activation_offloading</code>, <code>freeze_layers</code>, <code>freeze_ratio</code>, <code>unfrozen_parameters</code>, <code>lisa_enabled</code> and <code>expand_layers</code>. Upstream&#x27;s own record of the strict W4A4 route is a failed gate (see <a href=\"__DOCS_BASE__/measurement-records\">Measurement records</a>); the mixed route makes no packed-INT4, efficiency or training-quality claim. It also needs exactly one visible CUDA GPU of compute capability 8.0 or newer, checked when the trainer is set up (so <code>soup train --dry-run</code> does not catch it); on a multi-GPU box select one card with <code>CUDA_VISIBLE_DEVICES</code>.</li></ul><p>To ship a smaller model, train normally and quantize at export: <code>soup export --format gguf --quant q4_k_m</code>.</p><h2 id=\"advanced-lora-variants\">Advanced LoRA Variants</h2><h3 id=\"dora-weight-decomposed-lora\">DoRA (Weight-Decomposed LoRA)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  lora:\n    r: 64\n    alpha: 16\n    use_dora: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>use_dora</code> is refused at load on <code>backend: unsloth</code> (it builds no DoRA, and the run used to train plain LoRA), and with <code>quantization</code> <code>gptq</code>, <code>awq</code>, <code>aqlm</code> or <code>eetq</code> (peft cannot apply DoRA to those layers and raised after the model had loaded). <code>4bit</code>, <code>8bit</code>, <code>hqq:Nbit</code> and an unquantized base are allowed. <strong>On <code>backend: mlx</code> DoRA is native since v0.77.0, for text SFT only</strong> (#1920, by @Amix29): dense linear targets on an unquantized or pre-quantized 4-bit base, with scalar <code>lora.r</code> and <code>lora.alpha</code>. <code>use_rslora</code>, <code>rank_pattern</code>, <code>alpha_pattern</code>, <code>quantization: 8bit</code>, a non-text modality and the MLX preference tasks are refused at load. See <a href=\"__DOCS_BASE__/mlx-backend#dora-on-mlx\">DoRA on MLX</a>.</p><h3 id=\"lora-differentiated-learning-rates\">LoRA+ (Differentiated Learning Rates)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  lr: 2e-5\n  loraplus_lr_ratio: 16.0    # lr_B = lr x 16\n  lora:\n    r: 64\n    alpha: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The ratio is applied on every LoRA task since v0.76.0 (through v0.75.2 only <code>sft</code>, <code>pretrain</code> and <code>embedding</code> read it, and the others trained B at the base rate). It is refused on <code>prm</code>, <code>moe_lora_routing</code> and <code>unlearn</code>, on <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code> and <code>asr</code> unless their LoRA flag is on with <code>lora.r &gt; 0</code>, on <code>backend: mlx</code>, with <code>lora.use_vera</code>, with <code>use_lorafa</code>, with <code>use_galore</code>, and with <code>optimizer</code> <code>apollo_adamw</code>, <code>lomo</code> or <code>adalomo</code>. See <a href=\"__DOCS_BASE__/configuration\">Configuration</a>. To freeze the A matrices instead, see <a href=\"__DOCS_BASE__/lora-quality#lora-fa-frozen-a-lora\">LoRA-FA</a>.</p><h3 id=\"galore-memory-efficient-full-parameter-training\">GaLore (Memory-Efficient Full-Parameter Training)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization: none          # Required: incompatible with quantization\n  use_galore: true\n  galore_rank: 128\n  galore_update_proj_gap: 200\n  galore_scale: 0.25"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Note:</strong> GaLore requires <code>quantization: none</code> and <code>backend: transformers</code> (not unsloth).</p></blockquote><h3 id=\"neftune-noisy-embeddings\">NEFTune (Noisy Embeddings)</h3><p>Add noise to embedding vectors during training for better generalization:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  neftune_alpha: 5.0    # Noise magnitude (0.0–50.0, typical: 5–15)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>NEFTune has been shown to improve instruction-following quality without extra data or compute. It is applied by the SFT trainer (and <code>task: tts</code>, which trains through it) and by the DPO, IPO, KTO, ORPO, SimPO and BCO trainers, so also by <code>task: preference</code>. Since v0.77.0 it is refused at config load on the 14 other tasks, any value including <code>0.0</code> (#1883); through v0.76.1 it was accepted there and never applied. On <code>backend: mlx</code> it loads and is not applied: the MLX trainers print <code>MLX backend ignores: training.neftune_alpha</code>, and <code>soup doctor --config</code> lists it.</p><h3 id=\"rslora-rank-stabilized-lora\">rsLoRA (Rank-Stabilized LoRA)</h3><p>Scale LoRA outputs by <code>1/sqrt(r)</code> instead of <code>1/r</code> for better training at high ranks:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  lora:\n    r: 128              # Higher ranks benefit most from rsLoRA\n    alpha: 64\n    use_rslora: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The scale is <code>alpha / sqrt(r)</code> on every backend: PEFT&#x27;s <code>use_rslora</code> on transformers, the <code>scale</code> Soup hands mlx-lm on MLX, and <code>get_peft_model(..., use_rslora=True)</code> on Unsloth. <strong>Through v0.76.1 <code>backend: mlx</code> and <code>backend: unsloth</code> loaded the flag and never read it</strong>, so an rsLoRA run there trained at the plain-LoRA scale <code>alpha / r</code>, an 8x smaller update at the default <code>r: 64, alpha: 16</code>. Since v0.77.0 they apply it, so the same config&#x27;s results change: re-run if you wanted rsLoRA, or drop the flag to keep the old behaviour (#1899). MLX DoRA refuses it.</p><blockquote><p><strong>Tip:</strong> Combine NEFTune + rsLoRA + Unsloth backend for the best training quality and speed (rsLoRA reaches Unsloth since v0.77.0).</p></blockquote><h2 id=\"moe-model-support\">MoE Model Support</h2><p>Fine-tune Mixture of Experts models (Mixtral, Qwen3-30B-A3B, DeepSeek V3):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: Qwen/Qwen3-30B-A3B\ntask: sft\n\ntraining:\n  moe_lora: true               # Target expert + attention layers\n  moe_aux_loss_coeff: 0.01     # Router load-balancing loss\n  quantization: 4bit\n  lora:\n    dropout: 0.0               # required on a fused-expert MoE such as this one"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Soup auto-detects MoE architectures. <code>moe_lora</code> is read by <code>sft</code>, <code>tts</code>, <code>pretrain</code>, <code>dpo</code>, <code>kto</code>, <code>orpo</code>, <code>simpo</code>, <code>ipo</code>, <code>bco</code>, <code>grpo</code>, <code>ppo</code>, <code>online_dpo</code>, <code>reward_model</code>, <code>embedding</code>, <code>distill</code> and <code>unlearn</code>, by the classifier family with <code>classifier_lora: true</code>, and by the shared layer-streaming setup. It is refused at load on <code>asr</code>, <code>prm</code>, <code>moe_lora_routing</code>, SFT with vision or audio, and <code>backend: unsloth</code>. Through v0.75.2 only SFT and pretrain read it (#798), so the DPO and GRPO MoE recipes that set it (eight in the v0.75.2 catalog, fifteen at v0.76.0; upstream&#x27;s changelog says &quot;8 DPO and 7 GRPO&quot;) trained attention-only LoRA, and on transformers 5 they could not attach LoRA at all (peft: <code>No target_modules passed but also no target_parameters found</code>). <strong>If you ran one of them, re-run.</strong> Expert adapters attach through peft&#x27;s fused-parameter path (<code>target_parameters</code>) on <code>qwen3_moe</code>, <code>deepseek_v3</code>, <code>glm4_moe</code>, <code>olmoe</code>, <code>qwen2_moe</code>, <code>qwen3_5_moe_text</code>, <code>minimax</code> and <code>mixtral</code> (#1421; measured on tiny stand-ins with transformers 5.16.1 and peft 0.20.0, never on a real 30B+ checkpoint). <code>minimax-m3-sft</code> still trains attention-only LoRA, but because it sets no <code>moe_lora</code>: it loads through SFT&#x27;s vision path, which never runs the MoE step. The seven <code>kimi-k2.x</code> recipes that set <code>moe_lora</code> are untested rather than known-good: no tiny stand-in for them builds in the installed transformers. Since v0.77.0 one of them, <code>kimi-k2-sft</code>, is marked unavailable, because resident Kimi K2 is refused at load (<code>soup recipes use kimi-k2-sft</code> exits 3; see <a href=\"__DOCS_BASE__/streaming-moe\">Streaming a Mixture-of-Experts base</a> for the route that admits Kimi-K2-Base). <code>moe_aux_loss_coeff</code> is read by <code>sft</code> (text), <code>tts</code> and <code>pretrain</code>, and a non-default value is refused on every other task and, since v0.77.0, on <code>backend: unsloth</code> and with <code>training.stream_layers: true</code>, whose setups never apply the auxiliary loss (#1749).</p><p><strong>Since v0.77.0 <code>moe_lora: true</code> keeps a string <code>target_modules</code> and adds the MoE targets to it</strong> (#2095), as it already did for a list. Through v0.76.1 a string was replaced by the MoE list: <code>all-linear</code> (what <code>target_modules: auto</code> resolves to on qwen4_exp) lost every linear layer the MoE list does not name, and a regex was dropped outright. Now <code>all-linear</code> is kept and only the fused expert parameters are added, and a regex becomes <code>(?:&lt;your regex&gt;)|(?:&lt;the MoE names&gt;)</code>; a regex that does not compile is refused at setup, naming <code>training.lora.target_modules</code>, and one that matches no module is warned about. Under <code>moe_lora</code> a string never adapts a MoE router or shared-expert gate, even one your regex names: to adapt a router, name it in an explicit list. The <code>ScatterMoE LoRA:</code> setup line says which of these happened. Under layer streaming the same rule applies, and an explicit list is no longer replaced (#2072). Before v0.77.0 such a run trained adapters on fewer modules than its config named (with a string target, every module the MoE list does not name; under streaming, every target the MoE list does not repeat, and an explicit list entirely): re-train it on v0.77.0 if those modules mattered. Separately, <code>target_modules: auto</code> on a DeepSeek-V3 base whose config sets <code>q_lora_rank: null</code>, such as Moonlight-16B-A3B, put adapters on the key/value and output projections and none on the query path, without a warning, through v0.76.1; since v0.77.0 the query projection is adapted (#2071).</p><p>On a transformers 5 fused-expert MoE (every in-library MoE family on the supported stack, Qwen3-30B-A3B included) <code>moe_lora</code> needs <code>lora.dropout: 0.0</code>, because peft adapts the fused expert tensors through a wrapper that refuses dropout; with the default 0.05 the attach stops with a message naming the flag. <code>moe_lora</code> with <code>lora.use_vera</code> is refused on such a model, and <code>moe_expert_quant</code> is refused on one at setup, naming the architecture.</p><h3 id=\"adapting-routed-expert-tensors-directly-v0-74-0\">Adapting routed expert tensors directly (v0.74.0)</h3><p><code>moe_lora</code> targets expert and attention <strong>modules</strong>. Some architectures keep their experts as raw 2-D or 3-D <code>nn.Parameter</code> tensors instead, which a module-level target cannot reach, so <code>lora.target_parameters</code> adapts those tensors through PEFT:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  lora:\n    r: 16\n    alpha: 32\n    dropout: 0                 # required: PEFT cannot wrap a raw parameter with dropout\n    target_modules: auto\n    target_parameters: auto    # routed gate_up_proj + down_proj tensors\n    rank_pattern:\n      experts.gate_up_proj: 2\n      experts.down_proj: 2"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>auto</code> resolves the architecture&#x27;s registered parameter mapping, currently Qwen4-Exp routed experts, and <strong>fails closed</strong> when an architecture has none; an explicit list of parameter-name suffixes is also accepted, capped at 256 entries. The scope is narrow and every bound is refused when the config is read, not minutes into a run: <code>task: sft</code> or <code>pretrain</code>, <code>backend: transformers</code>, <code>modality: text</code>, plain LoRA or rsLoRA with <code>init_strategy: random</code> and <code>use_dora: false</code>, and <strong>not with <code>training.stream_layers: true</code></strong>, which stays resident-only for now.</p><p>Two operational notes upstream states rather than leaves to be discovered: <code>torch.compile</code> may recompile or graph-break around parameter wrappers, and a parameter-targeted MoE adapter materializes a contribution for <strong>every</strong> expert at inference, so merge it into the base for deployment unless you need to hot-swap adapters.</p><h2 id=\"curriculum-learning-v0-23-0\">Curriculum Learning (v0.23.0+)</h2><p>Sort the training rows by length, shortest first, before they reach the trainer (the note under the example says what the trainer then does with that order):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  curriculum: true\n  curriculum_metric: length       # Sort by sequence length\n  curriculum_buckets: 5           # 1-20 difficulty buckets"
+    },
+    {
+      "kind": "html",
+      "html": "<p>This sort is applied by the SFT trainer only, and it always orders rows by length, shortest first. <code>curriculum_metric: perplexity</code> or <code>loss</code> is accepted but prints a notice and falls back to the same length sort, and <code>curriculum_buckets</code> only appears in that printout. Only the <code>curriculum_dynamic</code> callback reads the other two metrics. The sort reorders the list handed to the trainer, but Soup does not change the trainer&#x27;s default sampler, which is random (checked on transformers 5.17, the stack v0.75.2 installs), so the model does not see the rows in that order. Do not expect a short-to-long schedule from this key.</p><h2 id=\"freeze-training-v0-24-0\">Freeze Training (v0.24.0+)</h2><p>Freeze bottom layers to reduce compute while preserving base knowledge. Only <code>task: sft</code> (and <code>tts</code>, which trains through it) applies this, on the text path with <code>backend: transformers</code> and no layer streaming; since v0.76.0 any other task, <code>mlx</code>, <code>unsloth</code>, vision, audio or <code>stream_layers</code> refuses the keys at config load instead of training every layer (#1497, #1581):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  freeze_layers: 16               # Freeze bottom 16 layers\n  # freeze_ratio: 0.5             # Or freeze 50% of layers"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>With LoRA, the adapter follows the freeze since v0.77.0</strong> (#1432, #2145). A frozen layer gets no adapter, so <code>freeze_layers: 16</code> with LoRA trains adapters only on the layers above the bottom 16. Through v0.76.1 the freeze was set before peft attached the adapter, which then put a trainable adapter on every targeted module in every layer, the frozen ones included, so the freeze did nothing on a LoRA run; such a config now trains fewer layers than before, which is what the option always documented, and its results change. This needs a list of module names in <code>lora.target_modules</code>: a string target (a regex, or <code>all-linear</code>, including what <code>auto</code> resolves to on some architectures), a list target that resolves only outside a numbered decoder layer (such as <code>embed_tokens</code>; a top-level <code>lm_head</code> entry is accepted), <code>lora.target_parameters</code>, <code>lora.use_vera</code>, and a plan that freezes every layer are refused when the model is built, after the config loads, so <code>soup train --dry-run</code> does not catch them (#2201). Full fine-tuning (<code>lora.r: 0</code>) is unchanged.</p><h2 id=\"loss-watchdog-v0-24-0\">Loss Watchdog (v0.24.0+)</h2><p>Automatically stop training if loss spikes or diverges:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  loss_watchdog: true\n  loss_watchdog_threshold: 5.0    # Stop if loss exceeds threshold\n  loss_watchdog_patience: 3       # Wait N steps before stopping"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The watchdog is attached by every trainer that attaches the live training callback, which includes <code>task: tts</code> because it runs SFT&#x27;s training loop. <code>task: prm</code>, <code>task: unlearn</code> and <code>task: moe_lora_routing</code> refuse <code>loss_watchdog</code>, <code>loss_spike_recovery</code> and <code>grad_accum_auto_tune</code> at config load (v0.76.0), naming the reason. <code>backend: mlx</code> refuses <code>loss_spike_recovery</code> and <code>grad_accum_auto_tune</code>, and since v0.77.0 accepts <code>loss_watchdog</code> on text SFT only, with its own watchdog that stops at a completed optimizer update and saves the last adapter (<a href=\"__DOCS_BASE__/mlx-backend#the-loss-watchdog-on-mlx-sft\">the MLX page</a>). <a href=\"__DOCS_BASE__/training-stability#loss-spike-recovery-hint\">Training stability</a> lists the trainers that do.</p><h2 id=\"sample-packing-v0-23-0\">Sample Packing (v0.23.0+)</h2><p>Pack multiple short samples into one sequence for efficient training:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  packing: true                   # Enable sample packing (SFT and Pretrain)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Packed SFT keeps the assistant-only loss mask since v0.76.0 (#1236). Through v0.75.2 a packed SFT run trained on every non-first token, prompt and system tokens included; see <a href=\"__DOCS_BASE__/training#re-run-this-v0-76-0\">Re-run this</a>.</p><nav><a href=\"__DOCS_BASE__/training\"><span>Previous</span><span>Training Methods</span></a><a href=\"__DOCS_BASE__/multimodal\"><span>Next</span><span>Vision &amp; Audio</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

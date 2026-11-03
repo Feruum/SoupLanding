@@ -1,0 +1,54 @@
+{
+  "slug": "long-context",
+  "title": "Long Context (v0.49.0)",
+  "description": "Long-context fine-tuning in Soup CLI (v0.49.0). YaRN, Dynamic NTK, linear and llama3 RoPE scaling (longrope is refused at config load since v0.76.0), read by task sft, tts and pretrain on the transformers backend and refused elsewhere; the four yarn_* tunables are read since v0.76.0 and only with rope_scaling_type yarn. LongLoRA S2 (use_longlora) is refused at config load since v0.76.0. 128k+ context with Multipack-friendly packing.",
+  "source": "https://trysoup.dev/docs/long-context",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "05ca705e9e242512f0ab61f28e8e21abb6c15d8885ce4afc13115a4ed25632e5",
+  "headings": [
+    {
+      "level": 2,
+      "id": "yarn",
+      "title": "YaRN"
+    },
+    {
+      "level": 2,
+      "id": "dynamic-ntk",
+      "title": "Dynamic NTK"
+    },
+    {
+      "level": 2,
+      "id": "longlora-s-shifted-sparse-attention-refused-since-v0-76-0",
+      "title": "LongLoRA S² shifted-sparse attention (refused since v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "llama-3-1-ntk-aware-scaling",
+      "title": "Llama 3.1 NTK-aware scaling"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Long Context (v0.49.0)</h1><p>Four RoPE-scaling types for 128k+ context fine-tuning: <code>linear</code>, <code>dynamic</code>, <code>yarn</code> and <code>llama3</code>. (Through v0.75.2 the list had a fifth, <code>longrope</code>. It is refused at config load since v0.76.0 (#1239): its per-dimension <code>short_factor</code> and <code>long_factor</code> vectors exist only on checkpoints already scaled with LongRoPE, so it cannot extend any checkpoint. To fine-tune a LongRoPE checkpoint such as Phi-3-mini-128k at its native length, leave <code>rope_scaling_type</code> unset.)</p><h2 id=\"yarn\">YaRN</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  rope_scaling_type: yarn   # linear | dynamic | yarn | llama3\ndata:\n  max_length: 32768         # the scaling factor is derived from this and the model's native context"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The RoPE keys are flat fields on <code>training</code>, not a nested <code>rope_scaling</code> block.</p><p><strong>How the factor is chosen.</strong> Soup divides <code>data.max_length</code> by the model&#x27;s own <code>max_position_embeddings</code> and applies no scaling at all unless <code>data.max_length</code> is larger. <code>yarn_factor</code>, <code>yarn_attn_factor</code>, <code>yarn_beta_fast</code> and <code>yarn_beta_slow</code> are read since v0.76.0, and only with <code>rope_scaling_type: yarn</code> (they are refused otherwise): <code>yarn_factor</code> replaces the factor Soup derives from <code>data.max_length</code>, and the other three set the <code>attention_factor</code>, <code>beta_fast</code> and <code>beta_slow</code> of the YaRN block. Through v0.75.2 no trainer passed them on.</p><p><strong>Where the key applies.</strong> <code>rope_scaling_type</code> is read by <code>task: sft</code>, <code>task: tts</code> and <code>task: pretrain</code>, on <code>backend: transformers</code>; for <code>sft</code> that means the text path without <code>stream_layers</code>. Everywhere else it is <strong>refused at config load</strong> (v0.76.0, #1697, a breaking change): the other 20 tasks (<code>dpo</code>, <code>grpo</code> and so on), <code>sft</code> with <code>backend: mlx</code> or <code>unsloth</code>, <code>sft</code> with <code>modality: vision</code> or <code>audio</code>, and <code>sft</code> with <code>stream_layers: true</code>. Through v0.75.2 those configs loaded and ignored the key. Omitting the key keeps the checkpoint&#x27;s native RoPE.</p><p><strong>What the trainer does with it.</strong> Since v0.76.0 the RoPE configuration is applied <strong>before</strong> the model is constructed (#793): transformers 5 derives the rotary frequencies in the model constructor, so the factor takes effect. Through v0.75.2 the SFT trainer wrote the derived factor into <code>model.config</code> after the model had been loaded and printed <code>Long-context enabled</code>; in a check on a small randomly initialised Llama (transformers 5.17; <code>yarn</code>, <code>linear</code> and <code>dynamic</code>) that later edit changed neither the rotary frequencies nor the outputs. If you relied on this key on v0.75.2 or earlier, treat the context extension as not applied and re-run. No quality or speed result has been published for the corrected path.</p><p><strong>A checkpoint whose RoPE block is already scaled is never replaced.</strong> If the model&#x27;s <code>rope_type</code> is anything but <code>default</code>, extending it with <code>linear</code>, <code>dynamic</code> or <code>yarn</code> is refused, naming the checkpoint&#x27;s <code>rope_type</code> and <code>factor</code>; only <code>llama3</code> on a native <code>llama3</code> block composes (below). A Gemma 3-style config with nested per-layer RoPE sections is refused too. A <code>data.max_length</code> at or below the model&#x27;s native <code>max_position_embeddings</code> changes nothing.</p><h2 id=\"dynamic-ntk\">Dynamic NTK</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  max_length: 65536\ntraining:\n  rope_scaling_type: dynamic"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Dynamic NTK has no factor key, and neither do <code>linear</code> or <code>llama3</code>. The scaling factor is derived from <code>data.max_length</code> against the model&#x27;s native context, so you ask for a longer context by raising <code>max_length</code>. The <code>yarn_*</code> keys are refused unless <code>rope_scaling_type: yarn</code>.</p><h2 id=\"longlora-s-shifted-sparse-attention-refused-since-v0-76-0\">LongLoRA S² shifted-sparse attention (refused since v0.76.0)</h2><p><code>training.use_longlora: true</code> is <strong>refused at config load</strong> (#1240), in every spelling (<code>yes</code>, <code>on</code>, <code>1</code>). The override this page described as live through v0.75.2 rolled the query and key projections of half the attention heads along the sequence with wrap-around while attention stayed full causal, so earlier positions could read keys computed from the last tokens of the sequence (future tokens leaked into the training loss), and no grouped attention ran at all. It stays refused until real S² attention exists. To extend the context, set <code>training.rope_scaling_type</code> and train plain LoRA. If you trained with it on an earlier version, upstream&#x27;s account is that future tokens leaked into the loss; re-run with <code>rope_scaling_type</code> and plain LoRA.</p><h2 id=\"llama-3-1-ntk-aware-scaling\">Llama 3.1 NTK-aware scaling</h2><p>Set <code>rope_scaling_type: llama3</code> and Soup wires up the Llama 3.1-style NTK-aware schedule, with the same derived factor as the other types rather than a fixed 8. Naming the type is required: the SFT trainer only applies long-context scaling when <code>rope_scaling_type</code> is set, so there is no auto-detect of a Llama 3.1 base from <code>soup train</code>.</p><p><strong>On a Llama 3.1 checkpoint</strong> (which already ships a native <code>llama3</code> block: <code>max_position_embeddings: 131072</code>, factor 8 over an original 8192 tokens), <code>llama3</code> composes with that block since v0.76.0 instead of replacing it (#1239). It keeps the checkpoint&#x27;s <code>original_max_position_embeddings</code>, <code>low_freq_factor</code> and <code>high_freq_factor</code>, and multiplies the block&#x27;s <code>factor</code> by <code>data.max_length / max_position_embeddings</code>: extending Llama-3.1-8B to 262144 tokens trains with factor 16 over 8192. Through v0.75.2 the block was rebuilt as factor 2 over 131072, so 35 of the 64 frequency pairs of an 8B head rotated up to 8x faster than in pretraining (upstream&#x27;s arithmetic, not reproduced here), and the run printed only <code>Long-context enabled</code>. If you extended a Llama 3.1 checkpoint that way, re-run.</p><p>Pair with <a href=\"__DOCS_BASE__/multipack\">Multipack</a> to keep variable-length samples efficient on long-context runs.</p><nav><a href=\"__DOCS_BASE__/optimizer-zoo\"><span>Previous</span><span>Optimizer Zoo</span></a><a href=\"__DOCS_BASE__/grpo-plus\"><span>Next</span><span>GRPO Plus</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

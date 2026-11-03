@@ -1,0 +1,64 @@
+{
+  "slug": "data-augment",
+  "title": "Data Augmentation",
+  "description": "Expand JSONL datasets with rephrase, translate, and style strategies via Ollama, Anthropic, or vLLM. New in v0.25.0.",
+  "source": "https://trysoup.dev/docs/data-augment",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "7801f2824ba239f14df52fb288c380a6c96a663532acaed578f65bd72f13a6b5",
+  "headings": [
+    {
+      "level": 2,
+      "id": "usage",
+      "title": "Usage"
+    },
+    {
+      "level": 2,
+      "id": "strategies",
+      "title": "Strategies"
+    },
+    {
+      "level": 2,
+      "id": "providers",
+      "title": "Providers"
+    },
+    {
+      "level": 2,
+      "id": "flags",
+      "title": "Flags"
+    },
+    {
+      "level": 2,
+      "id": "when-the-provider-fails-v0-76-0",
+      "title": "When the provider fails (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "safety",
+      "title": "Safety"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Augmentation</h1><p><code>soup data augment</code> expands a JSONL dataset with LLM-driven rewrites. Added in v0.25.0.</p><h2 id=\"usage\">Usage</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Rephrase each example 3x\nsoup data augment \\\n  --input data.jsonl \\\n  --output augmented.jsonl \\\n  --strategy rephrase \\\n  --count 3\n\n# Translate to other languages\nsoup data augment --input data.jsonl --strategy translate --lang ru,zh,es\n\n# Rewrite in multiple styles\nsoup data augment --input data.jsonl --strategy style --styles formal,casual,technical"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"strategies\">Strategies</h2><div><table><thead><tr><th>Strategy</th><th>Purpose</th></tr></thead><tbody><tr><td><code>rephrase</code></td><td>Preserve meaning, diversify wording</td></tr><tr><td><code>translate</code></td><td>Add examples in other languages for multilingual fine-tuning</td></tr><tr><td><code>style</code></td><td>Rewrite in formal / casual / technical / etc. tones</td></tr></tbody></table></div><h2 id=\"providers\">Providers</h2><p>Augmentation uses the judge providers: <code>ollama</code>, <code>anthropic</code>, <code>vllm</code>. Select with <code>--provider</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data augment \\\n  --input data.jsonl \\\n  --strategy rephrase \\\n  --count 2 \\\n  --provider ollama \\\n  --dedup"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"flags\">Flags</h2><div><table><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--input</code>, <code>-i</code></td><td>The source JSONL (required)</td></tr><tr><td><code>--output</code>, <code>-o</code></td><td>Where to write; default <code>augmented.jsonl</code></td></tr><tr><td><code>--strategy</code>, <code>-s</code></td><td><code>rephrase</code> (default) / <code>translate</code> / <code>style</code></td></tr><tr><td><code>--provider</code>, <code>-p</code></td><td><code>ollama</code> (default), <code>anthropic</code> or <code>vllm</code></td></tr><tr><td><code>--count</code></td><td>Augmentation multiplier for <code>rephrase</code> (default 2, 1 to 10). <code>translate</code> and <code>style</code> ignore it and write one variant per language or style</td></tr><tr><td><code>--lang</code></td><td>Target languages for <code>translate</code>, comma-separated: at most 10 entries of 32 characters each</td></tr><tr><td><code>--styles</code></td><td>Style list for <code>style</code>, comma-separated: at most 10 entries of 32 characters each</td></tr><tr><td><code>--model</code></td><td>Model id to ask the provider for</td></tr><tr><td><code>--base-url</code></td><td>Provider endpoint for <code>ollama</code> or <code>vllm</code>. An Ollama server must be on localhost; a remote vLLM server must use HTTPS, and since v0.75.2 its host may not be a private, link-local or reserved IP address (name it by hostname). A host written only as numbers that is not a valid IPv4 address (<code>10.0.0.256</code>, <code>4294967296</code>) is refused too (v0.76.0). <code>anthropic</code> needs <code>ANTHROPIC_API_KEY</code> instead</td></tr><tr><td><code>--requests-per-minute</code></td><td>Client-side rate limit, 1 to 600 (default 60)</td></tr><tr><td><code>--dedup</code></td><td>Deduplicate augmented + original data</td></tr></tbody></table></div><h2 id=\"when-the-provider-fails-v0-76-0\">When the provider fails (v0.76.0)</h2><p>A call that fails (a transport error, a non-200 status, a malformed reply) or returns an empty or whitespace-only reply never becomes a row: that variant is dropped, and a row is never written with an empty or unrewritten field. The summary reports <code>N of M provider calls failed for --provider &lt;name&gt; (&lt;endpoint&gt;); first error: ...</code>. When no call produced a usable row the command prints <code>No usable rows produced</code> and exits 1 without writing an output file. A partial outage keeps the rows that succeeded and shows them under a yellow panel that reports the failure count.</p><blockquote><p><strong>Re-run this.</strong> Through v0.75.2 <code>soup data augment</code> built its provider so that a connection error, an HTTP 404, 429 or 500, or a malformed reply came back as empty text. A <code>rephrase</code>, <code>translate</code> or <code>style</code> pass over a provider that was down or rate-limiting wrote rows whose rewritten field was <code>&quot;&quot;</code> next to the originals, and the command exited 0. Open an augmented file made that way and look for empty fields. <code>soup distill-prompt</code> had the same defect from the other side: it dropped every failed row and wrote an empty file with <code>Rows: 0</code>, also with exit 0.</p></blockquote><h2 id=\"safety\">Safety</h2><ul><li>Input/output paths are resolved and constrained to the current working directory.</li><li>Output format must match the input format, enforced after generation.</li><li><code>--count</code> is capped at 10 to prevent accidental 1000× blow-ups.</li><li>Requests honor <code>--requests-per-minute</code> inherited from <code>soup data generate</code>.</li></ul><nav><a href=\"__DOCS_BASE__/data-clean\"><span>Previous</span><span>Clean a dataset</span></a><a href=\"__DOCS_BASE__/trace-to-preference\"><span>Next</span><span>Trace → Preference</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

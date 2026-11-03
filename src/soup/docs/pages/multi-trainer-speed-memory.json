@@ -1,0 +1,51 @@
+{
+  "slug": "multi-trainer-speed-memory",
+  "title": "Multi-Trainer Speed & Memory (v0.35.0)",
+  "description": "Soup CLI v0.35.0: Cut Cross-Entropy, FP8 and activation offloading wired into the thirteen transformer-backend trainers on the v0.28 allowlist, with kernel_auto_compose refused at config load since v0.76.0 (it reported a pick and applied nothing). Forward-only kernel benchmarking under torch.no_grad. Quant menu kwarg allowlist for vLLM.",
+  "source": "https://trysoup.dev/docs/multi-trainer-speed-memory",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "70c89ccdbf483908174f54214cb7387a13726bb07605e7bf531bc22b2b4b743b",
+  "headings": [
+    {
+      "level": 2,
+      "id": "what-s-now-multi-trainer",
+      "title": "What's now multi-trainer"
+    },
+    {
+      "level": 2,
+      "id": "fp8-int8-qat-guard",
+      "title": "fp8 / int8 QAT guard"
+    },
+    {
+      "level": 2,
+      "id": "activation-offloading-hooks-installed-everywhere",
+      "title": "Activation offloading hooks installed everywhere"
+    },
+    {
+      "level": 2,
+      "id": "kernel-benchmarking-forward-only",
+      "title": "Kernel benchmarking forward-only"
+    },
+    {
+      "level": 2,
+      "id": "quant-menu-kwarg-allowlist",
+      "title": "Quant menu kwarg allowlist"
+    },
+    {
+      "level": 2,
+      "id": "error-redaction-on-model-load-fallback",
+      "title": "Error redaction on model load fallback"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Multi-Trainer Speed &amp; Memory (v0.35.0)</h1><p>v0.35 finishes the v0.28 → v0.33 → v0.35 expansion: the four big speed-and-memory features now wire into <strong>every</strong> transformer-backend trainer.</p><h2 id=\"what-s-now-multi-trainer\">What&#x27;s now multi-trainer</h2><div><table><thead><tr><th>Feature</th><th>v0.28</th><th>v0.33</th><th>v0.35</th></tr></thead><tbody><tr><td><code>use_cut_ce</code></td><td>SFT</td><td>SFT, DPO, Pretrain</td><td>13 tasks</td></tr><tr><td><code>quantization_aware: &quot;fp8&quot;</code></td><td>SFT</td><td>SFT, DPO, Pretrain</td><td>13 tasks</td></tr><tr><td><code>kernel_auto_compose</code></td><td>SFT</td><td>SFT, DPO, Pretrain</td><td>Accepted on 13 tasks through v0.75.2 (the SFT trainer never read it). <strong>None since v0.76.0: <code>kernel_auto_compose: true</code> is refused at config load on every task (#801)</strong></td></tr><tr><td><code>activation_offloading</code></td><td>SFT</td><td>SFT, DPO, Pretrain</td><td>13 tasks</td></tr></tbody></table></div><p>&quot;13 tasks&quot; = SFT, DPO, Pretrain, GRPO, PPO, KTO, ORPO, SimPO, IPO, BCO, the unified <code>preference</code> dispatcher, Reward-Model and Embedding. That is the allowlist in <code>utils/v028_features.py</code>, and it is narrower than &quot;every trainer&quot;: ten of the 23 tasks are still <strong>refused at config load</strong> rather than silently ignored — <code>prm</code>, <code>tts</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>distill</code>, <code>unlearn</code>, <code>moe_lora_routing</code>, <code>online_dpo</code> and <code>asr</code>. So <code>use_cut_ce: true</code> with <code>task: distill</code> or <code>task: asr</code> raises, even though both are transformers-backend text tasks. The MLX backend and an unknown task each emit their own message so you get the right fix. Since v0.76.0 <code>quantization_aware: fp8</code> and the related <code>fp8_attention</code> and <code>nvfp4</code> are also refused on <code>backend: unsloth</code> and with <code>stream_layers: true</code>, and an FP8 request that the card cannot run stops the run instead of training on in bf16; see <a href=\"__DOCS_BASE__/training-speed-memory#fp8-training-ada-and-newer\">FP8 training</a>. Since v0.77.0 <code>use_cut_ce</code> is refused with <code>stream_layers: true</code> as well (#2023): the streamed setup never installed the patch, so the flag did nothing there.</p><p>Wired is not the same as engaged. <code>use_cut_ce</code> takes effect only when the third-party cut-cross-entropy package imports and has a patcher for the architecture; otherwise the run continues without it and says so in a yellow line, see <a href=\"__DOCS_BASE__/training-speed-memory#cut-cross-entropy\">Cut Cross-Entropy</a>. Whether the current cut-cross-entropy release engages on transformers 5.x was still unverified at v0.77.0.</p><h2 id=\"fp8-int8-qat-guard\">fp8 / int8 QAT guard</h2><p>Six trainer wrappers (GRPO / KTO / ORPO / SimPO / IPO / PPO) had <code>if tcfg.quantization_aware:</code> which would route the string <code>&quot;fp8&quot;</code> into the legacy int8 <code>prepare_model_for_qat</code> path. Each guard is now <code>quantization_aware != &quot;fp8&quot;</code> (matches the DPO / Pretrain pattern). (Since v0.76.0 the int8 half of this is moot for users: <code>quantization_aware: true</code> is refused at config load on every task and backend, #1222, so only <code>&quot;fp8&quot;</code> and <code>&quot;quest&quot;</code> reach a trainer.)</p><h2 id=\"activation-offloading-hooks-installed-everywhere\">Activation offloading hooks installed everywhere</h2><p>The shared helper in <code>utils/v028_features.py</code> now enforces <code>is_under_cwd</code> containment for <code>activation_offloading=&quot;disk&quot;</code> and reduces the offending path to <code>os.path.basename</code> in the <code>ValueError</code> message so absolute <code>$HOME</code> paths don&#x27;t leak. All thirteen supported trainer wrappers wrap <code>trainer.train()</code> with this context manager — closes a v0.33 oversight where DPO / Pretrain accepted the flag but never installed offload hooks.</p><h2 id=\"kernel-benchmarking-forward-only\">Kernel benchmarking forward-only</h2><p>(Since v0.76.0 no config reaches this helper: <code>kernel_auto_compose: true</code> is refused at config load.) <code>benchmark_kernel_combos</code> runs forward-only under <code>torch.no_grad()</code> — corruption hazard from gradient accumulation onto the live training model is eliminated. Caller-supplied bounds are clamped (<code>bs ≤ 32</code>, <code>sl ≤ 512</code>, <code>steps ≤ 50</code>, <code>vocab ≤ 200_000</code>) so a misconfigured caller cannot OOM the CI runner. Returns a NEW list — input candidates are never mutated.</p><h2 id=\"quant-menu-kwarg-allowlist\">Quant menu kwarg allowlist</h2><p>vLLM <code>quantization</code> kwarg is now an explicit named parameter on <code>create_vllm_engine</code> (not a <code>**kwargs</code> splat) and is validated against the closed allowlist <code>{awq, gptq, fp8}</code>. The earlier kwarg-splat path could have leaked arbitrary <code>AsyncEngineArgs</code> fields to the engine constructor — eliminated by the named-param refactor.</p><h2 id=\"error-redaction-on-model-load-fallback\">Error redaction on model load fallback</h2><p>When every candidate fails to load, the <code>RuntimeError</code> message includes only <code>type(last_error).__name__ + &quot;: &quot; + str(last_error)</code> instead of <code>repr(last_error)</code> — <code>repr</code> of a <code>FileNotFoundError</code> would embed <code>$HOME</code>-prefixed checkpoint paths.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/training-speed-memory\">Training speed &amp; memory</a> — original v0.28 doc</li><li><a href=\"__DOCS_BASE__/quant-menu\">Quant menu</a> — original 9-format menu · <a href=\"__DOCS_BASE__/quant-menu-ii\">Quant Menu II</a> — UD GGUF, NVFP4, BitNet, KV cache (v0.53)</li></ul><nav><a href=\"__DOCS_BASE__/seeds-and-reproducibility\"><span>Previous</span><span>Reproducibility</span></a><a href=\"__DOCS_BASE__/multipack\"><span>Next</span><span>Multipack: FFD Bin-Packing Sampler</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

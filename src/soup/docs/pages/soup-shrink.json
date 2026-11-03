@@ -1,0 +1,65 @@
+{
+  "slug": "soup-shrink",
+  "title": "soup shrink: make a model smaller (v0.71.29)",
+  "description": "soup shrink (v0.71.29) — depth-prune a model + optional distill-heal, with a SHIP / DON'T-SHIP perplexity verdict. Implements 'The Unreasonable Ineffectiveness of the Deeper Layers' (arXiv:2403.17887): ranks contiguous decoder-layer blocks by the angular distance the residual stream travels across them, drops the least-important block (first and last layers protected), then optionally distills the original into the pruned student via a LoRA subprocess and fuses the adapter back to one dense smaller model. Exit 0 = SHIP, 2 = DON'T SHIP, 1 = error. Arch allowlist v1: Llama / Qwen / SmolLM. Validated on SmolLM2-135M (drop 25% = 30 to 22 layers, ppl x2.98 unhealed; drop 4 + CPU heal recovered to x1.35).",
+  "source": "https://trysoup.dev/docs/soup-shrink",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "2b6e5343b386edc35a35ed3e14106bdc65c18553509a572abbf5f6bb891072cd",
+  "headings": [
+    {
+      "level": 2,
+      "id": "how-it-works",
+      "title": "How it works"
+    },
+    {
+      "level": 2,
+      "id": "quick-start",
+      "title": "Quick start"
+    },
+    {
+      "level": 2,
+      "id": "flags",
+      "title": "Flags"
+    },
+    {
+      "level": 2,
+      "id": "the-verdict-exit-codes",
+      "title": "The verdict + exit codes"
+    },
+    {
+      "level": 2,
+      "id": "supported-architectures-v1",
+      "title": "Supported architectures (v1)"
+    },
+    {
+      "level": 2,
+      "id": "validated-results",
+      "title": "Validated results"
+    },
+    {
+      "level": 2,
+      "id": "security",
+      "title": "Security"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">soup shrink: make a model smaller (v0.71.29)</h1><p><strong>v0.71.29</strong> ships <code>soup shrink</code>: one command that makes a model permanently smaller and faster by removing its least-useful decoder layers, optionally healing the damage by distillation, and printing a single <strong>SHIP / DON&#x27;T-SHIP</strong> perplexity verdict. The output is one dense smaller model, not a base plus an adapter.</p><p>It implements <a href=\"https://arxiv.org/abs/2403.17887\">&quot;The Unreasonable Ineffectiveness of the Deeper Layers&quot;</a> (Gromov et al.), with a Minitron-style distillation heal in place of the paper&#x27;s plain fine-tune.</p><blockquote><p>We have not found one-command importance-ranked depth pruning, with a distill-heal and a binary perplexity verdict, in another fine-tuning CLI.</p></blockquote><h2 id=\"how-it-works\">How it works</h2><ol><li><strong>Importance scan.</strong> For each contiguous block of decoder layers, Soup runs one forward pass per calibration prompt and measures the <strong>angular distance</strong> the residual stream travels from the block&#x27;s input to its output, averaged over every non-pad token. A block that barely changes the residual stream is doing little work and is the safest to drop.</li><li><strong>Select + prune.</strong> The least-important block is removed. The <strong>first and last decoder layers are always protected</strong> (they carry the most transformation). The model is sliced, its <code>num_hidden_layers</code> patched, saved, and reloaded so the surviving layers re-index cleanly.</li><li><strong>Distill-heal (optional).</strong> With <code>--heal</code>, the full-depth original (teacher) is distilled into the pruned student via a LoRA logit-distillation <code>soup train</code> subprocess. The resulting adapter is then <strong>fused back</strong> into the pruned base, so the shipped artifact stays a single dense model.</li><li><strong>Verdict.</strong> Perplexity is measured before and after. Soup <strong>SHIPs only if the perplexity ratio stays within your tolerance</strong> (default 10%), else <strong>DON&#x27;T SHIP</strong>.</li></ol><p>The rendered heal config is validated before the subprocess starts: a config that does not load stops the command with <code>Invalid rendered heal config: ...</code> and exit 1. A <code>--trust-remote-code</code> you passed to <code>soup shrink</code> is forwarded to that child <code>soup train</code> (#1449); before v0.76.0 the heal step told you to re-run with a flag you had already given. If the merge of the healed adapter fails part-way, the previous output is moved aside and restored, instead of being deleted before the new one is in place (#1450).</p><p>The rendered heal config sets <code>gradient_checkpointing: true</code>, and since v0.77.0 the distill trainer honours it (#797, #2140), so the heal step now trains with checkpointing on. Through v0.76.1 the distill trainer ignored the key and the heal always trained with checkpointing off. Since v0.77.0 the <code>--calib</code> file may also start with a UTF-8 byte-order mark (#2136, #2155).</p><h2 id=\"quick-start\">Quick start</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Plan only: print the layer-importance table + chosen block, write nothing.\nsoup shrink --model HuggingFaceTB/SmolLM2-135M-Instruct --drop-ratio 0.25 \\\n    --calib calib.jsonl --device cpu --plan-only\n\n# Prune 25%, distill-heal, get a verdict, attach the report to a registry entry.\nsoup shrink --model HuggingFaceTB/SmolLM2-135M-Instruct --drop-ratio 0.25 \\\n    --calib calib.jsonl --heal heal.jsonl --heal-steps 200 \\\n    --tolerance 0.10 -o shrunk --device cpu --attach-to-registry <id>"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The shrunk model lands in <code>&lt;out&gt;/model</code>, and the verdict is written to <code>&lt;out&gt;/shrink_report.json</code>.</p><h2 id=\"flags\">Flags</h2><div><table><thead><tr><th>Flag</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>--model</code></td><td>required</td><td>Model id or local path to shrink</td></tr><tr><td><code>--calib</code></td><td>required</td><td>Calibration prompts (JSONL, chat rows), must stay under cwd</td></tr><tr><td><code>--drop-ratio</code></td><td>—</td><td>Fraction of layers to drop (e.g. <code>0.25</code>). Exactly one of ratio / layers</td></tr><tr><td><code>--drop-layers</code></td><td>—</td><td>Explicit contiguous-layer count to drop</td></tr><tr><td><code>--heal</code></td><td>off</td><td>Distill the original into the pruned student, then fuse the adapter back</td></tr><tr><td><code>--heal-steps</code></td><td><code>200</code></td><td>Approx optimiser steps for the distill heal</td></tr><tr><td><code>--tolerance</code></td><td><code>0.10</code></td><td>Perplexity-ratio tolerance for the SHIP verdict (max 5.0)</td></tr><tr><td><code>-o</code>, <code>--output-dir</code></td><td><code>./shrunk</code></td><td>Output dir; model in <code>&lt;dir&gt;/model</code>, verdict in <code>&lt;dir&gt;/shrink_report.json</code></td></tr><tr><td><code>--device</code></td><td>auto</td><td><code>cpu</code> or <code>cuda</code> for the importance + perplexity passes</td></tr><tr><td><code>--attach-to-registry</code></td><td>—</td><td>Attach the shrink report to a registry entry id</td></tr><tr><td><code>--plan-only</code></td><td>off</td><td>Print the importance table + chosen block, then exit 0 (writes nothing)</td></tr><tr><td><code>--trust-remote-code</code></td><td>off</td><td>Allow custom modeling code; defaults off with a probe + warn</td></tr></tbody></table></div><p>The first and last layers are always protected, so the resolved drop count is clamped to <code>[1, num_layers - 2]</code>.</p><h2 id=\"the-verdict-exit-codes\">The verdict + exit codes</h2><p><code>soup shrink</code> drops into CI exactly like <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship</code></a> and <code>soup diagnose</code>:</p><div><table><thead><tr><th>Exit code</th><th>Meaning</th></tr></thead><tbody><tr><td><code>0</code></td><td><strong>SHIP</strong> — perplexity ratio within tolerance</td></tr><tr><td><code>2</code></td><td><strong>DON&#x27;T SHIP</strong> — pruning raised perplexity past tolerance</td></tr><tr><td><code>1</code></td><td>Error</td></tr></tbody></table></div><p>Pruning always raises perplexity, so <code>shrink</code> uses this dedicated ratio rule rather than <code>soup ship</code>&#x27;s absolute-improvement gate. The perplexity numbers are the same procedure applied before and after, so the <strong>ratio</strong> is valid, but they are not directly comparable to <code>soup eval</code> / lm-eval absolute scores.</p><h2 id=\"supported-architectures-v1\">Supported architectures (v1)</h2><p><strong>Llama, Qwen, SmolLM.</strong> Anything else is a friendly reject with a pointer to open an issue. The family is checked twice: fail-fast from the config before weights load, and again on the loaded model.</p><p>Models whose config keeps one entry per decoder layer are pruned correctly since v0.76.0 (#1241). <code>layer_types</code> (Qwen2, Qwen3, Qwen2-MoE, SmolLM3) and SmolLM3&#x27;s <code>no_rope_layers</code> are sliced with the kept layers, so a mixed sliding/full-attention list keeps the right entry for each survivor. <em>(Since closed in v0.76.0: through v0.75.2, shrinking one of those models scored the layers and then exited 1 on save with an empty <code>model/</code> directory, because transformers 5 refuses to save a config whose <code>layer_types</code> length differs from <code>num_hidden_layers</code>.)</em></p><p>A config that places its MoE layers <strong>by layer number</strong> is refused before the prune, because the kept layers would reload with MoE and dense MLPs on the wrong layers: <code>mlp_only_layers</code> and <code>decoder_sparse_step</code> (Qwen-MoE family), and <code>interleave_moe_layer_step</code> and <code>moe_layers</code> (Llama4-text) when they are not at their defaults. The message reads <code>cannot prune a model whose config sets &lt;attr&gt;=...: it holds layer indices that would point at the wrong layers after the drop</code>.</p><h2 id=\"validated-results\">Validated results</h2><p>Live-validated on <strong>SmolLM2-135M</strong> on a single <strong>RTX 3050 (4 GB)</strong>:</p><ul><li><strong>Drop 25%, unhealed:</strong> 30 → 22 layers (~21% of params gone), perplexity <strong>x2.98</strong>.</li><li><strong>Drop 4 + CPU heal:</strong> perplexity recovered to <strong>x1.35</strong>.</li></ul><p>The importance pass loads the model, so it is live-validated on models up to ~3B on that hardware; larger models work but are unvalidated on the reference card.</p><p>The second figure (the healed one) was measured at v0.71.29, before the distillation gradient-accumulation fix of v0.76.0 (#742, #943); the unhealed figure involves no distillation. The heal step renders <code>task: distill</code> without setting <code>gradient_accumulation_steps</code>, so the schema default of 4 applies to it. Upstream&#x27;s wording of the defect: &quot;the same effective batch split four ways previously produced four times the gradient and changed the effective learning rate&quot;. No re-measured figure exists, so none is given.</p><h2 id=\"security\">Security</h2><p>Every path (<code>--calib</code>, <code>--heal</code>, <code>--output-dir</code>, and every derived write path like <code>&lt;out&gt;/model</code> and the fuse staging dir) is held under cwd with <code>realpath</code> + <code>commonpath</code> + <code>O_NOFOLLOW</code> + symlink rejection, <strong>re-validated right before each write</strong> (TOCTOU defence, including after the potentially hours-long heal). The heal runs as an argv-list subprocess (no shell) with a timeout and a schema-validated config; its output is control-char-stripped before it reaches your terminal. Input files are capped at 64 MiB and 10,000 calib rows. <code>--model</code> defaults <code>trust_remote_code=False</code>.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> — the SHIP / DON&#x27;T-SHIP verdict for a fine-tune; <code>shrink</code> mirrors its exit codes.</li><li><a href=\"__DOCS_BASE__/spectrum-targeted-training\">Spectrum targeted training</a> — the complementary move: instead of removing layers, freeze all but the high-signal ones.</li><li><a href=\"__DOCS_BASE__/fine-tune-doctor\">Fine-tune Doctor</a> — pre-flight your data before you prune-and-heal.</li></ul><nav><a href=\"__DOCS_BASE__/lisa\"><span>Previous</span><span>LISA</span></a><a href=\"__DOCS_BASE__/prm-guided-grpo\"><span>Next</span><span>PRM-guided GRPO</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

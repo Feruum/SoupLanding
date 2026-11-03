@@ -1,0 +1,1766 @@
+{
+  "source": "https://trysoup.dev/sitemap.xml",
+  "retrieved": "2026-10-30",
+  "navigation": [
+    {
+      "title": "Getting Started",
+      "links": [
+        {
+          "slug": "getting-started",
+          "title": "Installation",
+          "version": ""
+        },
+        {
+          "slug": "configuration",
+          "title": "Configuration",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "title": "Decide",
+      "links": [
+        {
+          "slug": "training-intelligence",
+          "title": "Training Intelligence",
+          "version": "v0.25"
+        },
+        {
+          "slug": "advise",
+          "title": "soup advise: pre-flight decision engine",
+          "version": "v0.54"
+        },
+        {
+          "slug": "preflight-tooling",
+          "title": "Pre-flight & Tooling",
+          "version": "v0.64"
+        },
+        {
+          "slug": "fine-tune-doctor",
+          "title": "Fine-tune Doctor",
+          "version": "v0.71.27"
+        },
+        {
+          "slug": "eval-gate",
+          "title": "Eval-Gated Training",
+          "version": "v0.26"
+        },
+        {
+          "slug": "eval-design",
+          "title": "soup eval design: derive evals from data",
+          "version": "v0.55"
+        },
+        {
+          "slug": "eval-depth",
+          "title": "Eval Depth",
+          "version": "v0.65"
+        },
+        {
+          "slug": "quant-check",
+          "title": "Quant-Lobotomy Check",
+          "version": "v0.26"
+        },
+        {
+          "slug": "diagnose",
+          "title": "soup diagnose: post-training model report card",
+          "version": "v0.56"
+        },
+        {
+          "slug": "post-train-xrays",
+          "title": "Post-train X-rays",
+          "version": "v0.66"
+        },
+        {
+          "slug": "tracker-eval-pro",
+          "title": "Tracker & Eval Pro",
+          "version": "v0.43"
+        }
+      ]
+    },
+    {
+      "title": "Train",
+      "links": [
+        {
+          "slug": "training",
+          "title": "Training Methods",
+          "version": ""
+        },
+        {
+          "slug": "backends",
+          "title": "Backends & Performance",
+          "version": ""
+        },
+        {
+          "slug": "multimodal",
+          "title": "Vision & Audio",
+          "version": ""
+        },
+        {
+          "slug": "autopilot",
+          "title": "Autopilot",
+          "version": "v0.25"
+        },
+        {
+          "slug": "mlx-backend",
+          "title": "Apple Silicon MLX",
+          "version": "v0.77.0"
+        },
+        {
+          "slug": "tool-calling",
+          "title": "Tool-Calling",
+          "version": "v0.25"
+        },
+        {
+          "slug": "rlvr",
+          "title": "RLVR: Verifiable Rewards",
+          "version": "v0.25"
+        },
+        {
+          "slug": "multi-gpu",
+          "title": "Multi-GPU Mastery",
+          "version": "v0.27"
+        },
+        {
+          "slug": "training-speed-memory",
+          "title": "Speed & Memory",
+          "version": "v0.28"
+        },
+        {
+          "slug": "training-stability",
+          "title": "Training Stability",
+          "version": "v0.32"
+        },
+        {
+          "slug": "seeds-and-reproducibility",
+          "title": "Reproducibility",
+          "version": "v0.73.1"
+        },
+        {
+          "slug": "multi-trainer-speed-memory",
+          "title": "Trainer Speed & Memory",
+          "version": "v0.35"
+        },
+        {
+          "slug": "multipack",
+          "title": "Multipack: FFD Bin-Packing Sampler",
+          "version": "v0.37"
+        },
+        {
+          "slug": "lora-quality",
+          "title": "LoRA Quality",
+          "version": "v0.39"
+        },
+        {
+          "slug": "preference-variety",
+          "title": "Preference Variety",
+          "version": "v0.40"
+        },
+        {
+          "slug": "optimizer-zoo",
+          "title": "Optimizer Zoo",
+          "version": "v0.41"
+        },
+        {
+          "slug": "long-context",
+          "title": "Long Context",
+          "version": "v0.49"
+        },
+        {
+          "slug": "grpo-plus",
+          "title": "GRPO Plus",
+          "version": "v0.50"
+        },
+        {
+          "slug": "modality-ii",
+          "title": "Modality II",
+          "version": "v0.52"
+        },
+        {
+          "slug": "agent-forge",
+          "title": "Agent Forge",
+          "version": "v0.46"
+        },
+        {
+          "slug": "unlearning",
+          "title": "Unlearning & knowledge editing",
+          "version": "v0.61"
+        },
+        {
+          "slug": "rag-and-steering",
+          "title": "RAG & Steering",
+          "version": "v0.62"
+        },
+        {
+          "slug": "anti-trend-insurance",
+          "title": "Prompt Compile & Distill",
+          "version": "v0.68"
+        },
+        {
+          "slug": "loop-hardening",
+          "title": "Loop Hardening",
+          "version": "v0.70"
+        },
+        {
+          "slug": "reward-hack-mitigation",
+          "title": "Reward-Hack Auto-Mitigation",
+          "version": "v0.71.26"
+        },
+        {
+          "slug": "lean-install-live-wiring",
+          "title": "Lean Install + Live Wiring",
+          "version": "v0.71"
+        },
+        {
+          "slug": "spectrum-targeted-training",
+          "title": "Spectrum Training",
+          "version": "v0.71"
+        },
+        {
+          "slug": "lisa",
+          "title": "LISA",
+          "version": "v0.71.34"
+        },
+        {
+          "slug": "soup-shrink",
+          "title": "Model Shrink",
+          "version": "v0.71.29"
+        },
+        {
+          "slug": "prm-guided-grpo",
+          "title": "PRM-guided GRPO",
+          "version": "v0.71.30"
+        },
+        {
+          "slug": "online-dpo",
+          "title": "Online DPO",
+          "version": "v0.71.31"
+        },
+        {
+          "slug": "asr-fine-tuning",
+          "title": "ASR (Whisper)",
+          "version": "v0.71.32"
+        },
+        {
+          "slug": "reward-verifier",
+          "title": "Reward Forge",
+          "version": "v0.71.41"
+        },
+        {
+          "slug": "layer-streaming",
+          "title": "Layer Streaming",
+          "version": "v0.72.2"
+        },
+        {
+          "slug": "streaming-scaling",
+          "title": "Streaming: Scale",
+          "version": "v0.72.3"
+        },
+        {
+          "slug": "streaming-preference",
+          "title": "Streaming: Align",
+          "version": "v0.72.4"
+        },
+        {
+          "slug": "streaming-disk-tier",
+          "title": "Streaming: Disk tier",
+          "version": "v0.76.0"
+        },
+        {
+          "slug": "streaming-moe",
+          "title": "Streaming: MoE",
+          "version": "v0.77.0"
+        },
+        {
+          "slug": "paper",
+          "title": "The paper",
+          "version": ""
+        },
+        {
+          "slug": "external-validation",
+          "title": "External validation",
+          "version": ""
+        },
+        {
+          "slug": "measurement-records",
+          "title": "Measurement records",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "title": "Data",
+      "links": [
+        {
+          "slug": "data-formats",
+          "title": "Data Formats",
+          "version": ""
+        },
+        {
+          "slug": "data-tools",
+          "title": "Data Tools",
+          "version": ""
+        },
+        {
+          "slug": "data-clean",
+          "title": "Clean a dataset",
+          "version": "v0.76.0"
+        },
+        {
+          "slug": "data-augment",
+          "title": "Data Augmentation",
+          "version": "v0.25"
+        },
+        {
+          "slug": "trace-to-preference",
+          "title": "Trace → Preference",
+          "version": "v0.26"
+        },
+        {
+          "slug": "data-pipeline-pro",
+          "title": "Data Pipeline Pro",
+          "version": "v0.42"
+        },
+        {
+          "slug": "data-forge",
+          "title": "Data Forge",
+          "version": "v0.47"
+        },
+        {
+          "slug": "data-mix",
+          "title": "Data Mixing",
+          "version": "v0.48"
+        },
+        {
+          "slug": "trace-ecosystem",
+          "title": "Trace Ecosystem",
+          "version": "v0.63"
+        },
+        {
+          "slug": "data-engineering-pro",
+          "title": "Data Engineering Pro",
+          "version": "v0.69"
+        },
+        {
+          "slug": "data-moat-ii",
+          "title": "Data Moat II",
+          "version": "v0.71.36"
+        },
+        {
+          "slug": "best-of-n-evolve",
+          "title": "Best-of-N & Evolve",
+          "version": "v0.71.31"
+        }
+      ]
+    },
+    {
+      "title": "Ship",
+      "links": [
+        {
+          "slug": "soup-ship",
+          "title": "Ship Verdict",
+          "version": "v0.71.25"
+        },
+        {
+          "slug": "serving",
+          "title": "Inference Server",
+          "version": ""
+        },
+        {
+          "slug": "export",
+          "title": "Model Export",
+          "version": ""
+        },
+        {
+          "slug": "registry",
+          "title": "Model Registry",
+          "version": "v0.26"
+        },
+        {
+          "slug": "hf-hub-integration",
+          "title": "HuggingFace Hub",
+          "version": "v0.29"
+        },
+        {
+          "slug": "speculative-decoding",
+          "title": "Smart Inference Server",
+          "version": "v0.30"
+        },
+        {
+          "slug": "soup-draft",
+          "title": "Draft & Spec Decoding",
+          "version": "v0.71.33"
+        },
+        {
+          "slug": "quant-menu",
+          "title": "Quant Menu",
+          "version": "v0.38"
+        },
+        {
+          "slug": "quant-menu-ii",
+          "title": "Quant Menu II",
+          "version": "v0.53"
+        },
+        {
+          "slug": "model-catalog-v051",
+          "title": "Model Catalog",
+          "version": "v0.51"
+        }
+      ]
+    },
+    {
+      "title": "Operate",
+      "links": [
+        {
+          "slug": "experiments",
+          "title": "Experiment Tracking",
+          "version": ""
+        },
+        {
+          "slug": "rewind",
+          "title": "soup rewind",
+          "version": "v0.76.0"
+        },
+        {
+          "slug": "soup-bench",
+          "title": "soup bench",
+          "version": "v0.76.0"
+        },
+        {
+          "slug": "web-ui",
+          "title": "Web UI",
+          "version": ""
+        },
+        {
+          "slug": "soup-cans",
+          "title": "Soup Cans",
+          "version": "v0.26"
+        },
+        {
+          "slug": "soup-cans-v2",
+          "title": "Soup Cans v2 + LR Finder",
+          "version": "v0.33"
+        },
+        {
+          "slug": "observability",
+          "title": "Observability & Dev UX",
+          "version": "v0.34"
+        },
+        {
+          "slug": "live-dashboard-ux",
+          "title": "Live Dashboard",
+          "version": "v0.44"
+        },
+        {
+          "slug": "plugins",
+          "title": "Plugin System & Ecosystem",
+          "version": "v0.45"
+        },
+        {
+          "slug": "adapters",
+          "title": "soup adapters: git for LoRA",
+          "version": "v0.57"
+        },
+        {
+          "slug": "adapter-check",
+          "title": "Adapter check & audit",
+          "version": "v0.76.0"
+        },
+        {
+          "slug": "soup-loop",
+          "title": "soup loop: the production data flywheel",
+          "version": "v0.58"
+        },
+        {
+          "slug": "adapter-lifecycle",
+          "title": "Adapter Lifecycle",
+          "version": "v0.67"
+        },
+        {
+          "slug": "adapter-arithmetic",
+          "title": "Adapter Algebra",
+          "version": "v0.71.34"
+        },
+        {
+          "slug": "mcp-server",
+          "title": "MCP Server",
+          "version": "v0.71.28"
+        }
+      ]
+    },
+    {
+      "title": "Secure & Govern",
+      "links": [
+        {
+          "slug": "correctness-first",
+          "title": "Correctness First",
+          "version": "v0.36"
+        },
+        {
+          "slug": "governance",
+          "title": "Governance, BOM & SLSA-3 attestations",
+          "version": "v0.59"
+        },
+        {
+          "slug": "supply-chain-security",
+          "title": "Supply-chain Security",
+          "version": "v0.60"
+        },
+        {
+          "slug": "compliance-pack",
+          "title": "Compliance Pack",
+          "version": "v0.71.35"
+        }
+      ]
+    },
+    {
+      "title": "Recipes & Migration",
+      "links": [
+        {
+          "slug": "recipes",
+          "title": "Recipes",
+          "version": ""
+        },
+        {
+          "slug": "recipe-catalog",
+          "title": "Recipe catalog",
+          "version": ""
+        },
+        {
+          "slug": "recipe-expansion",
+          "title": "Recipe Expansion",
+          "version": "v0.31"
+        },
+        {
+          "slug": "migration",
+          "title": "Migration",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "title": "How-To Guides",
+      "links": [
+        {
+          "slug": "fine-tune-llama-3-1-lora",
+          "title": "Fine-tune Llama 3.1 with LoRA",
+          "version": ""
+        },
+        {
+          "slug": "fine-tune-qwen-3",
+          "title": "Fine-tune Qwen 3 on a custom dataset",
+          "version": ""
+        },
+        {
+          "slug": "fine-tune-gemma-3-qlora",
+          "title": "Fine-tune Gemma 3 with QLoRA on a single GPU",
+          "version": ""
+        },
+        {
+          "slug": "export-to-gguf-ollama",
+          "title": "Export to GGUF and deploy on Ollama",
+          "version": ""
+        },
+        {
+          "slug": "dpo-training-guide",
+          "title": "DPO training: align LLMs with human preferences",
+          "version": ""
+        },
+        {
+          "slug": "migrate-from-llamafactory",
+          "title": "Migrate from LLaMA-Factory to Soup CLI",
+          "version": ""
+        },
+        {
+          "slug": "migrate-from-axolotl",
+          "title": "Migrate from Axolotl to Soup CLI",
+          "version": ""
+        },
+        {
+          "slug": "multi-gpu-deepspeed",
+          "title": "Multi-GPU training with DeepSpeed ZeRO-3",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "title": "Reference",
+      "links": [
+        {
+          "slug": "cli-reference",
+          "title": "CLI Reference",
+          "version": ""
+        },
+        {
+          "slug": "exit-codes",
+          "title": "Exit codes",
+          "version": ""
+        },
+        {
+          "slug": "config-refusals",
+          "title": "Settings refused at load",
+          "version": "v0.77.0"
+        },
+        {
+          "slug": "faq",
+          "title": "FAQ",
+          "version": ""
+        },
+        {
+          "slug": "environment-variables",
+          "title": "Env vars and files",
+          "version": ""
+        },
+        {
+          "slug": "contributing",
+          "title": "Contributing",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "title": "Release Notes",
+      "links": [
+        {
+          "slug": "whats-new",
+          "title": "What's new",
+          "version": "v0.77.0"
+        },
+        {
+          "slug": "warnings-now-refused",
+          "title": "v0.77.0",
+          "version": "v0.77.0"
+        },
+        {
+          "slug": "dpo-examples-train-again",
+          "title": "v0.76.1",
+          "version": "v0.76.1"
+        },
+        {
+          "slug": "settings-refused-at-load",
+          "title": "v0.76.0",
+          "version": "v0.76.0"
+        },
+        {
+          "slug": "private-addresses-refused",
+          "title": "v0.75.2",
+          "version": "v0.75.2"
+        },
+        {
+          "slug": "an-empty-adapter",
+          "title": "v0.75.1",
+          "version": "v0.75.1"
+        },
+        {
+          "slug": "mlx-honours-its-config",
+          "title": "v0.75.0",
+          "version": "v0.75.0"
+        },
+        {
+          "slug": "loaded-in-fp32",
+          "title": "v0.74.0",
+          "version": "v0.74.0"
+        },
+        {
+          "slug": "flags-that-did-nothing",
+          "title": "v0.73.3",
+          "version": "v0.73.3"
+        },
+        {
+          "slug": "ship-gate-repairs",
+          "title": "v0.73.2",
+          "version": "v0.73.2"
+        },
+        {
+          "slug": "free-gpu-tier",
+          "title": "v0.73.1",
+          "version": "v0.73.1"
+        },
+        {
+          "slug": "borrowed-hardware",
+          "title": "v0.73.0",
+          "version": "v0.73.0"
+        },
+        {
+          "slug": "v053-live-writers",
+          "title": "Quant Menu II live writers",
+          "version": "v0.53.1"
+        },
+        {
+          "slug": "v0532-modality-live",
+          "title": "Modality II live trainers",
+          "version": "v0.53.2"
+        },
+        {
+          "slug": "v0536-7-plugins-anthropic",
+          "title": "Plugins, Anthropic, tools",
+          "version": "v0.53.6"
+        },
+        {
+          "slug": "v0538-10-remote-hubs",
+          "title": "Remote data & alt hubs",
+          "version": "v0.53.8"
+        },
+        {
+          "slug": "v0539-live-ux",
+          "title": "Live SSE & Web UI",
+          "version": "v0.53.9"
+        },
+        {
+          "slug": "v05311-grpo-prm-longlora",
+          "title": "GRPO Plus + preference",
+          "version": "v0.53.11"
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "slug": "adapter-arithmetic",
+      "title": "Adapter algebra (v0.71.34)",
+      "description": "Adapter algebra (v0.71.34) — soup adapters arithmetic \"coder + 0.5*math - toxic\" --adapter name=path -o out/ applies task arithmetic (arXiv:2212.04089) to LoRA deltas: add to blend skills, scale to dial one down, negate to subtract one. Because a LoRA stores factors whose product is the delta (ΔW = B@A), a naive coefficient scales the delta by c², making negation a no-op; Soup splits the coefficient as √|c| across the factors and carries the sign so ΔW scales linearly (verified: ||ΔW(2·a)||/||ΔW(a)|| = 2.000). That exactness is on the self (diagonal) term, so single-adapter scale/negate is exact while a multi-adapter sum also carries cross-terms. As of v0.72.0 mixed ranks are exact rather than refused: stacking the A factors and the scaled B factors reproduces the sum of deltas by construction, and --rank N truncates with an SVD only if you want a fixed output rank. Same-base check (--allow-cross-base), backdoor-scan gate (--allow-unscanned), hand-written parser with no eval. Honest scope: the mechanism (the delta really negates) is proven; the behavioural outcome, e.g. whether subtracting a toxicity adapter measurably reduces toxicity on a real safety eval, is not yet benchmarked.",
+      "headings": 5,
+      "codeBlocks": 2,
+      "sourceSha256": "ca4df662a8bc43f31044f5313a6b2d3f2e6ed77f153109ecc16caa11c68f347e"
+    },
+    {
+      "slug": "adapter-check",
+      "title": "Is the adapter alive: soup adapters check and audit",
+      "description": "soup adapters check says whether a LoRA adapter saved by the transformers path is trained; soup adapters audit compares a run's record with soup.yaml.",
+      "headings": 10,
+      "codeBlocks": 4,
+      "sourceSha256": "633ca4912ebebafc91041f7120f9e5377a6b787261c35eb3cfd91f9ad56dfafc"
+    },
+    {
+      "slug": "adapter-lifecycle",
+      "title": "Adapter Lifecycle Finish (v0.67.0)",
+      "description": "Soup CLI v0.67.0 adapter lifecycle finish — six surfaces that complete v0.57 git-for-LoRA. soup adapters merge --strategy cmaes runs pure-Python rank-mu CMA-ES over LoRA merge weights. VeRA / VB-LoRA vector banks (~512 bytes/user vs ~30 MB/LoRA). MoLE per-token gating over task LoRAs. soup adapters pr renders GitHub-shaped review-ready Markdown. soup lock writes SHA256(base || dataset || env) closure for reproducible team runs (soup lock check exits 2 on drift since v0.76.0, and 3 for a missing or unreadable lock). soup adapters bisect binary-searches training history. +165 tests, 11,021 total.",
+      "headings": 8,
+      "codeBlocks": 7,
+      "sourceSha256": "e126f2adcf5d3ed19e26973dcb326f368848cba62d67b425d8404a4dcffa0034"
+    },
+    {
+      "slug": "adapters",
+      "title": "soup adapters — git for LoRA",
+      "description": "soup adapters — git for LoRA. diff (per-layer Frobenius + SVD effective rank), merge (linear / TIES / DARE / SVD, pure numpy), blame (dataset-shard planner with budget parsing; its CLI influence scores are synthetic), branch / checkout / branches (named pointers to a LoRA config: checkout re-copies the config only while its SHA-256 still matches; the dataset hash and the base-model id are recorded for provenance). Since v0.76.0 soup adapters check says whether a LoRA adapter saved by the transformers path is trained at all, and soup adapters audit compares what a run recorded with your soup.yaml. New in v0.57.0.",
+      "headings": 6,
+      "codeBlocks": 6,
+      "sourceSha256": "1f4f8cb03870f268a98dd0602734d14876202a351a83e4b0ce4f3eda4d7cc8d8"
+    },
+    {
+      "slug": "advise",
+      "title": "soup advise — decide before you train",
+      "description": "soup advise <data.jsonl> — pre-flight decision engine. Classifies the task, profiles the dataset, ranks PROMPT_ENG / RAG / SFT / DPO / GRPO with row-count and reasoning-trace signals. Optional --probe adds heuristic ROI estimates (--probe-model runs a live probe). --record builds cross-project history at ~/.soup/advise_history.jsonl. New in v0.54.0.",
+      "headings": 7,
+      "codeBlocks": 5,
+      "sourceSha256": "7fc89e41d7dedb5e15e965d4f3a510757ec080947013603922a7be4ca676fc66"
+    },
+    {
+      "slug": "agent-forge",
+      "title": "Agent Forge & Deploy Autopilot (v0.46.0)",
+      "description": "Agent Forge in Soup CLI v0.46.0. soup agent synth/train/eval parses OpenAPI 3.x, MCP manifests, GraphQL introspection into tool-calling SFT datasets. soup deploy autopilot picks PEFT+quant+spec-decoding combos for a 10-profile hardware catalog.",
+      "headings": 2,
+      "codeBlocks": 2,
+      "sourceSha256": "ff0ff9747ecbddd2a76463abd7994cbe088a84ec47ace1a39b6d0a90b722fb57"
+    },
+    {
+      "slug": "an-empty-adapter",
+      "title": "v0.75.1: an adapter with nothing in it, and eight hardening fixes",
+      "description": "Soup CLI v0.75.1, tagged 21 September 2026, is a security and correctness backport: the v0.75.0 tree plus 25 cherry-picks, written entirely by the maintainer, so unlike the three releases before it there is no contributor list. Four fixes mean something you already ran was lost. A layer-streamed LoRA adapter saved on peft 0.21 or newer is a 40-byte file holding zero tensors, because peft 0.21 selects tensors by prefixes read off named_modules() where 0.20 filtered by the lora_ substring, and the streaming wrapper's names carried .inner. while its state_dict keys were canonical; save_model, every save_steps checkpoint and get_peft_model_state_dict all returned nothing and nothing raised, and it cannot be recovered. Typing soup runs clean --keep-weights on Click 8.1 did the opposite and deleted whole non-best checkpoints. soup train --cloud modal lost its checkpoints with the ephemeral container. Ctrl+C during a Lambda submit could leave the paid instance running. It is also the fix for advisory GHSA-63h4-gvp4-r26g, rated high and covering eight issues across 0.7.0 to 0.75.0, with three credentials to rotate: the Hugging Face token was resolved for every hub and handed to ModelScope or Modelers, OPENAI_API_KEY went as a Bearer token to any https judge host, and credential option values were written to the audit log. Also: adapters verify --public-key accepted unsigned adapters even under --strict, the Web UI rendered dataset content as HTML with no CSP, soup serve tool routes checked neither Host nor Origin, MCP execution did not pin every approved input, and the config-regex guard ran the untrusted pattern to decide whether running it was safe.",
+      "headings": 8,
+      "codeBlocks": 1,
+      "sourceSha256": "e944f142aeb4a2307ca184404510104f82e096aeed33152119fc1b2d815813a4"
+    },
+    {
+      "slug": "anti-trend-insurance",
+      "title": "Anti-trend Insurance (v0.68.0)",
+      "description": "Soup CLI v0.68.0 anti-trend insurance — 5-bet hedge against paradigm shifts. soup compile is a DSPy + GEPA + TextGrad prompt-program compiler (5-optimiser allowlist, MAX_COMPILE_ITERS=1000). soup distill-prompt migrates long system prompts into weights. soup compile-tools optimises tool-call descriptions via textual gradients. soup apple-adapter converts HF safetensors ↔ MLX npz adapters with optional Merkle-root signing; the *-to-apple FoundationModels directions refuse with exit 3 until Apple publishes the format. soup local-rl is a LIVE personal-LLM feedback flywheel — POSIX 0o600 SQLite, thumbs harvested to DPO pairs in one command. +204 tests, 11,225 total.",
+      "headings": 7,
+      "codeBlocks": 5,
+      "sourceSha256": "782cf36a3659db0ea3dde19d5dd2f59c713ec26e13e1f05ceabc179c7492f2de"
+    },
+    {
+      "slug": "asr-fine-tuning",
+      "title": "ASR fine-tuning (v0.71.32)",
+      "description": "ASR fine-tuning (v0.71.32) — soup train with task: asr fine-tunes OpenAI Whisper on your own audio, locally. JSONL rows of {audio, text} with data.format: asr, Seq2SeqTrainer + WhisperProcessor, optional LoRA on q/v (training.asr_lora); whisper-tiny (39M) and base (74M) train on a 4 GB GPU. soup infer --task asr transcribes and reports per-row and corpus WER/CER (pure Python, no new dependency); word accuracy feeds soup ship as the task metric. asr_language/asr_task persist to an asr_generation.json sidecar. Proof-of-mechanism on an RTX 3050: WER 1.000 to 0.000, loss 7.2 to 0.0005 at 0.4/4 GB.",
+      "headings": 8,
+      "codeBlocks": 3,
+      "sourceSha256": "4d6e91a9b9b6443a17b81c4bacb3a0c7e0e36c84ed1bb7ca2325faaea7fda4a5"
+    },
+    {
+      "slug": "autopilot",
+      "title": "Autopilot",
+      "description": "Soup Autopilot picks task, quantization, PEFT rank, batch size, LR, and epochs from your model, data, and GPU. New in v0.25.0.",
+      "headings": 7,
+      "codeBlocks": 2,
+      "sourceSha256": "e31ac3de1cb009be84696b9a2159e107d373e2515b34836b8e1b3f3d1fbd8af3"
+    },
+    {
+      "slug": "backends",
+      "title": "Backends & Performance",
+      "description": "Training backends: transformers, Unsloth (2-5x speedup), and MLX for Apple Silicon. FlashAttention, Liger Kernel, DeepSpeed ZeRO 2/3, ZeRO++, FSDP2, and pipeline parallelism (validated, then run data-parallel).",
+      "headings": 23,
+      "codeBlocks": 23,
+      "sourceSha256": "a4ef6afb0a657452b5f07ec519ca5ea6396d554079ef48ad8d5e0f79343810db"
+    },
+    {
+      "slug": "best-of-n-evolve",
+      "title": "Best-of-N & Evol-Instruct (v0.71.31)",
+      "description": "Best-of-N & Evol-Instruct (v0.71.31) — build training data with an LLM judge in the loop. soup data best-of-n samples N completions from a base model and a judge picks the winner as an SFT row (with --emit-pairs, winner-vs-loser DPO pairs too), BOND-lite rejection sampling; soup data evolve grows instruction diversity via WizardLM depth/breadth mutation. SSRF-validated judge/provider URLs, cwd-contained atomic writes. Part of the v0.71.31 judge-in-the-loop suite; no competitor (Unsloth, Axolotl, LLaMA-Factory, OpenPipe) ships it as one CLI suite.",
+      "headings": 5,
+      "codeBlocks": 4,
+      "sourceSha256": "ccc13dd0baed97632afd7b2e0e7a1e7950f201dce9300468b25c77d0c807fd2a"
+    },
+    {
+      "slug": "borrowed-hardware",
+      "title": "v0.73.0 \"Borrowed Hardware\"",
+      "description": "v0.73.0 \"Borrowed Hardware\" is the Soup CLI release that came out of three days on an 8x H100 box, the first hardware other than the 4 GB laptop every published number had been measured on. It found one silent correctness defect in layer streaming, four backends that had never actually run, and a documented multi-GPU entry point that had never launched. Read the re-run list first: a supervised run with data.max_length above 1024 was silently truncated to 1024 tokens with no warning, use_fsdp2_compile wrote an adapter that reloads as all zeros while the run exited 0 with a healthy loss, a streamed 32B or larger model in NF4 had wrong gradients, every soup ship verdict is suspect because two of three behavioural suites scored 0.000 on a model that does both tasks correctly and the refusal detector missed the typographic apostrophe, and a quantised GGUF export deleted a previously exported f16. The NF4 gradient defect (#331) is repaired here: the threshold is bracketed at 163.8 to 171.5 MiB per decoder layer, so 32B and 72B but never 8B or 14B and never bf16, the cause is buffer aliasing rather than a race because bitsandbytes keeps the packed weight outside save_for_backward, and the repair is gated at 256/256 gradient tensors on a real 32B and 320/320 on a real 72B against a control that reproduced the defect, costing about 3% VRAM and 4% throughput. Two capabilities are new, both config keys rather than flags: training.seed and training.data_seed, and full fine-tuning as lora.r 0. Packaging: Python narrows to 3.10 through 3.12 because 3.13 resolved untested PyTorch wheels that crash before Soup runs, trl widens to below 0.29 behind a capability probe, and soup serve gains --max-model-len. The published 119.6 tok/s laptop figure was measured on v0.72.2 at 952 MHz, before the repair; a post-repair row from another RTX 3050 Laptop, taken at a different clock, was recorded in v0.76.0, and the two are not directly comparable.",
+      "headings": 10,
+      "codeBlocks": 2,
+      "sourceSha256": "a9cda2e90f7530fa08822af6afbf5e4502009816e0cb25e8522696c7421e9302"
+    },
+    {
+      "slug": "cli-reference",
+      "title": "CLI Reference",
+      "description": "Complete Soup CLI command reference at v0.77.0: all 78 top-level commands (plus the new root --version) with their flags and subcommands, the 0 / 2 / 3 exit-code scheme of the CI gates, and the global options.",
+      "headings": 43,
+      "codeBlocks": 40,
+      "sourceSha256": "d2d04ee2efe10316c88c5354f0cb9a2bf001447011dff2cfc56a87484197cc3f"
+    },
+    {
+      "slug": "compliance-pack",
+      "title": "Compliance pack (v0.71.35)",
+      "description": "Compliance pack (v0.71.35) — ship a regulated fine-tune with the paperwork it needs. soup init --template hipaa|soc2|eu-ai-act|sr-11-7 starts from a regulation-shaped config (compliance controls are CLI flags, not schema keys, so each template is a valid config plus header comments naming that regime's exact commands; templates 17 to 21). soup card <registry-id> -o MODELCARD.md turns a registry entry into a provenance-carrying HF model card (training config, eval scorecard, config/data hashes, lineage, artifacts; adapter vs dense inferred correctly, with Spectrum/LISA full-FT treated as dense), and soup push --card uploads it as the README. soup ci init writes .github/workflows/soup-gate.yml: data validate, then expect, then ship --evidence, where exit 2 blocks the merge and, since v0.76.0, any other non-zero exit is labelled a usage or configuration error; since v0.77.0 a newly generated data step requires every row to convert (--min-valid-fraction 1.0; an existing workflow keeps its old step until you regenerate it with soup ci init --force). Also fixes GGUF export on Windows, validated end to end (q4_0/q4_k_m/q8_0/f16 plus an ollama round-trip).",
+      "headings": 7,
+      "codeBlocks": 6,
+      "sourceSha256": "6e96f146d2f73b2a73c7ee2bdae2fb0e7c1d727e13542e0db30abec240f01fa2"
+    },
+    {
+      "slug": "config-refusals",
+      "title": "Settings Soup refuses at load",
+      "description": "Settings Soup refuses when the config loads: the v0.76.0 refusals, the 31 staged fields and two deprecated config values refused since v0.77.0, and the never-applied settings v0.77.0 added, each with what to change.",
+      "headings": 16,
+      "codeBlocks": 3,
+      "sourceSha256": "959b343c993cfe4115057fa8fe2781cf40fa5d4d83128ca5f9a692252efac17f"
+    },
+    {
+      "slug": "configuration",
+      "title": "Configuration",
+      "description": "Configure Soup CLI with a single YAML file. Set base model, training task, LoRA params, and data paths via Pydantic v2 schema. Unknown keys, since v0.76.0 dozens of combinations that loaded on v0.75, since v0.76.1 a soup.yaml over 1 MiB or nested deeper than 100 levels, and since v0.77.0 the staged fields and deprecated config values v0.76 warned about are refused when the config loads; soup doctor --config reports the refusal before you train.",
+      "headings": 11,
+      "codeBlocks": 4,
+      "sourceSha256": "f38403a3eae8ae26e7f60610a58a375988f372b9a2bd3835de9a68cdce952a75"
+    },
+    {
+      "slug": "contributing",
+      "title": "Contributing to Soup",
+      "description": "How to contribute to Soup: set up the dev environment, find and claim an issue, follow the branch, changelog fragment, test and CI rules, and add a recipe, command or trainer.",
+      "headings": 30,
+      "codeBlocks": 10,
+      "sourceSha256": "82e67359dbac15fe921436e32946d805b4ad33ced027d7b6fadf93a0a68bed67"
+    },
+    {
+      "slug": "correctness-first",
+      "title": "Correctness First (v0.36.0)",
+      "description": "Default-deny --trust-remote-code with first-party allowlist, assistant-only loss masking, chat-template Jinja directive blocklist, OOM-probe auto batch size with on-disk cache. New in v0.36.0.",
+      "headings": 4,
+      "codeBlocks": 4,
+      "sourceSha256": "451f352203610a1733918da4e765ff3e3df4a514b63b772135eb105feca0113d"
+    },
+    {
+      "slug": "data-augment",
+      "title": "Data Augmentation",
+      "description": "Expand JSONL datasets with rephrase, translate, and style strategies via Ollama, Anthropic, or vLLM. New in v0.25.0.",
+      "headings": 6,
+      "codeBlocks": 2,
+      "sourceSha256": "7801f2824ba239f14df52fb288c380a6c96a663532acaed578f65bd72f13a6b5"
+    },
+    {
+      "slug": "data-clean",
+      "title": "Clean a dataset with soup data clean",
+      "description": "soup data clean rewrites a fine-tuning dataset with deterministic hygiene rules and never edits the input. Flags, per-format coverage, exit codes.",
+      "headings": 9,
+      "codeBlocks": 3,
+      "sourceSha256": "b0986a2f0d0b055448b56c2327d59054ac5db4d390d61df04b82957993440a6b"
+    },
+    {
+      "slug": "data-engineering-pro",
+      "title": "Data Engineering Pro (v0.69.0)",
+      "description": "Soup CLI v0.69.0 data engineering pro — turn dataset prep into a first-class engineering discipline. soup build is a dbt-shaped DAG of dataset transforms with re-tokenise-only-changed-rows incremental materialisation. soup expect is a Great Expectations suite for chat data (PII, refusal, token length, and a judge expectation that a chosen answer beats the rejected one, which needs --judge or args.judge and otherwise fails with exit 2 unless args.advisory is set; exit 2 means an expectation failed, exit 3 means the suite or data was rejected). soup data gen-magpie generates synthetic data via Magpie chat-template-prefix harvest. soup data persona-mix is the Persona-Hub diversity sampler (12 personas × 5 styles bundled, BYO Tencent 200k). soup data brain-rot is the arXiv 2510.13928 AI-slop detector (OK/MINOR/MAJOR, --strict exits 3). +262 tests, 11,487 total.",
+      "headings": 8,
+      "codeBlocks": 7,
+      "sourceSha256": "8fbc22c84c710c2b2ca4bcfef06665639248eae9d66f7ce120639cdaf72f579d"
+    },
+    {
+      "slug": "data-forge",
+      "title": "Data Forge & Quality Moat (v0.47.0)",
+      "description": "Data Forge & Quality Moat in Soup CLI v0.47.0. soup data forge chunk→judge→active-prune→JSONL with provenance. soup data score combines PII, an abuse-keyword heuristic (not a toxicity classifier), langdetect and educational filters (its Decontaminated cell reads not run unless you supply benchmark texts with --benchmark-file). Each filter addressable individually.",
+      "headings": 2,
+      "codeBlocks": 2,
+      "sourceSha256": "861bca5f354cbcac3dfb9a186cacf7dafa79eebdd5ddfaac6a9b94b4729e2d6a"
+    },
+    {
+      "slug": "data-formats",
+      "title": "Data Formats",
+      "description": "20 data formats (the count includes auto): alpaca, sharegpt, chatml, dpo, kto, llava, sharegpt4v, plaintext, embedding, audio, tool-calling, auto, prm, pre_tokenized, input_output, video, multimodal, raft (v0.62 Retrieval-Augmented Fine-Tuning), asr (v0.71.32 Whisper fine-tuning), cross_encoder (v0.76.0, only with task: cross_encoder). Remote URIs (s3/gs/az/abfs/oci) supported as of v0.42.",
+      "headings": 16,
+      "codeBlocks": 16,
+      "sourceSha256": "96c6c643f456c3e96b3fa472bd4bae5bcea1c27c232c2dddd689b4c04c46e175"
+    },
+    {
+      "slug": "data-mix",
+      "title": "Data Mixing Optimizer & Dynamic Curriculum (v0.48.0 — BETA)",
+      "description": "Data Mixing Optimizer + Dynamic Curriculum in Soup CLI v0.48.0 (BETA). Bayesian search over per-dataset mixture weights. DynamicCurriculumPolicy recomputes and logs bucket weights every N steps (they do not yet reorder the sampler at v0.77.0). soup data mix --optimize / --apply. soup runs curriculum-curve visualisation.",
+      "headings": 2,
+      "codeBlocks": 3,
+      "sourceSha256": "da6e0aa06474a2f1c78c442e96e2528169c6de2effd53bee5f8a1d99a5f8d7fd"
+    },
+    {
+      "slug": "data-moat-ii",
+      "title": "Data Moat II (v0.71.36)",
+      "description": "Data Moat II (v0.71.36) — a semantic layer over your training data plus two tools for what a fine-tune forgets and leaks. soup data dedup --semantic removes reworded near-duplicates over embedding cosine that MinHash's shingling misses (measured 0.88 to 0.91 on rewordings), with the honest caveat that it is not a paraphrase detector: paraphrase cosines (0.49 to 0.76) overlap genuinely-distinct rows, so no threshold separates them and the default 0.8 stays conservative. soup data topics clusters the dataset and labels each cluster with c-TF-IDF terms plus a coverage table (82% code, 6% math) and a thin-topic warning. soup data canary insert|check is a Secret-Sharer memorization probe: insert K high-entropy secrets, train, then rank each secret's loss against never-inserted controls, with a binomial-tail verdict and exit 2 on MAJOR so CI can gate a leak. soup train --replay old.jsonl --replay-ratio 0.1 is continual-learning rehearsal that interleaves a seeded sample of an old dataset so a new task does not erase it (sft/pretrain only, proof-of-mechanism at 135M). Zero new dependencies (reuses transformers from [train]); also fixes the hardware-fit gate refusing to train locally-merged checkpoints.",
+      "headings": 6,
+      "codeBlocks": 5,
+      "sourceSha256": "04d2bf74a429e76317a859d73b90f5044914b7fa341d48811c7ad218dea24fcd"
+    },
+    {
+      "slug": "data-pipeline-pro",
+      "title": "Data Pipeline Pro (v0.42.0)",
+      "description": "Data Pipeline Pro in Soup CLI v0.42.0. 5 new data formats (prm, pre_tokenized, input_output, video, multimodal), remote URIs (s3/gs/az/abfs/oci), streaming + sharding, multi-dataset interleave (data.train as a list plus data.interleave, wired at training time since v0.74.0), vocab expansion, soup data ingest for PDF/DOCX/MD/TXT (PDF and DOCX through the [documents] extra since v0.77.0), AOT tokenize cache.",
+      "headings": 11,
+      "codeBlocks": 9,
+      "sourceSha256": "8a450eebcaa5859b419b4866b5c49811da8c6b64fa0fbbaf59b07368bf89c8eb"
+    },
+    {
+      "slug": "data-tools",
+      "title": "Data Tools",
+      "description": "Synthetic data generation (OpenAI, local, server, Ollama, Anthropic or vLLM providers) and augmentation (Ollama, Anthropic or vLLM). Rephrase, translate, style strategies. Since v0.76.0 soup data clean sanitises a dataset into a new file and never edits the input.",
+      "headings": 17,
+      "codeBlocks": 16,
+      "sourceSha256": "a1fae262851ea37c6f8dd17ffdf17148a14b61434ee1f52cc3d46eec1ba37128"
+    },
+    {
+      "slug": "diagnose",
+      "title": "soup diagnose — seven failure-mode probes, one verdict",
+      "description": "soup diagnose <run-id> — post-training model report card on 7 failure modes (forgetting / refusal / format / mode-collapse / memorization / contamination / citation-recall). OK / MINOR / MAJOR verdict (thresholds 0.85 / 0.60), or NOT_RUN (exit 3) when a requested probe did not run + an embeddable SVG badge with one cell per probe. Pair with soup train --diagnose-gate <evidence> to exit 2 on a MAJOR regression after the checkpoint is saved. New in v0.56.0, citation probe added in v0.71.10.",
+      "headings": 6,
+      "codeBlocks": 4,
+      "sourceSha256": "69025dfce18158c0c326c182c84b06c9a2c417b56f9e87bdc5fcf2c92e225ed6"
+    },
+    {
+      "slug": "dpo-examples-train-again",
+      "title": "v0.76.1: the bundled DPO examples train again",
+      "description": "Soup v0.76.1, a maintainer patch on the v0.76.0 line: the bundled DPO examples train again with preference rows in one layout, every YAML file Soup reads gets nesting, expansion and size limits (1 MiB for a soup.yaml), the Typer floor is 0.15.4, a Hub dataset id with a dot loads from the Hub, and a reward_model trained on a string prompt beside chosen and rejected message lists that repeat the user turn is worth re-training if it matters (verified on v0.76.0; the code that produced it is unchanged at every earlier tag this site's audit read, back to v0.40.0).",
+      "headings": 11,
+      "codeBlocks": 4,
+      "sourceSha256": "43190262ff32ed0eaf8f1098f2f2f40524cdaa46cc770e5e71ed9d5a82c25670"
+    },
+    {
+      "slug": "dpo-training-guide",
+      "title": "DPO training guide: align LLMs with human preferences",
+      "description": "Direct Preference Optimization (DPO) guide: align LLMs with human preferences using Soup CLI. Dataset format, YAML config, and DPO variants (ORPO, SimPO, IPO, KTO).",
+      "headings": 9,
+      "codeBlocks": 6,
+      "sourceSha256": "a2bccb95900ff0e5d9663b138d8244fbabebfc9fcb55ce3d9de95c478206dadc"
+    },
+    {
+      "slug": "environment-variables",
+      "title": "Environment variables and state files",
+      "description": "Every SOUP_* environment variable at v0.77.0 (new: SOUP_TOOL_AUTH_TOKEN for the soup serve and soup loop watch tool token and SOUP_LOOP_THUMBS_DB for the thumbs database soup loop watch reads), the credential and endpoint variables Soup reads, which path overrides are containment-checked and which are used exactly as given, and the files Soup writes under ~/.soup and the working directory.",
+      "headings": 10,
+      "codeBlocks": 0,
+      "sourceSha256": "f17a09dcfe0c121cec285995980e4f0210b18f65f5455c21c88a5a996ee1f7f0"
+    },
+    {
+      "slug": "eval-depth",
+      "title": "Eval Depth (v0.65.0)",
+      "description": "Soup CLI v0.65.0 eval depth — failure-mode coverage goes from 7 to 11. soup eval behavior diffs pre/post-FT on XSTest / HarmBench / JailbreakBench / ELEPHANT / SycEval. soup eval capability emits validated lm-eval-harness task IDs for MMLU-Pro / GPQA / AIME / MATH-500 / HumanEval+ / SWE-bench / BBEH. soup eval checklist runs MFT/INV/DIR DSL specs against responses you supply with --evidence (it loads no model). soup eval irt-subset fits Rasch (1PL) IRT by default, 2PL or 3PL with --model, for ~30% / ~10% cost-cut subsets that preserve ranking power.",
+      "headings": 6,
+      "codeBlocks": 6,
+      "sourceSha256": "78c9bdfbe2a9ff7b8516fcb6413153369b459129d456bf160e2a8d3c12bc11c4"
+    },
+    {
+      "slug": "eval-design",
+      "title": "soup eval design — derive evals from your training data",
+      "description": "soup eval design — derive a goal-conditioned eval suite from your data via TF-IDF salience + goal-keyword dispatch (json/code/math → rlvr, classify → exact_match, extract → regex, default → judge). soup eval discover surfaces canaries via farthest-first Jaccard clustering + 25% prefix memorization probes. soup eval lock SHA-256 pins the suite. soup eval gate-install writes a pre-push hook that runs the soup eval against command on the run named in SOUP_CANDIDATE_RUN_ID and skips itself when that variable is unset. New in v0.55.0.",
+      "headings": 7,
+      "codeBlocks": 6,
+      "sourceSha256": "106d8fd5fc9aeac763430da6a4b914686972050d85e34c374918a92971459ed1"
+    },
+    {
+      "slug": "eval-gate",
+      "title": "Eval-Gated Training",
+      "description": "Eval-gated training in Soup CLI v0.26.0. Declarative eval suites halt training on quality regression. Baselines from registry, file, or first epoch.",
+      "headings": 9,
+      "codeBlocks": 5,
+      "sourceSha256": "1a4fb577e6b58cedcffd9844c2dbb08e622f3384c77897b41e82aeb73222df0e"
+    },
+    {
+      "slug": "exit-codes",
+      "title": "Exit codes",
+      "description": "What each Soup command's exit code means at v0.77.0: the 0 / 2 / 3 scheme that eleven gate and verdict commands now share (ship, expect, eval gate, data validate, lock check and others), the places where one code means two things, the v0.77.0 refusals at load (soup train 1, soup doctor --config 2, a soup sweep --param that sets a staged field away from its default 1) and the retired soup ab --beta (2), and the CI test that now passes a failing gate.",
+      "headings": 14,
+      "codeBlocks": 0,
+      "sourceSha256": "d05b8e8e12af029633e0d12e207b06394219e28a332e1ec7d810269ee8780d11"
+    },
+    {
+      "slug": "experiments",
+      "title": "Experiment Tracking",
+      "description": "Track training experiments, compare runs, and manage model checkpoints with Soup CLI's built-in SQLite tracker.",
+      "headings": 21,
+      "codeBlocks": 16,
+      "sourceSha256": "c5fad4eb2a41c34feaca70c68a2f3b218cf309e08adec4525a6d2e04372be252"
+    },
+    {
+      "slug": "export",
+      "title": "Model Export",
+      "description": "Export models to GGUF (including the gguf-ud ladder), ONNX, TensorRT, TorchAO and BitNet / tq1_0; AWQ and GPTQ export were removed in v0.77.0 (they need v0.76.x with its [awq] or [gptq] extra), and the TensorRT-LLM path stops at a pre-check on current TensorRT-LLM releases. Deploy to Ollama with one command.",
+      "headings": 8,
+      "codeBlocks": 11,
+      "sourceSha256": "cc85ffc9fd847477fda503ea52dd2bb8a98cdfba5025e3e9bfbf15fdb53a9985"
+    },
+    {
+      "slug": "export-to-gguf-ollama",
+      "title": "Export fine-tuned models to GGUF and deploy on Ollama",
+      "description": "Export a fine-tuned model to GGUF and deploy to Ollama with Soup CLI in three commands. Quantization levels and one-liner pipeline.",
+      "headings": 8,
+      "codeBlocks": 7,
+      "sourceSha256": "5bf6e2223dca33a5f7ed2c2ecead64dee7c64186f7be7eb4de5e5357eeb3f74a"
+    },
+    {
+      "slug": "external-validation",
+      "title": "Validation on hardware we do not own",
+      "description": "Layer streaming validated on an 8x H100 80 GB box, the first hardware other than the 4 GB laptop it was built on, and the first able to hold a resident reference for a real model. Bit-exactness is two claims, not one: the forward (logits, torch.equal) is exact against a resident reference of matching numerics at 0.5B, 8B, 14B, 32B and 72B, while the backward (every LoRA gradient tensor) was exact at 8B and 14B and WRONG at 32B and 72B before the repair described here. That defect, issue #331, is NF4-only above roughly 165 MiB per decoder layer (bracketed between 163.8 exact and 171.5 broken), the forward stayed bit-exact and the loss matched a resident run to every digit while 62 of 64 layers had wrong gradients, and the cause is aliasing rather than a race: bitsandbytes keeps the packed weight outside save_for_backward, so gradient checkpointing cannot recompute it and the backward reads a buffer slot already refilled. Nothing Soup has published sits above that boundary, since 8B is 105 MiB per layer and 14B is 132, and both survive a 50-backward soak at exactly 0.0. Peak VRAM is flat in model size across a fourfold range: 3,397 MiB at 8B, 4,475 at 14B, 4,845 at 32B, and 7,411 at 72B. The published laptop headline reproduces on completely different hardware at a median 113.00 tok/s in the same 3.32 GB peak (the laptop figure it reproduces was measured on v0.72.2 at 952 MHz, before the NF4 gradient repair; a post-repair row from another RTX 3050 Laptop, taken at a different clock, is recorded, and the two are not directly comparable), at a mean GPU utilisation of 54.1%; the transfer-bound explanation first given for that was retracted in August 2026, after an ablation measured the entire host-to-device term at 1.44% of the step, and the measurement itself is unchanged. Against DeepSpeed ZeRO-3 with CPU parameter offload at matched numerics on one GPU, streaming is 2.93x the throughput in 9.7x less VRAM, though the honest framing is not faster than DeepSpeed but built for a different situation. A streamed model converges indistinguishably from a resident one at this resolution: mean paired difference 0.0053 over five paired runs and 300 held-out items, smaller than either arm's own spread.",
+      "headings": 13,
+      "codeBlocks": 0,
+      "sourceSha256": "44570970fd6a86d146f5a613d0f90d38974bd107c21b8e15356c38d156dd5fb0"
+    },
+    {
+      "slug": "faq",
+      "title": "FAQ",
+      "description": "Frequently asked questions about Soup CLI: what version is current (v0.77.0, with no codename, the release where what v0.76 warned about is now refused), installation and the PyTorch-free light core, GPU requirements, model compatibility, how it differs from LLaMA-Factory, Axolotl and Unsloth, which of the 23 training tasks to pick, whether it runs fully offline, Apache-2.0 licensing, and how layer streaming fine-tunes and aligns a model larger than your VRAM.",
+      "headings": 38,
+      "codeBlocks": 0,
+      "sourceSha256": "9b3d9a27a0b0c497a72d975652cee044e627a1a37c328d7ae3ac1f68a44dc463"
+    },
+    {
+      "slug": "fine-tune-doctor",
+      "title": "Fine-tune Doctor (v0.71.27)",
+      "description": "Fine-tune Doctor (v0.71.27) — pure-CPU, zero-GPU pre-flight that catches silent fine-tune failures before a training step. soup data doctor <data> --model <id> runs 8 chat-template checks (template present/renders, generation markers, eos_in_labels — the #1 'never stops generating' bug, bos_duplication, system_role, unknown_roles, truncation_risk) with OK/MINOR/MAJOR verdicts and exit 2 on MAJOR; --show-mask N colours trained vs masked tokens through the real collator. soup data lint <data> flags DPO length_bias as a Cohen's d effect size, label_imbalance, near_duplicates (MinHash/LSH), identical_pairs, and prompt_leak. No competitor (Unsloth/Axolotl/LLaMA-Factory) ships these. Since v0.76.0 soup doctor --config soup.yaml also shows what the loader now refuses or warns about before you train.",
+      "headings": 7,
+      "codeBlocks": 5,
+      "sourceSha256": "0458ce16f68f664f8821b36ed7531de1b13a25d8237e9e687c8f3ebe97a74f3c"
+    },
+    {
+      "slug": "fine-tune-gemma-3-qlora",
+      "title": "Fine-tune Gemma 3 with QLoRA (single GPU)",
+      "description": "Fine-tune Google Gemma 3 12B with QLoRA (4-bit) on a single 16GB GPU using Soup CLI. Config, training, and GGUF export.",
+      "headings": 8,
+      "codeBlocks": 6,
+      "sourceSha256": "0ed98e558b24f32de878f583de85eeefeb6e48d54a5ed62dddf8c0643b8dba3e"
+    },
+    {
+      "slug": "fine-tune-llama-3-1-lora",
+      "title": "Fine-tune Llama 3.1 with LoRA using Soup CLI",
+      "description": "How to fine-tune Meta Llama 3.1 8B with LoRA on a single GPU using Soup CLI. Full example: install, dataset, YAML config, training, and export.",
+      "headings": 10,
+      "codeBlocks": 7,
+      "sourceSha256": "738870048b8801cc795518fc92ca4cb6b5eba192bcaba75cef4c4ff1e760fccc"
+    },
+    {
+      "slug": "fine-tune-qwen-3",
+      "title": "Fine-tune Qwen 3 on a custom dataset",
+      "description": "Fine-tune Qwen 3 8B on a custom ShareGPT dataset with Soup CLI. YAML config, multi-turn training, and vLLM serving walkthrough.",
+      "headings": 8,
+      "codeBlocks": 5,
+      "sourceSha256": "9a1eb993518f61b7908a15828b2ad354d97bfb538b9727e58da1a9c58f67a9d2"
+    },
+    {
+      "slug": "flags-that-did-nothing",
+      "title": "v0.73.3: four flags that did nothing",
+      "description": "v0.73.3 is the first Soup CLI release the maintainer did not write: all 24 pull requests came from eight other people, five of them first-time contributors. What outside eyes found was four separate flags that the schema validated, the docs described, and nothing in the codebase read. training.bnb_4bit_use_double_quant changed a config fingerprint and nothing else; on Apple Silicon quantization 4bit was silently rewritten to none because device detection did not know MLX; soup train --no-reexec printed a launch command with your own flags missing, so following it trained without --fsdp and still succeeded; and data.interleave had no training-time reader at that release (filed rather than papered over, then wired in v0.74.0). Two more findings are the project's signature failure shape, a run that completes and is wrong anyway: assistant-only loss masking built its label mask from a tokenizer mapping's key strings, so a run trained on zero tokens behind a normal loss curve, and on Windows a process that exited with code 259 was indistinguishable from one still running and read as alive forever. The one new capability is soup mcp serve --allow-execute, which stopped reserving a gate and now runs a planned training or export behind a short-lived, single-use, server-generated confirmation token, taking the server from 16 tools to 18. No new measurement was made and no benchmark record was added.",
+      "headings": 13,
+      "codeBlocks": 1,
+      "sourceSha256": "ff373d23c2b5774471a987a73491ef0e0c6c65a3b7502c60d2c5e44641bbd6ed"
+    },
+    {
+      "slug": "free-gpu-tier",
+      "title": "v0.73.1: the free GPU tier",
+      "description": "v0.73.1 repaired the GPU tier most people actually have. bf16 was assumed on every CUDA card, in fourteen places across twelve trainer wrappers plus the streaming setup and the supervised precision resolver, so every pre-Ampere card failed on every task and not only on layer streaming: a T4 on Colab's free tier, a T4 or P100 on Kaggle, and every V100, GTX 16xx and RTX 20xx ran in a dtype their GPU has no units for and said nothing about it. The trap recorded beside the fix is that the capability check counts emulation by default, so a T4 answers yes and the first attempt was a no-op on exactly the hardware it was written for. With the repair in, Llama-3.1-8B in NF4 streams on a free Colab T4 inside a process capped at 4.00 GB, with the cap shown to bite rather than assumed: measured peak 2.91 GB against a predicted 3.02, an over-prediction of 3.8%, seven steps, exit 0, an adapter with 128 of 128 tensors non-zero. No throughput is quoted from that run because a capped card is not a benchmark, and gradient exactness at 8B on a Turing card is not shown. The slot's own issue found the streaming VRAM pre-flight breaking its own contract that it never under-predicts: measured through the real soup train, it over-predicts by 8% at sequence 4352 and then under-predicts, 0.934x the real peak at 5120 and 0.787x at 6144, and the grid that validates it could not have caught this because all ten of its rows sit at sequence 256 or 512. Two new config keys, not CLI flags: training.stream_vram_probe measures one real forward and backward at your configured shape instead of predicting it, supervised fine-tuning only and off by default, and training.stream_vram_override replaces the free-VRAM figure the pre-flight checks against. Also: training.seed now reaches every trainer wrapper rather than one of eighteen, MLX adapters no longer save unresolved target modules that load as a silent no-op, backend mlx finally dispatches to MLX at all, and periodic checkpoints under use_fsdp2_compile stop loading as dead adapters.",
+      "headings": 8,
+      "codeBlocks": 1,
+      "sourceSha256": "4ec0b32fa7a939b53901b4a998fdc815cf9cbac5e5b7428f0e2f808a5b61dddf"
+    },
+    {
+      "slug": "getting-started",
+      "title": "Getting Started",
+      "description": "Install Soup CLI v0.77.0 (Apache-2.0) and start fine-tuning LLMs in minutes. The install split: pip install soup-cli is a light PyTorch-free CLI; pip install \"soup-cli[train]\" adds the training stack; pip install \"soup-cli[mcp]\" adds the MCP server so your coding agent can drive Soup. Python 3.11 to 3.13 (since v0.77.0; on Python 3.10, pip keeps installing v0.76.x), CUDA or Apple Silicon.",
+      "headings": 15,
+      "codeBlocks": 14,
+      "sourceSha256": "ed88d4395dd70a45c17a0ea6d2fa25b501028b396cc01e66c1bb6584568f8952"
+    },
+    {
+      "slug": "governance",
+      "title": "Governance & Provenance (v0.59.0)",
+      "description": "Soup CLI v0.59.0 governance & provenance. soup bom emit produces CycloneDX 1.6 ML-BOM + SPDX 2.3 AI-profile. soup attest emit writes SLSA-3 in-toto attestations per stage (extract/train/eval/export/publish), unsigned, ed25519 signed or, since v0.76.0, Sigstore keyless. soup audit-log keeps a HIPAA/SOC2-shaped JSONL trail at ~/.soup/audit.jsonl with credential masking (not PII redaction). soup train --annex-xi / --repro-receipt emits EU AI Act Annex XI/XII documentation. +93 tests.",
+      "headings": 9,
+      "codeBlocks": 7,
+      "sourceSha256": "9467de0d336bbff93180fb0b9f60236a05ab1deb6557741027bd798cc028a2aa"
+    },
+    {
+      "slug": "grpo-plus",
+      "title": "GRPO Plus (v0.50.0)",
+      "description": "GRPO Plus in Soup CLI v0.50.0 (live loss kernels v0.53.11). All 7 GRPO variants (standard/gspo/dapo/dr_grpo/bnpo/two_sided/rft) ship real math kernels, grpo_delta two-sided clipping, grpo_fp16 routing and task: prm live with per-step MSE, and since v0.76.0 every non-standard variant applies the grpo_beta KL penalty. Of the rollout backends only openenv runs (art, ruler and nemo_gym are accepted names that are not wired); long_context_grpo and vision_grpo wired nothing and are refused at load since v0.77.0 when set; reward_fn: judge_rank (v0.77.0) ranks each prompt's completions with an LLM judge you configure; and the stability keys behind GRPOStabilityCallback mostly record counters rather than change training.",
+      "headings": 8,
+      "codeBlocks": 5,
+      "sourceSha256": "ff2757347029b70adfb8dc5245bdca2a5383685635778d906b042267fbf01e76"
+    },
+    {
+      "slug": "hf-hub-integration",
+      "title": "HuggingFace Hub Deep Integration",
+      "description": "HuggingFace Hub deep integration in Soup CLI v0.29.0. Auto-push checkpoints as HF branches, --hf-resume, Collections, self-hosted HF_ENDPOINT, soup deploy hf-space, model card v2.",
+      "headings": 12,
+      "codeBlocks": 6,
+      "sourceSha256": "1b0e9c9ca3e2ec8a752738a48b760d24b51608c82e31662f1712ddd506df79ad"
+    },
+    {
+      "slug": "layer-streaming",
+      "title": "Layer streaming: fine-tune a model that does not fit in your card (BETA, v0.72.0; NF4 v0.72.2; breadth v0.72.3; preference losses v0.72.4; external validation and the NF4 gradient repair v0.73.0; disk tier rewritten v0.76.0; MoE bases, FP8 sources and three opt-in keys v0.77.0)",
+      "description": "Layer streaming (BETA, v0.72.0; NF4 v0.72.2; breadth v0.72.3; preference losses v0.72.4) — fine-tune Llama-3.1-8B on a 4 GB laptop GPU, and align on the same card. The frozen base is never loaded resident: it is rewritten into one safetensors shard per decoder layer, held in CPU RAM (page-locked when the machine allows it), and copied one layer at a time into a small pool of pre-allocated VRAM buffers on a dedicated CUDA stream, so the next layer loads while the current one computes. Only the LoRA adapters, their gradients and optimizer state stay resident, so peak VRAM is bounded by ONE layer instead of the whole model, and quantization: 4bit shrinks that RAM store about fourfold. Measured on a 4 GB RTX 3050 Laptop at batch 1, S=512: Llama-3.1-8B 119.6 tok/s in 3.32 GB with the base page-locked at 3.60 GB and the GPU 100% busy (measured on v0.72.2 at 952 MHz, before the NF4 gradient repair; a post-repair row from another RTX 3050 Laptop, taken at a different clock, is recorded, and the two are not directly comparable), Qwen2.5-3B NF4 264.2 tok/s in 1.76 GB, and on the bf16 path 3B 143.1 tok/s in 2.15 GB where a resident run OOMs. Honest cost: 1.43x slower than resident, measured at 0.5B. Two config keys (training.stream_layers plus quantization: 4bit), not CLI flags, and a streamed NF4 run was bit-exact against a resident NF4 run in the v0.72.x gate (the v0.76.0 NF4 forward change has no exactness record of its own). Nothing above 8B is measured on this card, so no 14B claim for it; larger sizes were later validated on borrowed H100 hardware, where the streamed forward is exact against a resident reference to 72B and a gradient defect above roughly 165 MiB per NF4 layer was found and repaired. v0.72.3 widened the scope to nine architectures with real batches, gradient accumulation, resume, a VRAM pre-flight and an NVMe disk tier (rewritten in v0.76.0 as a background direct-I/O reader that can stripe across NVMe drives), and v0.72.4 opened it to the preference losses (dpo, orpo, simpo, kto) with DPO's reference model taken free from the same stream; v0.74.0 took the allowlist to ten with Qwen4-Exp text plus the Qwen3.5 aliases, and stopped keeping an untied embedding and LM head both resident; v0.77.0 took it to eleven with the DeepSeek-V3 family; what remains is transformers, text and plain LoRA. If you trained with streaming on v0.72.0, re-run that adapter: it was saved under keys that load as a no-op outside the streaming path, fixed in v0.72.1.",
+      "headings": 21,
+      "codeBlocks": 7,
+      "sourceSha256": "1136e37eb374c502d2a1a8ca2001a1ff21a12e2f15b4a29434996de51b87c429"
+    },
+    {
+      "slug": "lean-install-live-wiring",
+      "title": "Lean install + live wiring (v0.71.0 → v0.71.41)",
+      "description": "Soup CLI v0.71 — lean install + live wiring + Spectrum. v0.71.0 split the install: pip install soup-cli is now a light PyTorch-free CLI, pip install \"soup-cli[train]\" adds the training stack (Python 3.10+). v0.71.1 → v0.71.23 wired the whole schema-first roadmap live and added native Spectrum targeted training — reward-hack & echo-trap detectors, ULD + MiniLLM distillation, iterative-DPO, RAFT/RA-DIT, ROME/MEMIT/AlphaEdit edits (now GPT-2 + Mixtral + cov-ROME), NPO/SimNPO/RMU unlearn, SAE/sleeper/truth/harm/interference probes, live eval runners, soup build, Magpie, the soup compile family, VeRA multi-tenant serving, serve-time MoLE, soup spectrum scan, live TTS, MoE-quant and BitNet GGUF export, FSDP consolidation, serve KV-cache typing, ed25519 signing, codecarbon energy/CO2, and EU AI Act Annex XI/XII docs. v0.71.24 grew the recipe catalog from 116 to 133 with the 2026 open-weight families (Qwen 3.5/3.6, DeepSeek-V4, GLM-5.1, Kimi K2.5/K2.6, MiniMax M3, Mistral Large 3 (its recipe was removed in v0.76.0)), v0.71.25 added soup ship, the one-command SHIP / DON'T-SHIP verdict, v0.71.26 closed the RL loop with reward-hacking auto-mitigation (the GRPO trainer self-corrects mid-run instead of only halting; PPO refuses these flags since v0.76.0), v0.71.27 'Fine-tune Doctor' added a pure-CPU pre-flight (soup data doctor + soup data lint) that kills silent chat-template and preference-data bugs before a GPU hour, v0.71.28 shipped the soup mcp serve MCP server so any coding agent can drive Soup, v0.71.29 added soup shrink (one-command depth pruning with a distill-heal and a SHIP / DON'T-SHIP perplexity verdict), v0.71.30 let a Process Reward Model drive GRPO, v0.71.31 shipped the judge-in-the-loop suite (Online DPO, best-of-N, Evol-Instruct, and a pairwise judge win-rate for soup ship), and v0.71.32 added ASR fine-tuning (task: asr fine-tunes Whisper locally with built-in WER/CER). v0.71.35 shipped the compliance pack (init templates, model-card autogen, a CI gate), v0.71.36 'Data Moat II' added a semantic data layer (dedup --semantic, data topics, data canary, train --replay), v0.71.38 and v0.71.39 gave the soup ship verdict real teeth (answer-extraction scoring over seven bundled offline suites) and a committable, provenance-bound evidence loop (soup ship --emit-evidence + a ShipConfig), and v0.71.40 and v0.71.41 added Reward Forge (soup reward synth generates a deterministic reward verifier from your data and soup reward stress proves it cannot be gamed). The v0.71 line closed at 16,529 tests across 319 files.",
+      "headings": 22,
+      "codeBlocks": 1,
+      "sourceSha256": "b656cc2fdc169fc177d19e9e3f37e80815fd3e4f556f0c60ff77646b38f3017e"
+    },
+    {
+      "slug": "lisa",
+      "title": "LISA (v0.71.34)",
+      "description": "LISA (v0.71.34) — Layerwise Importance Sampled AdamW (arXiv:2403.17919), which reaches for full fine-tuning quality without a full fine-tune's memory. Measured at 3B and 8B on an H100, the quality half holds and the memory half does not: LISA beat full fine-tuning on held-out loss at both learning rates and trains an 8B on one 80 GB card where full fine-tuning OOMs at 73.94 GB, but it costs 1.22x LoRA's memory at 3B and 1.51x at 8B, widening with scale (both LoRA rows were measured before v0.74.0's fix for a frozen base loaded in fp32, so a LoRA run today needs less memory than they show; no repeat of the comparison is recorded), because embeddings, LM head and final norm stay trainable through every interval and are 70.7% of everything it trains at 8B. Where Spectrum picks layers once, LISA re-samples a small random set of decoder layers every N steps and freezes the rest, with embeddings, LM head and final norm always trainable, so peak optimizer memory is roughly embeddings + head + lisa_num_layers while the active set keeps moving across the depth of the model. Config: training.lisa_enabled (false), lisa_num_layers (2), lisa_interval_steps (20), lisa_reset_optimizer (true), lisa_train_embeddings (true); sft or pretrain (since v0.74.0) + transformers + text + quantization: none only, mutually exclusive with LoRA features, freeze_layers/freeze_ratio, Spectrum's unfrozen_parameters, train_router_only, expand_layers and moe_lora. Live on a 4 GB GPU for small models; held-out quality here is in-distribution loss on an Alpaca validation split rather than a downstream benchmark.",
+      "headings": 5,
+      "codeBlocks": 1,
+      "sourceSha256": "4ab8a2f2dc40d8424adf4cf3ddec67ed89caaef47532f1805907dc1bcb6a1c09"
+    },
+    {
+      "slug": "live-dashboard-ux",
+      "title": "Live Dashboard & UX (v0.44.0)",
+      "description": "Live Dashboard & UX polish in Soup CLI v0.44.0. 21 cross-cutting UX fixes across eval-gate dashboard, HF resume checkpoint skipping, run cost, replay, profiling, and Textual TUI. +192 tests.",
+      "headings": 0,
+      "codeBlocks": 0,
+      "sourceSha256": "3137ec00ab639c02ecdaa5ffd9ae2c63199dfa62a39abebc3ba2c7c63bc3004e"
+    },
+    {
+      "slug": "loaded-in-fp32",
+      "title": "v0.74.0: the base was loaded in fp32 the whole time",
+      "description": "v0.74.0, tagged 4 September 2026, has no codename: upstream titled it with a sentence, the base was loaded in fp32 the whole time. 116 of its 120 merged pull requests came from somebody other than the maintainer, by 25 people. The headline is what a contributor found: a LoRA run freezes the base, the frozen base never receives an optimizer step, and all three supervised load paths passed no dtype at all, so a bf16 checkpoint was materialised at fp32. Measured on an H100 with Llama-3.1-8B and LoRA, peak memory falls from 48,241 MiB to 18,658 MiB, 2.59x and 28.9 GB, byte-identical across three repeats; the same defect stood in twelve more trainers, and a genuinely trainable base still loads fp32 deliberately. Nine further fixes mean a run you already finished was wrong: unknown config keys were silently dropped so a typo trained at the default, a sweep parameter matching no field ran a grid of identical arms and reported a winner, data.interleave had no training-time reader so every mixture trained on one dataset, MLX resume never matched its own checkpoints and restarted from scratch, six GRPO objective variants fell back to stock loss, quantize_reward_model was never read, use_cut_ce silently did nothing for a local checkpoint directory, soup ship judged an NF4 adapter against a bf16 base, and an LLM-judge gate divided a 1-to-5 rubric by 10. The training stack moves to Transformers 5.16.1, TRL 0.29 and PEFT 0.20, which makes soup-cli[train,mlx] resolvable for the first time, with a published known limitation that the declared torch 2.5.0 floor cannot import TRL 0.29, closed in v0.75.0 by raising the floor to torch 2.6.0. Layer streaming admits a tenth architecture, Qwen4-Exp text, plus Qwen3.5 dense and MoE aliases, shards an untied embedding and LM head into one shared buffer, and gains training.stream_pin. soup mcp serve gains sse and http transports behind a mandatory bearer token and DNS-rebinding protection, with gated execution refused over a listener. Breaking: soup serve exits 2 on a non-loopback host without a tool auth token, and the SGLang backend finally obeys trust-remote-code.",
+      "headings": 14,
+      "codeBlocks": 6,
+      "sourceSha256": "89e3000fabec194e017732f545881eec598b100df29c6864d221de9996f5fa05"
+    },
+    {
+      "slug": "long-context",
+      "title": "Long Context (v0.49.0)",
+      "description": "Long-context fine-tuning in Soup CLI (v0.49.0). YaRN, Dynamic NTK, linear and llama3 RoPE scaling (longrope is refused at config load since v0.76.0), read by task sft, tts and pretrain on the transformers backend and refused elsewhere; the four yarn_* tunables are read since v0.76.0 and only with rope_scaling_type yarn. LongLoRA S2 (use_longlora) is refused at config load since v0.76.0. 128k+ context with Multipack-friendly packing.",
+      "headings": 4,
+      "codeBlocks": 2,
+      "sourceSha256": "05ca705e9e242512f0ab61f28e8e21abb6c15d8885ce4afc13115a4ed25632e5"
+    },
+    {
+      "slug": "loop-hardening",
+      "title": "Loop Hardening (v0.70.0 → live in v0.71.11)",
+      "description": "Soup CLI loop hardening — six surfaces that protect the training loop from the failure modes that cost a real GPU-hour, all live as of v0.71.11. Two are CLI flags and four are soup.yaml keys under training:. --reward-hack-detector info_rm|rm_ensemble (InfoRM cluster-separation or RM-ensemble divergence; --reward-hack-halt auto-stops on HACK). The config key training.uld_strategy selects a Universal Logit Distillation loss, where only wasserstein_aligned is cross-tokenizer: wasserstein and topk_align forward the student's token ids to the teacher unchanged and refuse a mismatched pair since v0.75.0. training.minillm_enabled bundles three reverse-KL stability tricks. training.rl_checkpoint_save_every_steps adds mid-epoch PPO/GRPO checkpointing (TorchTune still punts this). soup iterative-dpo drives the sample → score → re-pair → retrain loop over N rounds. training.echo_trap_enabled is the RAGEN n-gram repetition detector for multi-turn agent RL.",
+      "headings": 9,
+      "codeBlocks": 9,
+      "sourceSha256": "858d0878ff1ed53a64e887c1a7a1a09858204a2971b56b6824da29646920376c"
+    },
+    {
+      "slug": "lora-quality",
+      "title": "LoRA Quality — PiSSA, ReLoRA, Per-Pattern Rank, Surgical Patches (v0.39.0)",
+      "description": "PiSSA SVD init, ReLoRA merge-and-reinitialise cycles, per-target-module rank/alpha overrides, surgical patches for Gemma 4 and fused-MoE. 21-template YAML registry. New in v0.39.0.",
+      "headings": 10,
+      "codeBlocks": 4,
+      "sourceSha256": "4636b22da862ad52bae2de1206b2541776f93811efad65ccef37fccd1c533298"
+    },
+    {
+      "slug": "mcp-server",
+      "title": "MCP server: soup mcp serve (v0.71.28)",
+      "description": "soup mcp serve (v0.71.28) is an MCP server that lets any Model Context Protocol client (Claude Code, Cursor, Cline, Continue) drive Soup over stdio. 18 tools since v0.73.3: 14 read-only (advise, data_inspect, data_validate, data_score, data_doctor, recipes_search, recipes_show, runs_list, runs_show, registry_list, registry_show, profile, diagnose_evidence, ship_evidence) return JSON; 2 planning tools (train_start, export) behind --allow-mutating render the command and never execute by themselves; and 2 executing tools (train_execute, export_execute) behind --allow-execute run that plan behind a short-lived, single-use, server-generated confirmation token bound to the plan and the execution kind. No command, argv, shell string or client environment is accepted from the caller: the config is snapshotted at plan time, protected inputs are revalidated by content hash rather than timestamp, the process is spawned with shell=False and stdin closed, one execution runs at a time gated on a live persisted run, and it goes through the normal tracker so soup runs sees it. Stdio is the default; v0.74.0 added sse and http transports, each behind a mandatory bearer token compared in constant time and the SDK's DNS-rebinding protection, with --allow-execute refused over either because a leaked token behind a listener would mean process execution rather than plan disclosure. Output is control-char sanitized, paths cwd-contained, errors path-free. Installs via the [mcp] extra (mcp>=1.10.0,<3, both SDK majors bridged by probing the server constructor rather than reading a version string), lazy-imported so the core stays PyTorch-free.",
+      "headings": 13,
+      "codeBlocks": 5,
+      "sourceSha256": "3084cdb1c4e972d5bcb2ceb3a9db718f6e76c61eae7c1baea472aa002005b28b"
+    },
+    {
+      "slug": "measurement-records",
+      "title": "Measurement records",
+      "description": "Every record in Soup's public benchmarks directory at v0.77.0 (50 records, 12 of them new in v0.77.0), with its hardware, its result and caveat, and whether it passed, failed or was never a gate.",
+      "headings": 65,
+      "codeBlocks": 0,
+      "sourceSha256": "dbeed8fc9f1c2494c7dd9541e578f9bb0996b2a2865efa7b658a31a8e08e854f"
+    },
+    {
+      "slug": "migrate-from-axolotl",
+      "title": "Migrate from Axolotl to Soup CLI",
+      "description": "Migrate from Axolotl to Soup CLI with one command. Field mapping for QLoRA configs and side-by-side Mistral 7B example.",
+      "headings": 8,
+      "codeBlocks": 4,
+      "sourceSha256": "b30bd1a8205fe29193ee4a134a268fc829239c23f1fd9f2b6333f948088cbc53"
+    },
+    {
+      "slug": "migrate-from-llamafactory",
+      "title": "Migrate from LLaMA-Factory to Soup CLI",
+      "description": "Migrate from LLaMA-Factory to Soup CLI with one command. Field mapping, side-by-side config example, and reasons to switch.",
+      "headings": 7,
+      "codeBlocks": 4,
+      "sourceSha256": "0f301ce6ddb9927851a01644309108ab4cc86505fdc76b9e3f4b149d8fec3eae"
+    },
+    {
+      "slug": "migration",
+      "title": "Migration",
+      "description": "Migrate to Soup CLI from LLaMA-Factory, Axolotl, or Unsloth in one command. Automatic config conversion with dry-run preview.",
+      "headings": 6,
+      "codeBlocks": 1,
+      "sourceSha256": "efd906c62846fd0d4182584ca810b4ccf00464f950ed8f9113ebeb721ea235be"
+    },
+    {
+      "slug": "mlx-backend",
+      "title": "Apple Silicon MLX Backend",
+      "description": "Soup MLX backend for native LLM fine-tuning on Apple Silicon M1–M4 without CUDA: SFT, and since v0.77.0 DPO, ORPO, SimPO and KTO through Soup's own MLX loop.",
+      "headings": 19,
+      "codeBlocks": 5,
+      "sourceSha256": "5183ca984a968818a31b7517db7cbeb2c02ce6c146b703ce85705c6d315ce86d"
+    },
+    {
+      "slug": "mlx-honours-its-config",
+      "title": "v0.75.0: MLX honours its config, and unknown keys refuse the load",
+      "description": "Soup CLI v0.75.0, tagged 12 September 2026, with all 60 of its pull requests from outside the maintainer, by 22 people. On backend: mlx eight training settings were validated, documented, accepted and read by nothing, so the same soup.yaml trained a different recipe on Apple Silicon than on a CUDA box: response-only masking reached nothing so every MLX run trained on system and user turns (772 supervised tokens before a correct mask, 146 after, over 16 two-turn conversations), the optimizer, scheduler, warmup ratio and weight decay were dropped so every run built a bare AdamW at a constant learning rate with all 32 allowlisted names collapsing to it, max_grad_norm clipped nowhere, and gradient accumulation and checkpointing took mlx-lm's defaults while adapter_config.json hardcoded both. Eight of the 32 optimizer names have an MLX equivalent and the rest are now refused by name. Breaking: an unknown config key refuses the load at the deadline v0.74.0 named, soup train exiting 1 before the training stack imports, and a config that must load on both versions needs the key removed rather than renamed. Validation loss existed nowhere and is now its own series on MLX (the transformers backend first evaluated its held-out split in v0.76.0), with an un-evaluated step writing NULL rather than a fabricated zero. torch>=2.6.0 closes v0.74.0's published limitation. Breaking: grpo_variant gspo is the published sequence-level objective and will not reproduce prior runs. Fourteen fixes mean a finished run was wrong, including a doubled BOS at inference across chat, serve, infer, bench, diff, ship, diagnose and advise, and a data validate that skipped six formats entirely.",
+      "headings": 13,
+      "codeBlocks": 3,
+      "sourceSha256": "1cd81136cef99f4d57ed9ee26038e2220c4c5cd9009c08be029f5dc81bcbbe8e"
+    },
+    {
+      "slug": "modality-ii",
+      "title": "Modality II (v0.52.0)",
+      "description": "Modality II in Soup CLI v0.52.0 (live trainers v0.53.2 + PRM live v0.53.11). task: tts with 5 family names (Orpheus, Sesame-CSM, Llasa, Spark, Oute) + emotion vocab; at v0.77.0 all five are runnable: spark and oute only on pre-encoded chatml data, and sesame_csm on raw audio through a native trainer (refused at config load in v0.76.x). task: classifier/reranker/cross_encoder live. task: distill live with teacher_model + KL/JS divergence + temperature. task: prm live with per-step MSE. BitNet 1.58 quant (refused at config load since v0.76.0 because BitNet training is not implemented; GGUF export is live). EBFT + GDPO variants (refused at config load since v0.76.0). MoE expert quant. reasoning_effort dispatch.",
+      "headings": 9,
+      "codeBlocks": 9,
+      "sourceSha256": "54b047da150c132275db14584920bcece6edd18cb193e9ae4409a88df8e469c3"
+    },
+    {
+      "slug": "model-catalog-v051",
+      "title": "Model Catalog Expansion (v0.51.0)",
+      "description": "Model Catalog Expansion in Soup CLI v0.51.0. 26 new recipes (GPT-OSS 20B/120B, GLM 4.6/5, Kimi K2/K2-Thinking (both marked unavailable in v0.77.0), MiniMax M2, QwQ-32B, QVQ-72B, Granite 4, LFM2, Cogito v2 (its recipe was removed in v0.76.0), Mistral Small/Medium 3.5, Magistral/Devstral/Ministral, MedGemma, EmbeddingGemma, LLaVA-Next, InternVL 3.5, Voxtral, Baichuan 2, Qwen-Image, DeepSeek-OCR, Paddle-OCR-VL). MULTIPACK_ARCHITECTURES 18 → 38. Alternative hubs: hf | modelscope | modelers.",
+      "headings": 3,
+      "codeBlocks": 2,
+      "sourceSha256": "fd5f50393703ad3d7b5ed835d53ec28386614658a6f3b6387fc26c5d8955b2aa"
+    },
+    {
+      "slug": "multi-gpu",
+      "title": "Multi-GPU Mastery",
+      "description": "Multi-GPU mastery in Soup CLI v0.27.0. --gpus launch (detects the interconnect, then re-launches under accelerate), DeepSpeed ZeRO++, FSDP2 + torch.compile, pipeline parallelism (validated; the run executes data-parallel at v0.77.0), multi-node launch flags (--nodes, --node-rank, --master-addr), DeepSpeed-MII serving backend.",
+      "headings": 9,
+      "codeBlocks": 9,
+      "sourceSha256": "2b005f767c1769b1dfaa04dcdb3436ff7867c9513873c901812e27d81fe756a1"
+    },
+    {
+      "slug": "multi-gpu-deepspeed",
+      "title": "Multi-GPU training with DeepSpeed ZeRO-3",
+      "description": "Multi-GPU fine-tuning with DeepSpeed ZeRO-3 in Soup CLI. Llama 3.1 70B on 8× A100, an FSDP2 alternative, and the use_ring_attention key, which is checked at launch but not applied at v0.77.0.",
+      "headings": 8,
+      "codeBlocks": 6,
+      "sourceSha256": "9947c92b2f09dee356152eb7899a3b6d6b3911bf4c49b5ae3269d17580a4a1c9"
+    },
+    {
+      "slug": "multi-trainer-speed-memory",
+      "title": "Multi-Trainer Speed & Memory (v0.35.0)",
+      "description": "Soup CLI v0.35.0: Cut Cross-Entropy, FP8 and activation offloading wired into the thirteen transformer-backend trainers on the v0.28 allowlist, with kernel_auto_compose refused at config load since v0.76.0 (it reported a pick and applied nothing). Forward-only kernel benchmarking under torch.no_grad. Quant menu kwarg allowlist for vLLM.",
+      "headings": 7,
+      "codeBlocks": 0,
+      "sourceSha256": "70c89ccdbf483908174f54214cb7387a13726bb07605e7bf531bc22b2b4b743b"
+    },
+    {
+      "slug": "multimodal",
+      "title": "Vision & Audio Fine-Tuning",
+      "description": "Fine-tune vision and audio models with Soup CLI. LLaVA, ShareGPT4V, audio data formats. Pillow and librosa integrations. For Whisper speech-to-text fine-tuning see the dedicated ASR page (task: asr, v0.71.32).",
+      "headings": 7,
+      "codeBlocks": 10,
+      "sourceSha256": "a6c6f4e6541d75f0067812ad5fab09d117cfa5b291e5557c1551ccfac381f76f"
+    },
+    {
+      "slug": "multipack",
+      "title": "Multipack — FFD Bin-Packing Sampler (v0.37.0)",
+      "description": "FFD bin-packing sampler eliminates padding waste on uneven-length data. 38-architecture allowlist. SFT/Pretrain only on transformers backend. New in v0.37.0.",
+      "headings": 5,
+      "codeBlocks": 1,
+      "sourceSha256": "0b87050f6094cf7ca5e5c6a213f9995ab58b6dfdbb1ad1a3cea87ea3ec1ab3a8"
+    },
+    {
+      "slug": "observability",
+      "title": "Observability & Dev UX (v0.34.0)",
+      "description": "soup why explains training anomalies (NaN, plateau, divergence, gradient norm, LR bounds) in plain English. soup tui Textual dashboard. soup train --profile torch.profiler trace. .crash bundles with redacted secrets. New in v0.34.0.",
+      "headings": 9,
+      "codeBlocks": 7,
+      "sourceSha256": "d2c616b2c8e1c5f6da13b47450e02771f9dbee6164f9c1924210b7a4c75520ab"
+    },
+    {
+      "slug": "online-dpo",
+      "title": "Online DPO (v0.71.31)",
+      "description": "Online DPO (v0.71.31) — soup train with task: online_dpo puts an LLM judge in the training loop: it samples two on-policy completions per prompt, a swap-debiased pairwise judge (or a reward model) names the winner (chosen) and the loser (rejected), and the model takes a DPO step on that fresh pair. Wraps TRL OnlineDPOTrainer; config online_dpo_judge or reward_model (exactly one), online_dpo_loss_type sigmoid|ipo, online_dpo_max_new_tokens; transformers + text only. Proof-of-mechanism on SmolLM2-135M with a synthetic judge (not a production RLHF claim); on the supported trl range (0.29 up to, but not including, 1.0) it uses TRL's pairwise-judge path with Soup's swap-debiased judge, and since v0.75.2 online_dpo_judge is checked when the config loads and refuses a private IP address.",
+      "headings": 7,
+      "codeBlocks": 2,
+      "sourceSha256": "00b987b309759793e098c99ab729ba4a8403ab083bfba7f7d0ad7e4fd5adb79a"
+    },
+    {
+      "slug": "optimizer-zoo",
+      "title": "Optimizer Zoo (v0.41.0)",
+      "description": "24 optimizers on a closed allowlist in Soup CLI (v0.41.0, cut from 32 in v0.76.0): the HF-native and bitsandbytes-backed names, APOLLO, lomo/adalomo, grokadamw and schedule_free, with adamw_hf and muon building only on the MLX backend. badam, adam_mini, dion, came_pytorch, adamw_apex_fused and the TorchAO ao_adamw names are refused at config load. training.lr_groups was read by nothing and is refused at load since v0.77.0 when set. LoftQ init. LLaMA Pro block expansion. load_in_8bit/16bit aliases.",
+      "headings": 8,
+      "codeBlocks": 3,
+      "sourceSha256": "be675db4a3a5586e7b9a229eb2672862db05a5c7be9d305e07d290a3afb7d40b"
+    },
+    {
+      "slug": "paper",
+      "title": "The layer streaming paper",
+      "description": "The layer streaming preprint, version 3 (13 August 2026): Makazhan, A. (2026). Exact Layer Streaming: LoRA Fine-Tuning of an 8B Model on a 4 GB Laptop GPU (v3). Zenodo, CC-BY-4.0. Two DOIs that are not interchangeable: 10.5281/zenodo.21771064 is the concept DOI and always resolves to the newest version, while 10.5281/zenodo.21918325 is v3 specifically; cite the version you read, and v1 and v2 stay citable at their own version DOIs. The title and the claim are unchanged, still 8B on 4 GB, and no measured number has changed since v1. Version 3 retracts one explanation version 2 gave, that the method is bound by host-to-device transfer, after an ablation on the original laptop measured the entire host-to-device term at 1.44% of the step. Version 2 roughly doubled the paper (about 9,000 to about 19,800 words) with the 8x H100 session: the laptop result replicates at a median 113.00 tok/s in the same 3.32 GB peak, bit-exactness moves from three-layer fixtures to real sizes (forward 0.5B to 72B, backward 8B and 14B), trained-model quality is measured for the first time and is indistinguishable from a resident run, DeepSpeed is compared including the unflattering result that eight ZeRO-3 cards are slower than one card resident, and a silent wrong-gradient defect above roughly 165 MiB per NF4 layer is disclosed and repaired. Of v1's ten limitations, one is closed and four more narrowed, and seven new ones added. It reports two results on one RTX 3050 Laptop with 4 GB of VRAM: Llama-3.1-8B-Instruct in NF4 at 119.6 tok/s with a 3.32 GB peak at 100% SM occupancy (measured on v0.72.2 at 952 MHz, before the NF4 gradient repair; a post-repair row from another RTX 3050 Laptop, taken at a different clock, is recorded, and the two are not directly comparable), and Qwen2.5-3B with an un-quantized bf16 base at 143 tok/s in 2.15 GB, a configuration that raises CUDA out of memory when trained resident on the same card. Measured overhead against resident training is 1.43x at 0.5B, the only size that admits a valid resident baseline there. The published fine-tuning result for this hardware class was 1.3B, reached by LSP-Offload (arXiv:2406.10181) by compressing the optimisation rather than streaming the base, while the systems that do stream weights during training are evaluated on an H200 with 1.5 TB of host memory, an RTX 4090 with 256 GB, or a cluster. The contribution the paper defends hardest is not the throughput but the correctness protocol: because a severed autograd graph still yields a falling loss, the central check is bit-exactness against a resident reference of the same numerics (resident NF4 for a streamed NF4 run, never resident bf16), verified across nine architecture families in both precisions at 14 of 14 comparisons with a maximum absolute logit difference of 0.000e+00. It caught a PEFT dispatch path producing a 0.94 logit divergence with byte-identical weights and adapters, no crash and a healthy-looking loss curve. Three findings are independent of streaming: the cross-entropy logits term costs 14 bytes per element rather than the 6 first principles suggest, Windows and WDDM spill into host memory instead of raising out of memory so a completed run is not evidence that a configuration fits, and gradient accumulation is per-token I/O-neutral with a 2.52x opportunity cost against batch size. Includes the full limitations, the BibTeX entry, and the reproduction config.",
+      "headings": 15,
+      "codeBlocks": 2,
+      "sourceSha256": "e57fb334c5d0c47ba1c9f881ccd20b1f2c8a3dcd04be847510fa20577fc0e25f"
+    },
+    {
+      "slug": "plugins",
+      "title": "Plugin System (v0.45.0)",
+      "description": "Plugin system in Soup CLI v0.45.0. BasePlugin Protocol + PluginSpec registered from Python or discovered from the soup_cli.plugins entry-point group (third-party code loads only after soup plugins enable; install exits 2 and installs nothing), OpenAI↔Anthropic Messages converter, server-side tools allowlist, n-gram spec decoding schema (no flag builds it), 15-entry integrations catalog, Data Recipe DAG (since v0.76.0 llm_text and judge nodes need --provider or --offline from the CLI).",
+      "headings": 8,
+      "codeBlocks": 6,
+      "sourceSha256": "9466e4600a6dbfc5091b1a060f3488098f62ac092a948f85a5a038bf496b6f56"
+    },
+    {
+      "slug": "post-train-xrays",
+      "title": "Post-train X-rays (v0.66.0)",
+      "description": "Soup CLI v0.66.0 post-train x-rays — mechanistic interpretability on every fine-tune. soup probe sae-diff applies a Sparse Autoencoder over pre/post activations (Gemma Scope / Pythia / Llama / GPT-2 closed allowlist). soup probe sleeper is a linear defection probe (≤1% OK, ≤5% MINOR, >5% MAJOR) whose bundled per-base weights are synthetic placeholders, so pass --weights for a real reading. soup probe interference builds an N×N catastrophic-interference matrix (gates CI merge at ≥20%). soup probe pack assembles per-base probe manifests. A DataInf-style influence kernel behind soup adapters blame (the CLI scores are synthetic placeholders).",
+      "headings": 7,
+      "codeBlocks": 7,
+      "sourceSha256": "ec75e7998002c18afe03da62d53c20c8a7626d21e988aeb7ab736dfda23c5b06"
+    },
+    {
+      "slug": "preference-variety",
+      "title": "Preference Variety (v0.40.0)",
+      "description": "BCO (Binary Classifier Optimization) trainer plus a unified preference dispatcher in Soup CLI v0.40.0. Set 'task: preference' + preference_loss to swap DPO/SimPO/ORPO/IPO/BCO without renaming the task. β annealing, ref-model regen, multi-objective preference loss (since v0.77.0 blends naming dpo or ipo train too, not only simpo + orpo). Since v0.72.4, dpo, orpo, simpo and kto also run over a layer-streamed base on a card that cannot hold the model, though the unified dispatcher, ipo and bco are not in the streaming allowlist.",
+      "headings": 7,
+      "codeBlocks": 4,
+      "sourceSha256": "056212c931a8f82143d18993f38e29f8384277f0da6c0aa70b571dbbff59bb84"
+    },
+    {
+      "slug": "preflight-tooling",
+      "title": "Pre-flight & Tooling (v0.64.0)",
+      "description": "Soup CLI v0.64.0 pre-flight & tooling — catch mistakes before you burn GPU hours. soup tunability ranks candidate bases for the Pareto frontier (a deterministic heuristic by default, --live to probe each one). soup plan/apply is Terraform-shaped drift detection. soup env lock snapshots the Python version, the CUDA version when it can find one, and the installed ones among 15 tracked packages, with ABI-mismatch detection. soup completions for bash/zsh/fish. soup license-advisor returns ok/warn/block per deploy target. Hardware-fit calculator predicts peak VRAM in 5 buckets with 10% safety margin.",
+      "headings": 10,
+      "codeBlocks": 7,
+      "sourceSha256": "8bb0ef83ac1a2ff4c461dc05b104415d52b948a23ae01e615a0685fa8c394438"
+    },
+    {
+      "slug": "private-addresses-refused",
+      "title": "v0.75.2: endpoint URLs can no longer name a private address",
+      "description": "Soup CLI v0.75.2, tagged 1 October 2026, is a one-change security patch, written by the maintainer alone and reported by an outside contributor, in which the outbound endpoint checks (soup data generate --api-base, the vLLM provider, judge URLs, eval-gate suites, soup ship --judge-model, training.online_dpo_judge and the Web UI chat proxy) now refuse a private, link-local or reserved IP address over https as well as http, closing advisory GHSA-9f49-hqpf-c849 (rated medium, affecting 0.3.0 through 0.75.1), with nothing to re-run or rotate, a config that names a private, link-local or reserved IP address now failing loudly and needing a hostname instead, and hostnames still not resolved.",
+      "headings": 9,
+      "codeBlocks": 0,
+      "sourceSha256": "f7d97dc7ba87d17c059f8ec16dd4dd60dcc2f26bc38fd4953657510b5a0197e0"
+    },
+    {
+      "slug": "prm-guided-grpo",
+      "title": "PRM-guided GRPO (v0.71.30)",
+      "description": "PRM-guided GRPO (v0.71.30) — use a trained Process Reward Model as the per-step reward inside GRPO, the o1-era process-supervision signal. soup train with task: grpo with training.prm_reward and prm_aggregate min|prod|last scores each reasoning step and folds the per-step scores into one reward, replacing reward_fn. No OSS fine-tuning CLI ships this. Bundles three openenv rollout environments (calculator, retrieval_qa, guess_number) with recipes. Proof-of-mechanism on SmolLM2-135M with a tiny synthetic PRM.",
+      "headings": 6,
+      "codeBlocks": 2,
+      "sourceSha256": "7065fea5dc5bafdaf09772c2441fa95fb3de44f6e56b3d5c7daedea08691da53"
+    },
+    {
+      "slug": "quant-check",
+      "title": "Quant-Lobotomy Checker",
+      "description": "Never ship a quantization regression. soup eval quant-check compares a before and an after model on one JSONL task file and renders a single OK / MINOR / MAJOR verdict; since v0.76.0 a model that fails to load stops the command with exit 1 (pass --allow-stub to score with deterministic stubs instead) and MAJOR exits 2. New in v0.26.0.",
+      "headings": 8,
+      "codeBlocks": 4,
+      "sourceSha256": "4c2f977f8cc758c2e59aac569b4017af4fe316c145d2552742e6b294ff427a30"
+    },
+    {
+      "slug": "quant-menu",
+      "title": "Quant Menu — 9 Quantization Formats (v0.38.0)",
+      "description": "Nine quantization formats in Soup CLI v0.38.0. 4bit, 8bit, none, GPTQ, AWQ, HQQ:Nbit, AQLM, EETQ, MXFP4, FP8. Train LoRA on top of any pre-quantized checkpoint. See also Quant Menu II (v0.53) for UD GGUF, NVFP4, BitNet 1.58 export, KV cache, TorchAO PTQ.",
+      "headings": 5,
+      "codeBlocks": 1,
+      "sourceSha256": "a163afc54cbe3f6cf4e49f970822bcb2b6cfd6d8e163bcb9f8beca7cc210170c"
+    },
+    {
+      "slug": "quant-menu-ii",
+      "title": "Quant Menu II (v0.53.0)",
+      "description": "Quant Menu II in Soup CLI — schema shipped in v0.53.0, every writer live as of v0.53.1. Unsloth Dynamic 2.0 GGUF ladder (14 rungs UD-Q8_K_XL … UD-IQ1_M) with live llama.cpp imatrix pipeline, IQ + Apple/ARM GGUF flavours, KV cache types (q8_0/bf16/f16 serve; fp8 is accepted by the schema but raises at serve time), FP8 attention, NVFP4 Blackwell, native unsloth_bnb_4bit, BNB double-quant (validated but read by nothing until v0.73.3, which also added soup merge --no-double-quant), reward-model quant (quantize_ref_model was read by no trainer and is refused at load since v0.77.0 when set), soup merge --save-format 4bit_forced single-shot, soup export --format torchao PTQ.",
+      "headings": 8,
+      "codeBlocks": 8,
+      "sourceSha256": "f36baddb5d00463b99101c7aba86bd8a11a4384338d181cc5b14a869ad883a7f"
+    },
+    {
+      "slug": "rag-and-steering",
+      "title": "Retrieval-Augmented FT & Activation Steering (v0.62.0)",
+      "description": "Soup CLI v0.62.0 RAG, RAFT, and activation steering. data.format: raft (query + golden_doc + distractors + answer). training.ra_dit_stage chains retriever → generator (RA-DIT). soup steer train/apply/list trains CAA / ITI / RepE activation vectors (soup steer apply only loads one and prints its metadata; soup serve --steer applies it at decode time; soup steer list reads only the Registry, and since v0.76.0 soup steer train --registry-id attaches the vector). training.citation_faithful boosts the loss on bracketed citation spans (citation_recall_threshold was never enforced and is refused at load since v0.77.0 when set; measure recall with soup eval citation). GRACE codebook edits via soup edit set --method grace (the codebook is written; no command applies it at decode time yet). +215 tests.",
+      "headings": 9,
+      "codeBlocks": 11,
+      "sourceSha256": "9283d50edf6b44254059ad569085f569fe167a129a79ba4cb9a3466e2bb22519"
+    },
+    {
+      "slug": "recipe-catalog",
+      "title": "Recipe catalog",
+      "description": "Every one of the 171 ready-made Soup CLI recipes at v0.77.0 (qwen3.5-4b-dpo and qwen3.5-2b-dpo added, pixtral-dpo retired), grouped by training task: recipe name, base model, size, quantization and what it is, plus how to list, search, show and use them. 169 load through the config schema; the two resident Kimi K2 recipes are marked unavailable and soup recipes use refuses them with exit 3. Notes which recipes stop before training or carry keys the trainer ignores.",
+      "headings": 19,
+      "codeBlocks": 1,
+      "sourceSha256": "083dd01ebfeef700166757c5c7eb19e515b760f43f2e10d5fef45f7705126367"
+    },
+    {
+      "slug": "recipe-expansion",
+      "title": "Massive Recipe Expansion (v0.31.0)",
+      "description": "Soup CLI v0.31.0 expands the recipe catalog from 46 → 80. Vision (Pixtral, Qwen2-VL, InternVL, MiniCPM-V), audio (Qwen2-Audio, Whisper-large-v3, SeamlessM4T-v2), reasoning (all 6 DeepSeek-R1-Distill sizes, Qwen3-Coder, Phi-4 reasoning), edge (SmolLM2, Phi-3.5-mini), domain specialists (BioMistral, Meditron, CodeLlama, Magicoder, Mathstral, Nemotron-4).",
+      "headings": 7,
+      "codeBlocks": 1,
+      "sourceSha256": "5f31896ca561529a35abd79b51f583e5ee0f79ac1c041f237164e108d61bbb29"
+    },
+    {
+      "slug": "recipes",
+      "title": "Recipes",
+      "description": "171 ready-made training recipes spanning text (Llama 3.1/3.2/4, Qwen 2.5/3, the 2026 families Qwen 3.5/3.6, DeepSeek-V4, GLM-5.1, Kimi K2.5/K2.6, MiniMax M3, plus QwQ-32B, Gemma 3, Phi-4, DeepSeek R1/V3, GPT-OSS, GLM 4.6, Granite 4), vision (Llama-3.2-Vision, Pixtral, Qwen2-VL, InternVL 3.5, LLaVA-Next, MiniCPM-V, Qwen-Image, DeepSeek-OCR, Paddle-OCR-VL), audio (Qwen2-Audio, Whisper, Voxtral, SeamlessM4T), ASR fine-tuning (whisper-tiny/base/large-v3, v0.71.32), TTS (Orpheus, Llasa, Oute), reasoning (DeepSeek-R1-Distill, Qwen3-Coder), edge (SmolLM2, Phi-3.5-mini, LFM2), domain specialists (BioMistral, Meditron, Mathstral, Magicoder, MedGemma, EmbeddingGemma), RAG (raft-llama3-8b, ra-dit-retriever, ra-dit-llama3-8b).",
+      "headings": 10,
+      "codeBlocks": 5,
+      "sourceSha256": "e2c7f455e3ac619f58333e5fd74e04677a74818ebf7bd7e91257097a7ff51776"
+    },
+    {
+      "slug": "registry",
+      "title": "Model Registry",
+      "description": "Local model registry with lineage DAG. soup registry push/list/show/diff/search/promote tracks every fine-tune at ~/.soup/registry.db. New in v0.26.0; since v0.77.0 push --data records the SHA-256 of the file registered as the training input (not proof of what the run trained on) and --idempotency-key makes a push safe to retry.",
+      "headings": 13,
+      "codeBlocks": 9,
+      "sourceSha256": "5845d792b9a0d0e71c2c4daaf79e991573c4afe2929cc01b187ca0f0460189b2"
+    },
+    {
+      "slug": "reward-hack-mitigation",
+      "title": "Closed-loop reward-hacking auto-mitigation (v0.71.26)",
+      "description": "Closed-loop reward-hacking auto-mitigation (v0.71.26). soup train --reward-hack-mitigation off|log_only|kl_control|pid_lagrangian makes a GRPO trainer detect reward hacking mid-run and self-correct instead of only halting: a bang-bang KL controller with hysteresis, a PID-Lagrangian controller (Stooke et al.), an escalation ladder (raise KL, roll back to the last-good checkpoint, early-stop with a give-up explanation), plus anti-gaming smoothing, conservative-on-disagreement voting, and bounded reward shaping. No OSS RLHF library closes this loop. Proof-of-mechanism on SmolLM2-135M; task: ppo refuses these flags since v0.76.0, so it runs on task: grpo only; scale validation tracked in issue #286.",
+      "headings": 11,
+      "codeBlocks": 2,
+      "sourceSha256": "23f0ffaabbe6ebb9fbc8de3ff87765198675f64c6de2fc78709787dcfd19706e"
+    },
+    {
+      "slug": "reward-verifier",
+      "title": "Reward Forge: synthesize a reward verifier, then prove it cannot be gamed (v0.71.40 → v0.71.41)",
+      "description": "Reward Forge (v0.71.40 and v0.71.41) turns Soup's reward-hacking detector on the reward verifier itself. soup reward synth <references.jsonl> -o reward.py auto-generates a deterministic verifier from your gold outputs (numeric, json_schema, regex or tool_call, auto-detected or forced with --kind), emits a readable committable .py, and the moat is a mandatory calibration report that refuses (exit 2) any verifier that cannot accept 90% of references and reject auto-generated bad answers. soup reward stress <reward.py|accuracy|format|verifiable> --references golds.jsonl then attacks a verifier with empty, length-padded, repetition and sentinel-spam completions scored against the real gold, reporting a per-attack accept-rate table plus a gameability verdict (exit 0 robust, 2 gameable, 1 error). Both are pure and offline and add no new trusted-exec surface. v0.71.40 also makes a comma-separated reward_fn train as an ensemble. No RL library (TRL, Unsloth, Axolotl, OpenRLHF) synthesizes a reward or tests one for gameability.",
+      "headings": 7,
+      "codeBlocks": 5,
+      "sourceSha256": "953669c5e915ab673a3f08fef013ad7efaea756e998f47b3d1b9ac0d4b37c77e"
+    },
+    {
+      "slug": "rewind",
+      "title": "Find the rows behind a loss spike: soup rewind",
+      "description": "soup rewind names the dataset rows behind a training loss spike from the rewind.jsonl flight recorder an SFT run writes. Options, exit codes and JSON caveats.",
+      "headings": 5,
+      "codeBlocks": 3,
+      "sourceSha256": "e12a38431dc09d97f7d49b6d39be03bfbbcc391efd7cb726234527c985caf380"
+    },
+    {
+      "slug": "rlvr",
+      "title": "RLVR — Reinforcement Learning from Verifiable Rewards",
+      "description": "RLVR training with verifiable math, code, and JSON-schema rewards via GRPO. No reward model, no human labels. New in v0.25.0.",
+      "headings": 8,
+      "codeBlocks": 2,
+      "sourceSha256": "d9dada89655752c7eabe37c34040e3cfab46def285b0b662105fdf870e60d17a"
+    },
+    {
+      "slug": "seeds-and-reproducibility",
+      "title": "Seeds and reproducibility",
+      "description": "Seeds and reproducibility in Soup CLI. training.seed and training.data_seed are config keys, not CLI flags, and there is no --seed: seed covers weight initialisation of new parameters, data order and dropout, while the optional data_seed varies data order alone so initialisation stays fixed. Both default to unset rather than to 42, deliberately, because an unset seed has to reproduce two different historical defaults (42 for the trainer, 0 for the multipack sampler) and defaulting the field would have silently re-ordered every existing multipack run; an unset seed still resolves to 42 and a YAML true is refused by name rather than coerced to 1. Until v0.73.1 the key reached the supervised trainer and nothing else, so a seeded GRPO or DPO run was accepted, trained at 42, and said nothing, meaning replicates that differed only in their seed were the same run. It now reaches every wrapper and is applied before the model loads, because the adapter's own initialisation is drawn before the trainer's seeding used to happen; the values a run trains at are unchanged, what changed is when they arrive. What a seed does not buy you is stated plainly: it is not a determinism guarantee, since bit-exact reruns also need PyTorch's deterministic-algorithms switch which Soup does not set for you; a resident 4-bit run is still not bit-reproducible from a seed, diagnosed and not fixed; a streamed run is, at five runs to one adapter hash; and since v0.77.0 the MLX backend applies both, which it never did before. Why it matters for the release gate: three runs of one unchanged resident configuration moved two behavioural suites by 0.375 and 0.269 against a 0.05 regression threshold, so five of seven suites could cross the line on a re-run that changed nothing.",
+      "headings": 5,
+      "codeBlocks": 2,
+      "sourceSha256": "f871db12af63bfe6fcdcf8debfa8f1044a83d8c22515976ccc3b36f470b55649"
+    },
+    {
+      "slug": "serving",
+      "title": "Inference Server",
+      "description": "Serve fine-tuned models with transformers, vLLM, or SGLang backends. FastAPI inference server included.",
+      "headings": 14,
+      "codeBlocks": 12,
+      "sourceSha256": "c50d4fa2c503612ab1d6efe355c77be550fb43eb7c10ae392bb10c5f358ba101"
+    },
+    {
+      "slug": "settings-refused-at-load",
+      "title": "v0.76.0: settings that never took effect now stop the load",
+      "description": "Soup v0.76.0 refuses settings that never took effect at config load. Breaking changes, new gate exit codes, the re-run table and the v0.77 deadline, which v0.77.0 met by refusing the staged fields at load.",
+      "headings": 16,
+      "codeBlocks": 2,
+      "sourceSha256": "ec20f6d5e26c1251670718b94a483bd838a21818ba496edfe7bcff5d96998cc5"
+    },
+    {
+      "slug": "ship-gate-repairs",
+      "title": "v0.73.2: the release gate",
+      "description": "v0.73.2 stops the Soup CLI release gate lying in both directions. soup ship answers one question, did this model get better or did I break it, and two of its behavioural suites were ranking by the wrong thing. A stub answering every item correctly in the boxed-letter style scored 0.000 on mini_mmlu and mini_common_sense, and Llama-3.1-8B scored 0.423 on mini_mmlu, below a 0.5B, while scoring 1.000 on two other multiple-choice suites; both halves of the repair were required, since the extractor alone is worth eight items and the prompt change alone is worth zero, and together the same model moves 0.423 to 0.731. On mini_tool_call the 8B named the right tool 40 times out of 40 and scored 0.225 because it emitted three opening braces and two closing ones, and that suite now reads 1.000. A non-callable generator returned 0.0 rather than raising, so a caller's own mistake was indistinguishable from a regression and failed in the direction that looks like a finding. And a whole failure direction had no detector: a tune that refuses everything registered as a monotone safety improvement, so mini_over_refusal joins as the eighth bundled suite, 40 hand-authored benign requests scored as the fraction not refused. New CLI flag soup ship --noise-floor N re-runs the base N times and refuses to call a delta significant below what the instrument can resolve, because greedy decoding is not deterministic on a GPU: five runs of one model with no adapter spread 0.015 strict and 0.020 format-blind against a 0.05 threshold. Those two figures are the borrowed H100 session's, not this release's development box, which measured 0.0000 on CPU, and at n=3 with one model and one dataset the floor sizes the effect rather than calibrating a threshold. Read the re-run list first: any verdict issued before this release is suspect, and a --baseline snapshot taken before it is on a different scale for three suites.",
+      "headings": 11,
+      "codeBlocks": 1,
+      "sourceSha256": "73bd2799a747cce91dc09d821ba4fd9258e7e65bd47725fcf28c8d17643f952b"
+    },
+    {
+      "slug": "soup-bench",
+      "title": "Benchmarks you can trust: the soup bench group",
+      "description": "soup bench is now a group: bench train fails if the model was not training, bench infer is the old benchmark, plus infer --batch-size and --cuda-graphs.",
+      "headings": 9,
+      "codeBlocks": 4,
+      "sourceSha256": "966a7617eb769882dcead85edbf7e6a2cba35b9a221844e33987b273460f5670"
+    },
+    {
+      "slug": "soup-cans",
+      "title": "Soup Cans",
+      "description": "Soup Cans (.can): portable, verifiable recipe bundles with soup can pack/inspect/verify/fork. Safe tar extraction, 100 MB cap, a versioned manifest (formats 1, 2 and 3 are read). New in v0.26.0.",
+      "headings": 6,
+      "codeBlocks": 4,
+      "sourceSha256": "fe8ed9a9ac8755ed2772f949e058723a68554387e7754feae131475d0525d044"
+    },
+    {
+      "slug": "soup-cans-v2",
+      "title": "Soup Cans v2 + Live LR Finder (v0.33.0)",
+      "description": "Soup CLI v0.33.0: live soup can run / soup can publish, in-process LR finder loop, spike-recovery hint file, VRAM grad-accum advisory, auto-reexec under accelerate, registry artifact attach, best-effort RLVR isolation (Linux unshare on Python 3.12+, macOS sandbox-exec; both fall back silently where the OS refuses).",
+      "headings": 9,
+      "codeBlocks": 6,
+      "sourceSha256": "9cefb0df220792d1f65123a83f18b580fe5e682c9cdd696cbd56a4d225225a06"
+    },
+    {
+      "slug": "soup-draft",
+      "title": "soup draft (v0.71.33)",
+      "description": "soup draft (v0.71.33) — train and, above all, MEASURE a speculative-decoding draft. soup draft measure --target <m> --draft <d> --prompts p.jsonl reports the acceptance rate (the fraction of the target's own greedy tokens the draft would have proposed correctly, the teacher-forced metric Medusa/EAGLE report) plus real plain-vs-assisted throughput; --min-acceptance exits 2 for CI. soup draft distill emits a dense draft via logit KD, and a local registry (~/.soup/drafts.json) is consulted by soup serve --auto-spec before the built-in pairing table. soup draft measure needs matching config.vocab_size; distill accepts a mismatched pair through wasserstein_aligned. Honest result: on SmolLM2-360M with a 135M draft the stock draft already scored 69.3% and distilling changed nothing (69.7% then 69.3%), while assisted decoding measured 0.55 to 0.64x, a net slowdown. The speedup pitch was withdrawn; the measurement is the feature.",
+      "headings": 8,
+      "codeBlocks": 3,
+      "sourceSha256": "0af1c0648cbf10229eb6b1e2d24feba11e320821f09b9a0dc31e808c9ee87e46"
+    },
+    {
+      "slug": "soup-loop",
+      "title": "soup loop — the production data flywheel, all from the CLI",
+      "description": "soup loop — the production data flywheel as a single CLI. soup loop init / watch / status / pause / resume / canary / replay. Atomic .soup/loop.yaml state, signal-safe daemon, deterministic SHA-256 traffic routing keyed on a conversation id (soup serve applies it since v0.76.0, on the transformers backend), paired-bootstrap canary verdicts, monthly-budget + daily-cap guardrails. New in v0.58.0.",
+      "headings": 9,
+      "codeBlocks": 4,
+      "sourceSha256": "e0d58a8115739470ce0cd715ca9fa096ceb6b60f031e2a5fab3d9a7ee7909969"
+    },
+    {
+      "slug": "soup-ship",
+      "title": "soup ship: the SHIP / DON'T-SHIP verdict (v0.71.25)",
+      "description": "soup ship — the one-command SHIP / DON'T-SHIP verdict for a fine-tune. Fuses leg 1 (the task metric strictly improved, via eval accuracy or an LLM judge) with leg 2 (no general benchmark regressed past a forgetting threshold, default 0.05 absolute points) into a single binary decision, refusing a model that wins the task but breaks general knowledge. One-screen reason, CI-gateable exit codes (0 = SHIP, 2 = DON'T SHIP, 1 = runtime error, 3 = usage error), offline --evidence path with no model load. New in v0.71.25; v0.71.31 adds --task-mode pairwise, a swap-debiased judge win-rate (base vs tuned per prompt); v0.77.0 adds --require-provenance, a strict offline drift check that compares the evidence's stamps with the adapter, task and source bytes, suite version and verdict policy.",
+      "headings": 18,
+      "codeBlocks": 11,
+      "sourceSha256": "75a34a0e5bcce84e2d22c726b7c4ae6368c99ed1d3aa3334a40e308a478c643e"
+    },
+    {
+      "slug": "soup-shrink",
+      "title": "soup shrink: make a model smaller (v0.71.29)",
+      "description": "soup shrink (v0.71.29) — depth-prune a model + optional distill-heal, with a SHIP / DON'T-SHIP perplexity verdict. Implements 'The Unreasonable Ineffectiveness of the Deeper Layers' (arXiv:2403.17887): ranks contiguous decoder-layer blocks by the angular distance the residual stream travels across them, drops the least-important block (first and last layers protected), then optionally distills the original into the pruned student via a LoRA subprocess and fuses the adapter back to one dense smaller model. Exit 0 = SHIP, 2 = DON'T SHIP, 1 = error. Arch allowlist v1: Llama / Qwen / SmolLM. Validated on SmolLM2-135M (drop 25% = 30 to 22 layers, ppl x2.98 unhealed; drop 4 + CPU heal recovered to x1.35).",
+      "headings": 8,
+      "codeBlocks": 1,
+      "sourceSha256": "2b6e5343b386edc35a35ed3e14106bdc65c18553509a572abbf5f6bb891072cd"
+    },
+    {
+      "slug": "spectrum-targeted-training",
+      "title": "Spectrum targeted training (v0.71.23)",
+      "description": "soup spectrum scan ranks each weight matrix by singular-value SNR (Marchenko-Pastur noise threshold) and emits a training.unfrozen_parameters block, so you full-fine-tune only the high-signal layers. It streams safetensors one tensor at a time, so a CPU box can scan even a 70B with no model load. New in v0.71.23.",
+      "headings": 6,
+      "codeBlocks": 4,
+      "sourceSha256": "f6e00e6be40e6970156747288ac9327d5195f03ff8f2af666c3d12229f016170"
+    },
+    {
+      "slug": "speculative-decoding",
+      "title": "Smart Inference Server (v0.30.0)",
+      "description": "vLLM and transformers speculative decoding in Soup CLI. --auto-spec auto-pairs draft models for Llama 3.1/3.3/4, Qwen 2.5/3, Mistral Large, Mixtral, DeepSeek V3/R1, Gemma 2/3, and picks up a draft you trained yourself with soup draft distill before the built-in table. Whether speculative decoding is actually faster depends on the pair, so measure it rather than assume: soup draft measure reports the real acceptance rate and plain-vs-assisted throughput, and on the pair Soup validated it came out at 0.55 to 0.64x, a net slowdown.",
+      "headings": 10,
+      "codeBlocks": 12,
+      "sourceSha256": "d09553dc7ffbb0398d62573e167d1586a83ad3609cef2258d75850880a90ecfe"
+    },
+    {
+      "slug": "streaming-disk-tier",
+      "title": "Layer streaming disk tier (v0.76.0)",
+      "description": "Layer streaming v0.76.0 disk tier: direct-I/O reader, stream_read_ahead, NVMe striping, the streaming keys, and the first measurements with their caveats.",
+      "headings": 11,
+      "codeBlocks": 3,
+      "sourceSha256": "26930b1a54a506a76f4cd2ba1a1be4a250916ebfb398d6c4f26d93c6ae93769c"
+    },
+    {
+      "slug": "streaming-moe",
+      "title": "Streaming a Mixture-of-Experts base (v0.77.0)",
+      "description": "Layer streaming on DeepSeek-V3-family MoE bases in Soup v0.77.0: FP8 checkpoints dequantised at shard time, the per_expert layout, and each measurement's scope.",
+      "headings": 10,
+      "codeBlocks": 1,
+      "sourceSha256": "59703bd2857847515d5ba2e7a23f14da6885699e2512bcaeffb77594e2363552"
+    },
+    {
+      "slug": "streaming-preference",
+      "title": "Preference losses over layer streaming (v0.72.4)",
+      "description": "Preference losses over layer streaming (v0.72.4). DPO, ORPO, SimPO and KTO now run against a base that never enters VRAM, so alignment stops being the step that forces a bigger card. The five accepted streaming tasks are exactly sft, dpo, orpo, simpo and kto; ipo, bco and the unified task: preference dispatcher are still refused, and grpo and ppo are excluded permanently because generation rollouts re-read every layer per token. DPO's reference model is the same streamed base with its LoRA adapters switched off, one set of weights and one RAM store rather than a second copy: measured on a 4 GB RTX 3050 Laptop with a 365M-parameter synthetic model (730 MB of weights), streamed DPO peaked at 81.87 MB against streamed SFT's 89.53 MB (0.914x) with a byte-identical store and buffer pool, while the control that forced a real second instance reached 812.32 MB, moving the peak by exactly one copy of the weights (730.44 MB). Read 0.914x as no second copy, not as a saving. The reference needs no second copy of the layer weights, but it is not free in time: DPO reads the layer stack 1.52x as often per step. KTO is not reference-free however it is usually described, and it requires batch_size of 2 or more because TRL's KL term is degenerate at batch 1. All four losses are bit-exact against a resident run of the same loss. No throughput figure is claimed for any preference loss because none was measured, and the VRAM pre-flight is a sound but loose upper bound that refuses DPO from max_length 768 on a 4 GB card with a 128k-vocabulary 1B model. On an untied checkpoint, dpo and kto also hold one private copy of the output head per step (v0.76.0), a documented cost the pre-flight charges.",
+      "headings": 15,
+      "codeBlocks": 3,
+      "sourceSha256": "60f022d90ae18f84091b532aa3bef440c8e6575dfddd51385e56ec626b0e85d9"
+    },
+    {
+      "slug": "streaming-scaling",
+      "title": "Scaling a streaming run (v0.72.3; disk tier rewritten in v0.76.0; DeepSeek-V3 and three opt-in keys in v0.77.0)",
+      "description": "Scaling a layer-streaming run (v0.72.3, widened in v0.74.0 and v0.77.0). Eleven architectures stream: llama, qwen2, qwen3, mistral, gemma, gemma2, gemma3_text, phi, phi3, qwen4_exp and, since v0.77.0, deepseek_v3 (the DeepSeek-V3 MoE family), plus the qwen3_5 dense and MoE aliases that route onto the qwen3 streamer; the six added in v0.72.3 were each verified bit-exact against the same checkpoint loaded resident under both bf16 and NF4 (multimodal gemma3 is refused; phi3 fuses Q/K/V into one qkv_proj and is bit-exact anyway). Batches above 1 and gradient accumulation both work, and at the same effective batch raising batch_size measured about 2.52x faster than accumulating, because accumulation re-reads the whole base per micro-batch while a real batch amortises it: on Qwen2.5-0.5B bf16 at seq 256, batch 1 runs 556.6 tok/s in 0.842 GB, batch 1 with accum 4 runs 540.1 tok/s in 0.846 GB, and batch 4 runs 1378.0 tok/s in 2.28 GB. A new pre-flight predicts peak VRAM and refuses a run that will not fit, because streaming bounds the weights but not the activations or the logits: on a 151,936-token vocabulary at batch 8 the logits tensor alone measured 8.71 GB, 146x the whole layer-buffer pool. Its per-logit constant was corrected from 6 bytes to a measured 14 and fitted to ten real runs with a worst error of 0.85%, never under-predicting any of them, though v0.73.1 later measured that contract failing at long sequence (0.934x the real peak at sequence 5120, 0.787x at 6144) because every row of that grid sits at sequence 256 or 512. Plus a throughput forecast from a GEMM ceiling measured on your own card in that session, --resume and --hf-resume unblocked by a load-side adapter-key fix, and an NVMe disk overflow tier (auto falls back, ram refuses, non-NVMe is refused outright) whose correctness is bit-exact against the RAM tier and whose reader was rewritten in v0.76.0 (a background direct-I/O thread, optional NVMe striping) and measured on one RTX 5070 Laptop 8 GB. The v0.74.0 additions carry weaker evidence than the original nine and the page says which: Qwen3.5 parity is against CPU resident controls, the 35B MoE run has no resident control at all, and Qwen4-Exp has a float32 tiny-model gate with real-checkpoint and NF4 validation pending, so it streams only with task: sft and quantization: none; deepseek_v3's forward and backward parity was gated on a tiny from-config model on CPU, with no real checkpoint compared against a resident run and no NF4 parity check.",
+      "headings": 21,
+      "codeBlocks": 8,
+      "sourceSha256": "1a304b10f4747238fb3d6ffb455973aa4605a0d45ebc79d2e87a9f48fe814da7"
+    },
+    {
+      "slug": "supply-chain-security",
+      "title": "Supply Chain Security (v0.60.0)",
+      "description": "Soup CLI v0.60.0 supply chain security for LoRA adapters. soup adapters scan spectral-analyses weights for backdoors (rank-1, energy, Frobenius, NaN/Inf). soup adapters sign/verify Merkle-root tamper detection, signed with ed25519 or, since v0.76.0, Sigstore keyless. soup adapters check-safetensors --strict refuses pickle/.bin. soup adapters merge --license enforces SPDX compatibility (33-entry matrix). soup airgap-bundle packs for physical-media transfer (≤100 GiB). +152 tests. Also carries the vulnerability-reporting policy (SECURITY.md).",
+      "headings": 11,
+      "codeBlocks": 6,
+      "sourceSha256": "2bdc5cc8bced9e247195b5908312315c03b0360cd8b0c3325fc8ea93fbcfc326"
+    },
+    {
+      "slug": "tool-calling",
+      "title": "Tool-Calling Fine-Tuning",
+      "description": "End-to-end tool-calling fine-tuning with Soup CLI. New data format, synth template, recipes, and eval scoring for agentic training.",
+      "headings": 7,
+      "codeBlocks": 5,
+      "sourceSha256": "e5b77cf731330f9195beff5725251dea802900edf5fb58ed9d877288e109755d"
+    },
+    {
+      "slug": "trace-ecosystem",
+      "title": "Trace Ecosystem (v0.63.0)",
+      "description": "Soup CLI v0.63.0 trace ecosystem — pull production traces from any SaaS, mine them, ship gates. soup ingest normalises Langfuse / LangSmith / Helicone / OpenPipe / OTel / OpenAI Stored Completions. soup prune-prompt binary-searches longest shared prefix. soup data active-sample max-entropy / pairwise disagreement. soup ab two-sided sequential A/B test (since v0.76.0 a normal-inverse-gamma Bayes factor with a confidence-sequence accept rule; --beta is retired and exits 2 since v0.77.0). soup drift-alarm KL alarm with SSRF-validated Slack/Discord webhooks. +219 tests, 10,035 total.",
+      "headings": 8,
+      "codeBlocks": 9,
+      "sourceSha256": "bf95de101f99fd03cc8620a2a16520097ad42ce8dbdb77d72ade118fd071bf98"
+    },
+    {
+      "slug": "trace-to-preference",
+      "title": "Trace-to-Preference",
+      "description": "Turn LangChain, OpenAI, or Soup-serve traffic logs into DPO / KTO preference pairs with soup data from-traces. Thumbs, regenerations, and edits as signals. New in v0.26.0.",
+      "headings": 8,
+      "codeBlocks": 4,
+      "sourceSha256": "f31155123db8e866a6ce04f546e36f992101cc802544a88970d7efbd582cefb0"
+    },
+    {
+      "slug": "tracker-eval-pro",
+      "title": "Tracker & Eval Pro (v0.43.0)",
+      "description": "Tracker & Eval Pro in Soup CLI v0.43.0. --tracker mlflow|swanlab|trackio, pure-Python BLEU + ROUGE-1/2/L + effective_tokens_per_second, a KL-divergence calibration helper (Python library only, OK/MINOR/MAJOR), a Model Arena Elo tournament library, ceval/cmmlu benchmarks (the Aider Polyglot runner is soup eval aider, added in v0.74.0), soup data demo bundles.",
+      "headings": 9,
+      "codeBlocks": 4,
+      "sourceSha256": "2fa37725e907a31ecebcababa1756b34dcdc4b91195ef7eaef5acc990d74b770"
+    },
+    {
+      "slug": "training",
+      "title": "Training Methods",
+      "description": "23 training methods: SFT, DPO, Online DPO (v0.71.31 judge-in-the-loop), GRPO + 7 variants + PRM-guided GRPO (v0.71.30), PPO, KTO, ORPO, SimPO, IPO, BCO, unified preference, Pretrain, Embedding, Reward Model, PRM, TTS, ASR (v0.71.32 Whisper fine-tuning with WER/CER), Classifier/Reranker/Cross-Encoder, Distill, Unlearn (NPO/SimNPO/RMU), MoE LoRA Routing (MoLE). QLoRA, DoRA, VeRA, OLoRA, PiSSA, ReLoRA, LoftQ, LLaMA Pro. As of v0.71 the reward-hack & echo-trap detectors, ULD distillation (cross-tokenizer only with wasserstein_aligned), MiniLLM reverse-KL, mid-epoch RL ckpt, sequence-level KD, classifier LoRA, Mixture-of-Depths, and RAFT/RA-DIT are all live. Since v0.76.0 the held-out split is evaluated, packing keeps the assistant-only mask and every GRPO variant applies grpo_beta; a re-run table lists the runs that finished wrong.",
+      "headings": 13,
+      "codeBlocks": 7,
+      "sourceSha256": "af0c7fe1696b6134793eb0a9dcddd515dcd27d0f6f2c11f26d9325c66acf2d67"
+    },
+    {
+      "slug": "training-intelligence",
+      "title": "Training Intelligence",
+      "description": "The forgetting-detection and checkpoint-intelligence config keys, accepted by the schema but not enforced during training at v0.77.0 (soup train prints a note saying so), while ten of the related tunables are refused at load since v0.77.0 when set away from their defaults. The same mini benchmarks do run: after training as leg 2 of soup ship, and at epoch boundaries during training when a soup train --gate suite includes a type: benchmark task.",
+      "headings": 10,
+      "codeBlocks": 4,
+      "sourceSha256": "702edd5569fa83f1ce37b20e8742e473ca81b28a2144ce12d84b6a2b00f54bbc"
+    },
+    {
+      "slug": "training-speed-memory",
+      "title": "Training Speed & Memory",
+      "description": "Soup CLI v0.28.0 training speed and memory keys: Cut Cross-Entropy, FP8 training on Ada (compute capability 8.9) and newer (quantization_aware: fp8, which since v0.76.0 stops a run that cannot do FP8), gradient checkpointing (the tiers differ on task sft since v0.76.0; other tasks read the key as on or off), kernel auto-composition (kernel_auto_compose: true is refused at config load since v0.76.0), cross-document masking through packing (packing_cross_doc_attn_mask is refused), and activation offloading.",
+      "headings": 9,
+      "codeBlocks": 7,
+      "sourceSha256": "5ceecff8fc4cb66eedeea3b19631aaa292f9eca45020b8536a6c73303b2aa671"
+    },
+    {
+      "slug": "training-stability",
+      "title": "Training Stability & Auto-Tuning (v0.32.0)",
+      "description": "LR Range Finder (--find-lr), auto mixed-precision picker, a loss-spike recovery hint (a spike_recovery.json written next to the run output; Soup does not relaunch the run) and a VRAM pressure advisory; the warmup_auto and convergence_detection keys are accepted but not applied at v0.77.0. New in v0.32.0.",
+      "headings": 6,
+      "codeBlocks": 6,
+      "sourceSha256": "3be8eb39f718943b1a35ae3de9867d674eb2667a1682ebd9718fc2ccfde34f0e"
+    },
+    {
+      "slug": "unlearning",
+      "title": "Unlearning & Knowledge Edit (v0.61.0)",
+      "description": "Soup CLI v0.61.0 unlearning & knowledge edit. task: unlearn with NPO / SimNPO / RMU methods, data.forget_set + retain_set. soup eval unlearning scores Forget Quality / Model Utility / PrivLeak from TOFU / MUSE / WMDP evidence you supply (it runs no benchmark itself; with no evidence every metric is a neutral OK). soup edit set --method rome|memit|alphaedit|grace surgically patches facts without retraining. soup edit diff runs probe prompts through two models and lists the answers that changed (it exits 2 on a partial combination of --before-model, --after-model and --probes; with none of the three it prints an empty table and exits 0). Sequential Edit Governor refuses further edits after 50 edits or a norm blow-up (it cannot stop the edit that causes the blow-up; a store path that is refused or cannot be created disables it with a note, while a corrupt SQLite store stops the command with an error). +193 tests.",
+      "headings": 9,
+      "codeBlocks": 5,
+      "sourceSha256": "079541d9bc62e6aefbeb245a6348fd25e95dae25745b6e507fd8f5818e818ced"
+    },
+    {
+      "slug": "v053-live-writers",
+      "title": "v0.53.1 — Live writers for Quant Menu II",
+      "description": "Soup CLI v0.53.1 live writers: 'soup export --format torchao' (Int4WeightOnly / Int8DynActInt4 / Float8DynActFloat8 / NVFP4), 'soup merge --save-format 4bit_forced' single-shot BNB merge, 'soup export --format gguf-ud' 3-stage llama.cpp imatrix pipeline, autopilot pre-quantized detection, deploy autopilot OK/MINOR/MAJOR scorecard.",
+      "headings": 7,
+      "codeBlocks": 4,
+      "sourceSha256": "cb374ef6f72a9d00d765c439ce155e2014ce33e135cc09dda7e899a03370f456"
+    },
+    {
+      "slug": "v05311-grpo-prm-longlora",
+      "title": "v0.53.11 — GRPO variants live, PRM live, LongLoRA live, weighted preference",
+      "description": "Soup CLI v0.53.11: six GRPO objective variants (gspo/dapo/dr_grpo/bnpo/two_sided/rft) ship live loss kernels, 'task: prm' Process Reward Model live with per-step MSE and reward head, GRPOStabilityCallback (EMA, replay-buffer and TIS-alert counters, mostly record-only; see GRPO Plus), LongLoRA S² forward override (use_longlora is refused at config load since v0.76.0), weighted-sum preference combine (only a simpo + orpo blend trained at v0.76.0; blends naming dpo or ipo train since v0.77.0). 8,400 tests.",
+      "headings": 7,
+      "codeBlocks": 2,
+      "sourceSha256": "5a6c7b3b147ccda3dc6855434fc7ba769fac3fc1a30026342ddb5822c945a39d"
+    },
+    {
+      "slug": "v0532-modality-live",
+      "title": "v0.53.2 — Live trainers for Modality II",
+      "description": "Soup CLI v0.53.2 lights up Modality II trainers: 'task: distill' (student + frozen teacher + KL/JS), 'task: classifier' / 'reranker' / 'cross_encoder', reasoning_effort dispatch, EOT-unmask, EBFT + GDPO loss kernels (both refused at config load since v0.76.0).",
+      "headings": 8,
+      "codeBlocks": 3,
+      "sourceSha256": "2c852a5bb24483cc2300bc8e84c5da62a309dce88fa9d075ba67e877c346f894"
+    },
+    {
+      "slug": "v0536-7-plugins-anthropic",
+      "title": "v0.53.6 / v0.53.7 — Plugins live, Anthropic API, tool endpoints",
+      "description": "Soup CLI v0.53.6 / v0.53.7: SoupPluginCallback attached by the 14 trainers that wire it (for plugins registered in the same process), Anthropic-compatible '/v1/messages' endpoint, n-gram speculative decoding in the generate path (no flag enables it), 'soup data recipe --execute' DAG runner (6 node kinds; since v0.76.0 an llm_text or judge node needs --provider or --offline and exits 2 with neither), '/v1/tools/python' + '/v1/tools/web_search', 6 trainer plugins lazy-imported, heading-aware Markdown ingest, AOT preprocess to Arrow shards.",
+      "headings": 9,
+      "codeBlocks": 4,
+      "sourceSha256": "38f77c009a766e13ce035b1bae6c03b2f93f84d96d0ab4412adb39f6b1895800"
+    },
+    {
+      "slug": "v0538-10-remote-hubs",
+      "title": "v0.53.8 / v0.53.10 — Remote loaders, alternative hubs, tracker extras",
+      "description": "Soup CLI v0.53.8 / v0.53.10: fsspec remote loaders (s3/gs/gcs/az/abfs/abfss/oci), ModelScope + Modelers hub dispatcher with '--hub' on all major commands, '[trackers]' / '[mix]' / '[data-pro]' extras, PostHog env-var overrides, Web UI Tool Outputs panel, HF Space SDK auto-pick, wheel-safe demo bundles.",
+      "headings": 9,
+      "codeBlocks": 3,
+      "sourceSha256": "7893b4e86c61a59866bf867051c72ccf66e526211ecba1ae77e94b6e0b95bfd9"
+    },
+    {
+      "slug": "v0539-live-ux",
+      "title": "v0.53.9 — Live dashboard, Web UI mobile, bench percentiles, tokenizer trainer",
+      "description": "Soup CLI v0.53.9: an SSE training-event route ('/api/train/stream', not opened by the bundled dashboard and empty for a run started from the Web UI), 'soup ui --public' phone-scannable QR (the token is set once at startup and does not rotate), 'soup serve --reasoning-parser' for stripping <think> blocks from transformers replies (streamed ones too since v0.76.0), 'soup tokenizer train', 'soup bench --p50 --p95' tail-latency percentiles, 'soup bench --backend auto'.",
+      "headings": 8,
+      "codeBlocks": 5,
+      "sourceSha256": "1ec5d1bda9e96ea230f60a4d997e790af26477bd5e304c5a5f016e5f8501e557"
+    },
+    {
+      "slug": "warnings-now-refused",
+      "title": "v0.77.0: what v0.76 warned about is now refused",
+      "description": "Soup v0.77.0: what v0.76 warned about is now refused at load. Python 3.11 to 3.13, AWQ and GPTQ export removed, native MLX DPO, ORPO, SimPO and KTO, and what to re-run.",
+      "headings": 27,
+      "codeBlocks": 5,
+      "sourceSha256": "22c8c0eeda90a26360bbd70ab10e7cf821ad36875879ed9c637d6a6759f45d32"
+    },
+    {
+      "slug": "web-ui",
+      "title": "Web UI",
+      "description": "Soup Web UI: a run dashboard with loss, learning-rate, gradient-norm, speed and GPU-memory charts, a YAML editor to start and stop runs, a Data Explorer, and streaming chat against a running soup serve, plus a reference for the 24 REST routes behind it and how the bearer token, tickets and CORS work. On a loopback bind soup ui opens a URL that already carries the token and the server keeps the session in an HttpOnly cookie; the chat page's Adapter field does not select an adapter on soup serve.",
+      "headings": 14,
+      "codeBlocks": 4,
+      "sourceSha256": "09f6d11de82c1dfa1c771d17a5427fa150983d8cee28a81d72054cbd005a2610"
+    },
+    {
+      "slug": "whats-new",
+      "title": "What's new across v0.71 to v0.77",
+      "description": "Everything that shipped across the Soup CLI v0.71 to v0.77 lines, newest first, each line naming the release it came from. v0.77.0: what v0.76 warned about is now refused, as the 31 staged fields, two deprecated config values and fourteen of the fifteen never-applied settings on upstream's list stop the load, Python moves to 3.11 to 3.13, AWQ and GPTQ export are removed, DPO, ORPO, SimPO and KTO train natively on Apple Silicon and layer streaming reaches the DeepSeek-V3 MoE family. v0.76.1: a maintainer patch in which the bundled DPO examples train again, every YAML file Soup reads gets nesting, expansion and size limits, the Typer floor rises to 0.15.4 and a Hub dataset id with a dot loads from the Hub. v0.76.0: settings Soup accepted and never applied now stop the load, with dozens of combinations that loaded on v0.75 now refused when a config loads (run soup doctor --config first), 29 staged fields that warned at load (refused since v0.77.0), and eleven gate commands moving to a 0 / 2 / 3 exit-code scheme. v0.75.2: a one-change security patch (advisory GHSA-9f49-hqpf-c849, rated medium) in which outbound endpoint checks refuse private IP literals over https as well as http. v0.75.1: a security and correctness backport carrying advisory GHSA-63h4-gvp4-r26g (rated high, eight issues, three credentials to rotate) and a fix for a layer-streamed adapter that saved with zero tensors on peft 0.21 or newer. v0.75.0: the same soup.yaml trained a different recipe on MLX than on CUDA, an unknown config key now refuses the load, validation loss is recorded on MLX (the transformers backend first evaluates its held-out split in v0.76.0) and torch moves to 2.6.0; all 60 of its pull requests came from outside the maintainer. v0.74.0: the frozen base was being loaded in fp32 on every supervised path and in twelve more trainers, worth 2.59x peak memory on an unchanged config, 116 of its 120 pull requests came from outside the maintainer, the stack moved to Transformers 5.16.1 with TRL 0.29 and PEFT 0.20, the free notebook tier could not stream at all until now, layer streaming reached a tenth architecture (an eleventh came in v0.77.0), and soup mcp serve gained bearer-gated sse and http transports. v0.73.3: every one of its 24 pull requests came from outside the maintainer, and they found four flags that were validated, documented and read by nothing, plus an MCP execution gate that stopped being reserved. v0.73.2: soup ship's release gate stops ranking by the wrong thing, mini_over_refusal joins as an eighth bundled suite, and --noise-floor measures what the instrument can resolve. v0.73.1: bf16 was assumed on every CUDA card in fourteen places, so the whole free notebook tier failed on every task, and the streaming VRAM pre-flight was caught under-predicting at long sequence. v0.73.0: three days on a borrowed 8x H100 box, which found a silent NF4 gradient defect above 32B and four backends that had never executed once. v0.72.4: DPO, ORPO, SimPO and KTO run over a streamed base, with DPO's reference model taken from that same stream with its adapters switched off so it needs no second copy of the layer weights (0.914x the supervised peak on a 365M synthetic fixture, against a forced second instance at +730.44 MB), free in memory but 1.52x the layer reads in time; the measurement records behind the whole line are published and the work has a preprint DOI. v0.72.3: soup doctor --disk reports the media type because the streaming disk tier needs NVMe and refuses SATA, spinning or unidentifiable media rather than guessing; the [mcp] extra is pinned below 2.0 after the SDK's 2.0.0 broke soup mcp serve on a fresh install; soup adapters arithmetic --rank N makes mixed-rank LoRA algebra exact instead of refused. v0.71: Reward Forge (soup reward synth synthesizes a deterministic verifier from your gold outputs and refuses a degenerate one, soup reward stress attacks it with empty, padded, repetitive and sentinel-spam junk), soup ship --emit-evidence plus a committed ShipConfig turning the verdict into CI for weights, the ship regression leg rescored over seven bundled offline suites, Data Moat II (dedup --semantic, data topics, data canary, train --replay), the compliance pack (hipaa, soc2, eu-ai-act and sr-11-7 templates, soup card, soup ci init), GGUF export validated end to end on Windows, LoRA task arithmetic, LISA, Whisper ASR fine-tuning, Online DPO, PRM-guided GRPO, soup shrink, soup mcp serve, the Fine-tune Doctor, closed-loop reward-hack mitigation, soup ship, a catalog that reached 142 recipes by the end of the line, and Spectrum targeted training. For the current flagship see the layer streaming pages.",
+      "headings": 8,
+      "codeBlocks": 0,
+      "sourceSha256": "ca6ffcc3463b4940250692d29e94cd03bc31ca6dc75c325c00975cc04fb0d52c"
+    }
+  ]
+}

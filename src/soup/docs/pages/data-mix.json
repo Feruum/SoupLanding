@@ -1,0 +1,53 @@
+{
+  "slug": "data-mix",
+  "title": "Data Mixing Optimizer & Dynamic Curriculum (v0.48.0 — BETA)",
+  "description": "Data Mixing Optimizer + Dynamic Curriculum in Soup CLI v0.48.0 (BETA). Bayesian search over per-dataset mixture weights. DynamicCurriculumPolicy recomputes and logs bucket weights every N steps (they do not yet reorder the sampler at v0.77.0). soup data mix --optimize / --apply. soup runs curriculum-curve visualisation.",
+  "source": "https://trysoup.dev/docs/data-mix",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "da6e0aa06474a2f1c78c442e96e2528169c6de2effd53bee5f8a1d99a5f8d7fd",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-data-mix-optimize",
+      "title": "soup data mix --optimize"
+    },
+    {
+      "level": 2,
+      "id": "dynamic-curriculum-learning",
+      "title": "Dynamic curriculum learning"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Mixing Optimizer &amp; Dynamic Curriculum (v0.48.0 — BETA)</h1><h2 id=\"soup-data-mix-optimize\">soup data mix --optimize</h2><p>A search over per-dataset mixture weights. By default the objective is a synthetic proxy rather than your data; <code>--live</code> swaps in short training runs.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Offline dry run: exercises the budget tracker and the recipe writer only. The proxy loss\n# is a fixed function of the weights and never reads your data, so the weights mean nothing.\nsoup data mix --optimize \\\n  --datasets sft.jsonl,preference.jsonl,instruct.jsonl \\\n  --output mix.yaml\n\n# The real search: each candidate mixture runs a short soup train from your base config.\nsoup data mix --optimize --live --base-yaml soup.yaml \\\n  --datasets sft.jsonl,instruct.jsonl --budget 2h --num-probes 12 --output mix.yaml\n\n# --apply does not write a dataset. It prints the data: block to splice\n# into your soup.yaml, so the mixture is resolved at training time.\nsoup data mix --apply mix.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Without <code>--live</code> the search is synthetic.</strong> The default proxy loss is a fixed function of the weights, smallest at the uniform mixture, and it never reads your datasets, so the recipe it writes says nothing about them. <code>--live</code> requires <code>--base-yaml</code> (a <code>soup.yaml</code> that supplies base, task, training and output) and trains each candidate for a short run, capped per candidate at the budget divided by the probe count, between 60 seconds and 30 minutes. <code>--budget</code> (default <code>1h</code>), <code>--num-probes</code> (1 to 256, default 8), <code>--seed</code> and <code>--overwrite</code> (an existing <code>--output</code> is refused without it) apply to both modes; <code>--output</code> defaults to <code>mix_recipe.yaml</code>, and <code>--datasets</code> takes at least two paths under the current directory. Install <code>soup-cli[mix]</code> for the scikit-optimize loop; without it a seeded random sampler is used.</p></blockquote><p>The emitted recipe now renders <code>data.train</code> as the <strong>full dataset list</strong>, index-aligned with <code>interleave.probs</code>, rather than collapsing to the single highest-weighted dataset the way it had to before <code>data.interleave</code> was read at training time. Each entry is written as the dataset&#x27;s <strong>absolute path</strong>, because the paths you pass are resolved first, so the recipe is tied to the directory it was generated in: rewrite <code>data.train</code> as relative paths before you commit it or move it to another machine.</p><p><code>BudgetTracker</code> caps wall-clock and token budget per search.</p><p>Since v0.73.3 the emitted recipe <strong>loads</strong>. It names the single highest-weighted dataset in <code>data.train</code> and keeps the full ranked breakdown as a comment, because at the time <code>data.train</code> was typed as a single string. <strong>v0.74.0 closed that</strong>: <code>data.train</code> now accepts a list, and two or more local paths are combined through <a href=\"__DOCS_BASE__/data-pipeline-pro\"><code>data.interleave</code></a> before the validation split runs, with streaming and Hub-name lists covered too.</p><h2 id=\"dynamic-curriculum-learning\">Dynamic curriculum learning</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  curriculum: true\n  curriculum_dynamic: true\n  curriculum_buckets: 5\n  curriculum_metric: loss      # length | perplexity | loss"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>DynamicCurriculumPolicy</code> recomputes per-bucket weights every N steps from per-bucket loss and gradient-norm statistics and records them in <code>curriculum_history.jsonl</code>. <code>compute_bucket_weights</code> clamps to a stable simplex. At v0.77.0 nothing feeds those weights back into the sampler (the module and its callback are byte-identical to their v0.76.1 form): the callback&#x27;s own docstring calls its deliverable the history record, so <code>curriculum_dynamic: true</code> records a trajectory and does not reorder the data.</p><p>Three keys shape what that policy computes. <code>curriculum_dynamic_recompute_steps</code> (default 50, 1 to 100000) is how often the weights are recomputed. <code>curriculum_dynamic_temperature</code> (default 1.0, above 0 and at most 100) is the softmax temperature on the uncertainty signal: higher flattens the weights and lower concentrates them on the hardest buckets. <code>curriculum_dynamic_floor</code> (default 0.05) is the smallest normalised weight any bucket can fall to; it must be above 0 and no larger than <code>1 / curriculum_buckets</code>, so <code>curriculum_buckets: 4</code> allows at most 0.25 and a larger floor is refused at config load. <code>curriculum_dynamic</code> itself requires <code>curriculum: true</code>.</p><p>Static <code>curriculum: true</code> is applied by the SFT trainer only, and it only sorts the training rows by text length. <code>curriculum_metric: loss</code> or <code>perplexity</code> prints a notice that the metric needs pre-computed scores and does the same length sort, and <code>curriculum_buckets</code> only matters to the dynamic callback. Soup installs no sampler of its own for the sorted rows, and the Trainer&#x27;s default sampler is random (checked on transformers 5.17), so that order does not reach the model.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs curriculum-curve <run-id>\nsoup runs curriculum-curve <run-id> --history ./runs/$LAST/curriculum_history.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Renders the per-bucket weight curve over training.</p><p>Both features are BETA in v0.48.0. Symlink containment hardening lands across all file paths.</p><nav><a href=\"__DOCS_BASE__/data-forge\"><span>Previous</span><span>Data Forge</span></a><a href=\"__DOCS_BASE__/trace-ecosystem\"><span>Next</span><span>Trace Ecosystem</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,427 @@
+.hydra-document-cloud {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hydra-document-cloud canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+.hydra-node-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  color: #fff;
+  background: #111;
+  border: 1px solid #353535;
+  padding: 6px 8px;
+  font: 10px/1.5 var(--font-mono, monospace);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+.hydra-node-label span {
+  color: #999;
+}
+@media (max-width: 660px) {
+  .hydra-document-cloud {
+    height: 540px;
+  }
+}
+
+.hbr {
+  --line: #353535;
+  --muted: #999;
+  --dim: #777;
+  --ember: #ff5719;
+  --ease: cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+  font-family: inherit;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+.hbr * {
+  box-sizing: border-box;
+}
+.hbr-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.hbr-cell {
+  --ln: 0.5;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 196px;
+  padding: 24px 24px 22px;
+  border-right: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.hbr-cell:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: -2px;
+}
+
+/* dot field (ProofStrip): 6px grid of .75px dots at 22% white, lit in a 90px circle around the pointer */
+.hbr-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  background-image: radial-gradient(
+    rgb(255 255 255/0.22) 0.75px,
+    transparent 1px
+  );
+  background-size: 6px 6px;
+  -webkit-mask-image: radial-gradient(
+    90px circle at var(--x, 50%) var(--y, 50%),
+    #000,
+    transparent
+  );
+  mask-image: radial-gradient(
+    90px circle at var(--x, 50%) var(--y, 50%),
+    #000,
+    transparent
+  );
+}
+.hbr-cell[data-hot]::before,
+.hbr-cell:focus-visible::before {
+  opacity: 1;
+}
+
+/* tube; exit = cooling filament */
+.hbr-edge {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: 0;
+  height: 1px;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--ember),
+    #ff9a70 calc(var(--ln) * 100%),
+    var(--ember)
+  );
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  filter: brightness(0.45);
+  transition:
+    filter 110ms linear,
+    opacity 240ms var(--ease) 70ms,
+    transform 0s linear 320ms;
+}
+.hydra-evaluation .hbr-cell:first-child .hbr-edge {
+  left: 0;
+}
+.hbr-cell[data-hot] .hbr-edge,
+.hbr-cell:focus-visible .hbr-edge {
+  transform: scaleX(1);
+  opacity: 1;
+  filter: none;
+  transition:
+    transform 240ms var(--ease),
+    opacity 0s,
+    filter 0s;
+}
+
+/* walls catch the light */
+.hbr-wall {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 42%;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(255 87 25/0.75),
+    rgb(255 87 25/0.25) 45%,
+    transparent
+  );
+  opacity: 0;
+  transform: scaleY(0.35);
+  transform-origin: top;
+  transition:
+    opacity 200ms var(--ease),
+    transform 0s linear 220ms;
+}
+.hbr-l {
+  left: -1px;
+}
+.hydra-evaluation .hbr-cell:first-child .hbr-l {
+  left: 0;
+}
+.hbr-r {
+  right: -1px;
+}
+.hbr-cell[data-hot] .hbr-wall,
+.hbr-cell:focus-visible .hbr-wall {
+  opacity: 1;
+  transform: scaleY(1);
+  transition:
+    opacity 380ms var(--ease) 60ms,
+    transform 460ms var(--ease) 60ms;
+}
+
+/* light inside the cell */
+.hbr-lamp {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms var(--ease);
+}
+.hbr-src {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--ln) * 100%);
+  width: min(100%, 360px);
+  transform: translateX(-50%);
+}
+.hbr-bloom {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: -16px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--ember);
+  opacity: 0.32;
+  filter: blur(14px);
+}
+.hbr-cone {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  top: 0;
+  height: 85%;
+  filter: blur(16px);
+  transform: scaleX(0.6);
+  transform-origin: top;
+  transition: transform 420ms var(--ease);
+}
+.hbr-cone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(255 87 25/0.17),
+    rgb(255 87 25/0.06) 45%,
+    transparent
+  );
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.hbr-cell[data-hot] .hbr-lamp,
+.hbr-cell:focus-visible .hbr-lamp {
+  opacity: 1;
+  transition: opacity 380ms var(--ease) 60ms;
+}
+.hbr-cell[data-hot] .hbr-cone,
+.hbr-cell:focus-visible .hbr-cone {
+  transform: scaleX(1);
+}
+
+/* content */
+.hbr-num,
+.hbr-cap,
+.hbr-foot {
+  position: relative;
+  z-index: 2;
+}
+.hbr-num {
+  font: 400 48px/1 var(--font-mono, monospace);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hbr-u {
+  font-size: 0.5em;
+  letter-spacing: 0;
+  color: var(--muted);
+  margin-left: 2px;
+  vertical-align: 0.62em;
+}
+.hbr-cap {
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  transition: color 200ms var(--ease);
+}
+.hbr-foot {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hbr-lab {
+  font: 500 12px/1.2 var(--font-mono, monospace);
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  transition: color 200ms var(--ease);
+}
+.hbr-arr {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: var(--dim);
+  transition:
+    color 200ms var(--ease),
+    transform 260ms var(--ease);
+}
+.hbr-cell[data-hot] .hbr-lab,
+.hbr-cell:focus-visible .hbr-lab {
+  color: #fff;
+}
+.hbr-cell[data-hot] .hbr-cap,
+.hbr-cell:focus-visible .hbr-cap {
+  color: #c4c4c4;
+}
+.hbr-cell[data-hot] .hbr-arr,
+.hbr-cell:focus-visible .hbr-arr {
+  color: #fff;
+  transform: translate(2px, -2px);
+}
+.hbr-cell:active .hbr-arr {
+  transform: translate(1px, -1px);
+  transition-duration: 80ms;
+}
+.hbr-cell:active {
+  -webkit-touch-callout: none;
+}
+
+/* Small breakpoint (1200 wide page, 224px cells) */
+@container (max-width: 1180px) {
+  .hydra-evaluation .hbr-cell {
+    padding: 22px 20px 20px;
+  }
+  .hydra-evaluation .hbr-num {
+    font-size: 42px;
+  }
+}
+.hbr[data-wrap] .hbr-foot {
+  align-items: flex-start;
+}
+.hbr[data-wrap] .hbr-lab {
+  min-height: 2.4em;
+}
+.hbr[data-wrap] .hbr-arr {
+  margin-top: 1px;
+}
+@media (hover: none) {
+  .hbr-lab {
+    color: var(--muted);
+  }
+  .hbr-arr {
+    color: var(--ember);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hbr-edge,
+  .hbr-cell[data-hot] .hbr-edge {
+    transition: opacity 200ms linear;
+  }
+  .hbr-edge {
+    transform: scaleX(1);
+    filter: none;
+  }
+  .hbr-wall,
+  .hbr-cell[data-hot] .hbr-wall,
+  .hbr-cone,
+  .hbr-cell[data-hot] .hbr-cone {
+    transform: none;
+  }
+  .hbr-cone {
+    transition: none;
+  }
+  .hbr-arr {
+    transition: color 200ms var(--ease);
+  }
+  .hbr-cell[data-hot] .hbr-arr,
+  .hbr-cell:focus-visible .hbr-arr {
+    transform: none;
+  }
+}
+
+.hydra-evaluation {
+  border: 1px solid var(--line);
+}
+.hydra-evaluation .hbr-cell:last-child {
+  border-right: 0;
+}
+.hydra-evaluation .hbr-num {
+  font-size: clamp(36px, 4vw, 58px);
+}
+.hydra-evaluation .hbr-cell {
+  cursor: default;
+}
+.hydra-evaluation .hbr-lab {
+  overflow-wrap: anywhere;
+}
+@container (max-width:700px) {
+  .hydra-evaluation .hbr-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hydra-evaluation .hbr-cell {
+    min-height: 150px;
+    padding: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hydra-evaluation .hbr-cell:nth-child(even) {
+    border-right: 0;
+  }
+  .hydra-evaluation .hbr-cell:last-child {
+    grid-column: 1/-1;
+    border-bottom: 0;
+  }
+  .hydra-evaluation .hbr-num {
+    font-size: 40px;
+  }
+  .hydra-evaluation .hbr-lab {
+    font-size: 11px;
+  }
+}
+.hydra-evaluation[data-reduced] .hbr-cell:first-child .hbr-edge {
+  opacity: 1;
+  transform: scaleX(1);
+  filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hydra-evaluation *,
+  .hydra-evaluation *::before {
+    transition: none !important;
+  }
+}
+.hydra-document-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 24px;
+}

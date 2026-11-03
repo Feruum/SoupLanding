@@ -1,0 +1,138 @@
+{
+  "slug": "loop-hardening",
+  "title": "Loop Hardening (v0.70.0 → live in v0.71.11)",
+  "description": "Soup CLI loop hardening — six surfaces that protect the training loop from the failure modes that cost a real GPU-hour, all live as of v0.71.11. Two are CLI flags and four are soup.yaml keys under training:. --reward-hack-detector info_rm|rm_ensemble (InfoRM cluster-separation or RM-ensemble divergence; --reward-hack-halt auto-stops on HACK). The config key training.uld_strategy selects a Universal Logit Distillation loss, where only wasserstein_aligned is cross-tokenizer: wasserstein and topk_align forward the student's token ids to the teacher unchanged and refuse a mismatched pair since v0.75.0. training.minillm_enabled bundles three reverse-KL stability tricks. training.rl_checkpoint_save_every_steps adds mid-epoch PPO/GRPO checkpointing (TorchTune still punts this). soup iterative-dpo drives the sample → score → re-pair → retrain loop over N rounds. training.echo_trap_enabled is the RAGEN n-gram repetition detector for multi-turn agent RL.",
+  "source": "https://trysoup.dev/docs/loop-hardening",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "858d0878ff1ed53a64e887c1a7a1a09858204a2971b56b6824da29646920376c",
+  "headings": [
+    {
+      "level": 2,
+      "id": "reward-hack-detector-inform-rm-ensemble-divergence",
+      "title": "--reward-hack-detector — InfoRM + RM-ensemble divergence"
+    },
+    {
+      "level": 2,
+      "id": "training-uld-strategy-universal-logit-distillation",
+      "title": "training.uld_strategy — Universal Logit Distillation"
+    },
+    {
+      "level": 2,
+      "id": "training-minillm-enabled-reverse-kl-with-3-stability-tricks-bundled",
+      "title": "training.minillm_enabled — reverse-KL with 3 stability tricks bundled"
+    },
+    {
+      "level": 2,
+      "id": "training-rl-checkpoint-save-every-steps-mid-epoch-ppo-grpo-ckpt",
+      "title": "training.rl_checkpoint_save_every_steps — mid-epoch PPO/GRPO ckpt"
+    },
+    {
+      "level": 2,
+      "id": "soup-iterative-dpo-sample-score-re-pair-retrain-driver",
+      "title": "soup iterative-dpo — sample → score → re-pair → retrain driver"
+    },
+    {
+      "level": 2,
+      "id": "training-echo-trap-enabled-ragen-multi-turn-n-gram-repetition-detector",
+      "title": "training.echo_trap_enabled — RAGEN multi-turn n-gram repetition detector"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Loop Hardening (v0.70.0 → live in v0.71.11)</h1><p>Six surfaces that protect the training loop from the failure modes that cost a real GPU-hour. Shipped schema-first in v0.70.0; <strong>as of v0.71.11 every callback is live</strong> — the detectors install real GRPO <code>TrainerCallback</code>s (a <code>task: ppo</code> run refuses them since v0.76.0), the distillation losses compute inside the distill trainer, the RL checkpoints write real state, and <code>soup iterative-dpo</code> runs the full loop. Validated end-to-end on SmolLM2-135M.</p><h2 id=\"reward-hack-detector-inform-rm-ensemble-divergence\"><code>--reward-hack-detector</code> — InfoRM + RM-ensemble divergence</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config grpo.yaml \\\n  --reward-hack-detector info_rm \\\n  --reward-hack-halt"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>base</code>, <code>task</code> and <code>reward_model</code> are config keys, so they live in <code>grpo.yaml</code> rather than on the command line. (Do not paste a <code>#</code> comment inside a backslash chain: the comment ends the command, and the flags below it run as commands of their own.)</p><p>Two detectors:</p><ul><li><code>info_rm</code> — InfoRM Cluster-Separation Index (Wang et al. 2024, <a href=\"https://arxiv.org/abs/2402.09345\">arXiv 2402.09345</a>). Drops when the policy collapses onto a degenerate reward-maximising subspace.</li><li><code>rm_ensemble</code> — mean pairwise variance across an RM ensemble (cap 32). When ensemble members disagree, the policy is exploiting one of them.</li></ul><p>Math kernels <code>compute_cluster_separation</code>, <code>compute_rm_ensemble_divergence</code>, <code>classify_hack_signal</code> are <strong>LIVE</strong> with OK / WARN / HACK bands at 0.10 / 0.30 relative drop. <code>--reward-hack-halt</code> auto-stops on HACK (exit 2). Cross-validator: the schema accepts <code>task: grpo</code> and <code>task: ppo</code> only, <code>halt=True</code> requires detector, rejects mlx; <code>rm_ensemble</code> requires ≥2 reward functions. <strong><code>task: ppo</code> then refuses the detector at trainer setup</strong> (see below), so in practice the detectors are GRPO-only. Composes with v0.34 <code>soup why</code> for anomaly explanation. <strong>Live as of v0.71.11</strong> — the GRPO callback reads per-step rewards via a shared thread-safe capture buffer, classifies the verdict, logs it to <code>state.log_history</code>, and halts on HACK.</p><p><strong><code>task: ppo</code> refuses these flags (v0.76.0, #1441).</strong> <code>reward_hack_detector</code>, <code>reward_hack_mitigation</code> and <code>echo_trap_enabled</code> on <code>task: ppo</code> stop the run when the trainer is built, before any model loads: <code>task: ppo cannot use &lt;flags&gt;: this trl&#x27;s experimental PPOTrainer takes no reward functions, so the reward/completion signal these callbacks read is never captured. They are wired on GRPO only.</code> The config itself loads, so <code>soup doctor --config</code> does not catch it, and the <code>soup train --help</code> text for <code>--reward-hack-detector</code> still says &quot;GRPO/PPO&quot;. <code>rl_checkpoint_save_every_steps</code> is not affected, and a PPO run that sets none of these three flags is not refused. <em>(Since closed in v0.76.0: through v0.75.2 a PPO run carrying one of these flags was announced and loaded, and then never halted, mitigated or trapped anything, because the signal buffer was never written.)</em></p><p><strong><code>info_rm</code> needs a reward that varies on both sides of the batch median (v0.76.0, #1438).</strong> On a two-valued reward such as <code>reward_fn: accuracy</code> (0 or 1), or a continuous reward where half the batch lands on the same value, a step whose median split leaves either half constant now casts no vote and logs one warning naming the cause. A step where every reward is identical still votes once a baseline exists. <em>(Since closed in v0.76.0: the pooled-variance floor collapsed to <code>1e-9</code>, so a first step near 50% success recorded a phantom separation of about 31,623 as the baseline, later healthier steps read as a collapse, and the run could be halted or its beta changed on a false signal. Detector logs and <code>mitigation_log.jsonl</code> from earlier runs are not comparable; on a two-valued reward use <code>rm_ensemble</code> or the length and repetition signals.)</em></p><blockquote><p><strong>v0.71.26 closes the loop.</strong> These detectors no longer only halt: <code>--reward-hack-mitigation kl_control|pid_lagrangian</code> makes the trainer <strong>self-correct</strong> mid-run — raise the KL penalty, shape the reward, roll back to the last-good checkpoint, then early-stop only as a last resort. See <a href=\"__DOCS_BASE__/reward-hack-mitigation\">Closed-loop reward-hacking auto-mitigation</a>.</p></blockquote><h2 id=\"training-uld-strategy-universal-logit-distillation\"><code>training.uld_strategy</code> — Universal Logit Distillation</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# soup.yaml\ntask: distill\ntraining:\n  teacher_model: meta-llama/Llama-3.1-8B-Instruct   # required by task: distill\n  uld_strategy: wasserstein_aligned   # the one that handles two different tokenizers"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Boizard et al. 2024 (<a href=\"https://arxiv.org/abs/2402.12030\">arXiv 2402.12030</a>). Three strategies, and <strong>only one of them is cross-tokenizer</strong>. Getting that wrong is not a slow run, it is a run that trains on the wrong text and reports a plausible loss the whole way, so read the split before you pick:</p><div><table><thead><tr><th>Strategy</th><th>Tokenizers</th><th>What it does</th></tr></thead><tbody><tr><td><code>wasserstein_aligned</code></td><td><strong>Different</strong></td><td>Re-tokenizes and aligns decoded character spans, so Llama → Mistral or GPT-2 BPE → Llama SentencePiece is a real comparison</td></tr><tr><td><code>wasserstein</code></td><td><strong>Must be interchangeable</strong></td><td>1-D Wasserstein distance over sorted teacher / student logits, no alignment. Cheap, and correct only for two sizes in one family</td></tr><tr><td><code>topk_align</code></td><td><strong>Must be interchangeable</strong></td><td>Top-K teacher logits matched via a BPE-overlap heuristic. Sharper signal, same tokenizer requirement</td></tr></tbody></table></div><p><code>uld_top_k: 32</code> is required for <code>topk_align</code>. <code>_MAX_VOCAB_SIZE=262144</code> covers multilingual SentencePiece and GPT-OSS 200K vocabularies. All three are gated to <code>task=&#x27;distill&#x27;</code> and reject the mlx backend. <strong>Live as of v0.71.11.</strong> (v0.71.12 also adds <code>distill_mode: sequence</code> for hard-label sequence-level KD, mutually exclusive with the ULD logit path. On transformers 5, its teacher generation failed with a bare <code>AttributeError</code> on the first prompt until v0.76.0, which reads the chat-template encoding as a mapping and passes its attention mask to <code>generate</code> (#1238).)</p><blockquote><p><strong><code>wasserstein</code> and <code>topk_align</code> were sold as cross-tokenizer here until v0.75.0, and they never were.</strong> Both forward the student&#x27;s own <code>input_ids</code> <strong>straight to the teacher</strong>, clamped into its vocabulary range to avoid an index error. Clamping does not translate a token between two vocabularies, it just picks some other token. So a mismatched pair fed the teacher garbled or simply different text, and the distillation term was computed against logits for that wrong text, while the loss stayed <strong>finite and plausible</strong> the whole run. Nothing raised and nothing warned.</p><p>Both strategies now <strong>refuse a tokenizer pair that is not interchangeable, at <code>setup()</code></strong>, naming <code>wasserstein_aligned</code> as the working alternative. The check reuses the same <code>same_tokenizer</code> probe Soup already trusts to decide whether a speculative-decoding draft is interchangeable with its target. The same-tokenizer fast path is untouched. <strong>If you distilled across two different tokenizers with <code>wasserstein</code> or <code>topk_align</code> on any earlier release, that run is not salvageable, so re-run it with <code>wasserstein_aligned</code>.</strong></p><p>A second defect in the same family shipped alongside: the ULD loss <strong>ignored the response-only label mask and the causal shift</strong> that the cross-entropy term already applied, so under the default <code>train_on_responses_only</code> it was optimising prompt tokens and the shift-boundary position too. Both loss functions now take the labels and mask on <code>labels != -100</code> after the same shift.</p></blockquote><p><strong><code>wasserstein_aligned</code> no longer scores positions that have no teacher target (v0.76.0, #1426).</strong> A byte-fallback piece, an empty decoded piece or a student-only special token aligns to no teacher token. It used to get an all-zero teacher row, which softmaxes to uniform, and each such position added about <code>V/2</code> to the loss. These positions now leave both the sum and the denominator under the label mask, the attention mask and no mask, and the trainer decodes student special tokens to the empty string, as it already does for the teacher. A <code>wasserstein_aligned</code> run from before v0.76.0 included those positions in its loss.</p><h2 id=\"training-minillm-enabled-reverse-kl-with-3-stability-tricks-bundled\"><code>training.minillm_enabled</code> — reverse-KL with 3 stability tricks bundled</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: distill\ntraining:\n  teacher_model: meta-llama/Llama-3.1-8B-Instruct   # required by task: distill\n  minillm_enabled: true\n  minillm_teacher_mix_ratio: 0.3\n  minillm_length_normalize: true\n  minillm_pretrain_anchor_weight: 0.1\n  minillm_pretrain_anchor_path: ./pretrain.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Gu et al. 2024 (<a href=\"https://arxiv.org/abs/2306.08543\">arXiv 2306.08543</a>). All three §3 stability tricks bundled: teacher-mixed sampling (mix teacher samples into the on-policy rollout), length normalisation (per-token KL averaged), pretrain-loss anchor (regularise toward an anchor distribution at weight α).</p><p>There is <strong>one real CLI flag</strong> in this family, and everything above is config:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config distill.yaml --minillm-on-policy"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It switches the rollout from a teacher-forced approximation to a genuine on-policy one: a fresh autoregressive sample is drawn from the teacher-student mixture each step, then scored with the length-normalised reverse KL. <code>training.minillm_rollout_length</code> sizes it, defaulting to <code>min(max_length, 32)</code>.</p><p>Cross-validators <strong>reject silent no-ops</strong>:</p><ul><li><code>anchor_weight=0</code> with <code>anchor_path</code> set → error</li><li><code>anchor_weight &gt; 0</code> with <code>path = None</code> → error</li><li><code>minillm_enabled: true</code> with the default offline settings (<code>minillm_on_policy: false</code> and <code>minillm_teacher_mix_ratio: 0.0</code>) → error (v0.76.0, #692). The message starts <code>minillm_enabled with minillm_on_policy=false requires minillm_teacher_mix_ratio &gt; 0</code>, so set a ratio in (0, 1] or use <code>--minillm-on-policy</code>. Ratio 0 stays legal on the on-policy path, where it only means student-only sampling and the loss is still <code>KL(student || teacher)</code>.</li></ul><p><em>(Since closed in v0.76.0: that default combination used to load and forward the teacher, then blend it at weight zero, so the MiniLLM term was <code>KL(student || stopgrad(student))</code> while ordinary cross-entropy kept the loss curve healthy.)</em></p><p>Only <code>--minillm-on-policy</code> is a CLI flag. <code>minillm_enabled</code>, <code>minillm_teacher_mix_ratio</code>, <code>minillm_pretrain_anchor_weight</code> and <code>minillm_pretrain_anchor_path</code> are <code>soup.yaml</code> fields with no CLI counterpart: upstream&#x27;s own docs showed four <code>soup train --minillm-*</code> flags that raised <code>No such option</code> (exit 2), and replaced them with the YAML above (#979).</p><p>Gated to <code>task=&#x27;distill&#x27;</code>. <strong>Live as of v0.71.11</strong> — the teacher-mixed, length-normalised reverse-KL term plus the optional pretrain-anchor SFT term train end-to-end; the anchor reader is cwd-contained + symlink-rejecting with a per-line byte cap.</p><h2 id=\"training-rl-checkpoint-save-every-steps-mid-epoch-ppo-grpo-ckpt\"><code>training.rl_checkpoint_save_every_steps</code> — mid-epoch PPO/GRPO ckpt</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# config keys under training:, not CLI flags\n#   rl_checkpoint_save_every_steps: 200\n#   rl_checkpoint_keep_last: 4\n#   rl_checkpoint_include_optimizer: true\nsoup train --config ppo.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>TorchTune explicitly punts mid-epoch checkpointing. Soup enforces the bounds <code>save_every_steps ∈ [1, 10M]</code>, <code>keep_last ∈ [1, 100]</code> (oldest pruned).</p><p><strong><code>training.rl_checkpoint_include_ref_model</code> and <code>training.rl_checkpoint_include_rollout_buffer</code> are refused at load since v0.77.0 when set to <code>true</code></strong> (an explicit <code>false</code> loads). No checkpoint save ever wrote reference-model or rollout-buffer state: before this release the manifest copied the two flags from the config, so a checkpoint holding only the adapter and the optimizer claimed both, and it now reports <code>has_ref_model: false</code> and <code>has_rollout_buffer: false</code> (#808, #1980). <code>soup train</code> stops with <code>Config validation error:</code> and <code>training.rl_checkpoint_include_ref_model is accepted but read by nothing; refused as of v0.77. Delete the line.</code> (exit 1). Unlike the other staged fields, these two went from accepted to refused with no warning release in between.</p><p>Composes with v0.32 spike recovery + v0.40 reference-model regen, but the saved state is restored in exactly one place (checked at v0.76.0 and again at v0.77.0): the rollback rung of the <code>pid_lagrangian</code> reward-hack controller. Loss-spike recovery and a crashed run do not restore it. <strong>Saving is live as of v0.71.11</strong> — it writes a real adapter + optimizer state + JSON manifest every N steps and prunes to <code>rl_checkpoint_keep_last</code>. (v0.71.11 also made the GRPO reference-model EMA update in place, eliminating the three model-sized allocations per step. As of v0.76.0 that update only runs if the callback is handed a separate reference model, which the Hugging Face callback handler does not do, so <code>ref_model_ema_alpha</code> changes nothing in practice; see <a href=\"__DOCS_BASE__/grpo-plus#stability-knobs-accepted-mostly-record-only\">GRPO Plus</a>.)</p><h2 id=\"soup-iterative-dpo-sample-score-re-pair-retrain-driver\"><code>soup iterative-dpo</code> — sample → score → re-pair → retrain driver</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup iterative-dpo --base-model HuggingFaceTB/SmolLM2-135M-Instruct \\\n  --reward-model ./rm \\\n  --prompts ./prompts.jsonl \\\n  --output-dir ./iter-dpo \\\n  --rounds 4 --pairs-per-round 4000"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--base-model</code>, <code>--reward-model</code>, <code>--prompts</code> and <code>--output-dir</code> are all required here; unlike <code>soup train</code>, this driver takes the reward model as a flag rather than from a config. The two models are handed straight to <code>from_pretrained</code>, so each is a Hub id or a local path (a sequence-classification model for <code>--reward-model</code>); a <code>registry://</code> reference is not resolved by this command, and <code>--plan-only</code> would accept one without noticing.</p><p>Frozen <code>IterativeDPOPlan</code> with a <strong>consecutive-<code>round_index</code></strong> invariant and canonical per-round artifacts:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "./iter-dpo/round-00/pairs.jsonl\n./iter-dpo/round-00/adapter/\n./iter-dpo/round-01/pairs.jsonl\n./iter-dpo/round-01/adapter/\n..."
+    },
+    {
+      "kind": "html",
+      "html": "<p>Rounds are numbered from zero: <code>--rounds 4</code> plans <code>round-00</code> to <code>round-03</code>. There is no resume: the command has no <code>--resume</code> flag and the runner does not skip a round whose adapter already exists, so after a crash it starts again from <code>round-00</code> (point <code>--output-dir</code> somewhere new if you want to keep the earlier files). <code>--plan-only</code> renders the validated plan and exits 0. <strong>Live as of v0.71.11</strong> — each round samples completions from the previous round&#x27;s adapter, then trains a fresh LoRA from the base on that round&#x27;s harvested pairs.</p><h2 id=\"training-echo-trap-enabled-ragen-multi-turn-n-gram-repetition-detector\"><code>training.echo_trap_enabled</code> — RAGEN multi-turn n-gram repetition detector</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# add to the training: block of your grpo.yaml (task: grpo; task: ppo refuses these keys)\ntraining:\n  echo_trap_enabled: true\n  echo_trap_threshold: 0.6\n  echo_trap_halt: true"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config grpo.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Zhu et al. 2025 (<a href=\"https://arxiv.org/abs/2504.14437\">arXiv 2504.14437</a>). Pure-Python n-gram repetition rate per trajectory + a batch mean — when an agent&#x27;s rollout collapses into &quot;echoing itself&quot; (the same n-gram pattern appearing repeatedly within and across turns), this catches it before the reward model rewards the degenerate policy.</p><p><strong><code>--echo-trap-tokenizer-aware</code> is the one real CLI flag here</strong> (its help text still says &quot;grpo/ppo&quot;), and the trade-off is worth stating before you reach for it: scoring repetition over tokens rather than characters catches subword repetition that punctuation-heavy text hides, but it makes the score <strong>tokenizer-specific</strong> instead of vocabulary-agnostic, so two runs on different tokenizers stop being comparable. Everything else in this family (<code>echo_trap_enabled</code>, <code>echo_trap_threshold</code>, <code>echo_trap_halt</code>) is a <code>training.</code> config key, not a flag.</p><p>OK / WARN / TRAP bands at 0.30 / 0.60. DoS caps <code>_MAX_NGRAM_N=32</code>, <code>_MAX_TRAJECTORY_TOKENS=1M</code>, <code>_MAX_BATCH_TRAJECTORIES=100k</code>. The schema gate is <code>task in {grpo, ppo}</code> non-mlx, but <code>task: ppo</code> is refused at trainer setup (see the detector section), so this is GRPO-only in practice. Composes with v0.53.11 <code>GRPOStabilityCallback</code>. <strong>Live as of v0.71.11</strong> — the GRPO callback scores per-trajectory n-gram repetition, logs the verdict, and halts on TRAP when <code>training.echo_trap_halt</code> is set.</p><h2 id=\"re-run-this\">Re-run this</h2><p>Each row is a way a finished run could differ from the config you wrote. The wording follows upstream&#x27;s changelog; the PR numbers are there so you can read the fix.</p><div><table><thead><tr><th>If you ran</th><th>What was different</th><th>What to do</th></tr></thead><tbody><tr><td><code>task: distill</code> with <code>gradient_accumulation_steps</code> above 1 (this includes <code>soup draft distill</code> and the <code>soup shrink --heal</code> step, which train through <code>task: distill</code>)</td><td><code>_DistillTrainer.compute_loss</code> returned a mean over its own microbatch, so the same effective batch split four ways produced four times the gradient and changed the effective learning rate. The trainer now weights each microbatch by its share of the window&#x27;s trained tokens (#720 in #742, completed in #932 in #943)</td><td>Re-run</td></tr><tr><td><code>uld_strategy: wasserstein_aligned</code></td><td>Positions with no teacher target added about <code>V/2</code> each to the loss (#1426)</td><td>Re-run if the loss mattered to the result</td></tr><tr><td><code>minillm_enabled: true</code> with the default offline settings</td><td>The teacher was blended in at weight zero, so the MiniLLM term was <code>KL(student || stopgrad(student))</code> while ordinary cross-entropy kept the loss curve healthy (#692). It is now refused at load</td><td>Set <code>minillm_teacher_mix_ratio</code> above 0, or use <code>--minillm-on-policy</code>, and re-run</td></tr><tr><td>GRPO with <code>reward_hack_detector: info_rm</code> on a two-valued reward such as <code>reward_fn: accuracy</code>, with <code>--reward-hack-halt</code> or a mitigation other than <code>log_only</code></td><td>A phantom baseline could make the detector read healthy steps as a collapse, so the halt or the beta change may have been spurious (#1438)</td><td>Re-run if a halt or a beta change ended or altered the run</td></tr><tr><td><code>task: ppo</code> with <code>reward_hack_detector</code>, <code>reward_hack_mitigation</code> or <code>echo_trap_enabled</code></td><td>The flags were announced and then never acted: the signal buffer was never written (#1441). They are now refused before the model loads</td><td>Nothing was detected or mitigated; use <code>task: grpo</code> for these flags</td></tr><tr><td>A mid-epoch RL checkpoint whose manifest says <code>has_ref_model</code> or <code>has_rollout_buffer</code> is <code>true</code> (written before v0.77.0 with <code>rl_checkpoint_include_ref_model</code> or <code>rl_checkpoint_include_rollout_buffer</code> set)</td><td>The manifest copied the two flags from the config; the checkpoint holds the adapter and the optimizer only (#808, #1980)</td><td>Do not rely on it for reference-model or rollout-buffer state. Delete both lines from the config: <code>true</code> is refused at load since v0.77.0</td></tr></tbody></table></div><h2 id=\"numbers\">Numbers</h2><p>+337 tests in v0.70.0 (11,487 → 11,824); the live wiring in v0.71.11 is part of the broader v0.71 sweep, which closed at <strong>16,529 tests across 319 files</strong> in v0.71.41. At v0.74.0 the suite spanned <strong>439 test files</strong>; upstream stopped publishing a total it counted at the tag, so this page names the number that reproduces and not one it cannot check.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/reward-hack-mitigation\">Closed-loop reward-hacking auto-mitigation (v0.71.26)</a> — the release that turns these detectors from &quot;halt&quot; into &quot;self-correct&quot;.</li><li><a href=\"__DOCS_BASE__/lean-install-live-wiring\">Lean install + live wiring (v0.71)</a> — the release that made all six of these surfaces real.</li><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle (v0.67)</a> — <code>soup adapters bisect</code> finds which mid-epoch ckpt regressed.</li><li><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance (v0.68)</a> — <code>soup distill-prompt</code> + ULD pair up to bridge tokeniser gaps.</li><li><a href=\"__DOCS_BASE__/soup-loop\">Soup Loop (v0.58)</a> — iterative-DPO runs inside a <code>soup loop</code> iteration.</li></ul><nav><a href=\"__DOCS_BASE__/anti-trend-insurance\"><span>Previous</span><span>Prompt Compile &amp; Distill</span></a><a href=\"__DOCS_BASE__/reward-hack-mitigation\"><span>Next</span><span>Reward-Hack Auto-Mitigation</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

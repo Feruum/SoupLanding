@@ -1,0 +1,106 @@
+{
+  "slug": "multi-gpu-deepspeed",
+  "title": "Multi-GPU training with DeepSpeed ZeRO-3",
+  "description": "Multi-GPU fine-tuning with DeepSpeed ZeRO-3 in Soup CLI. Llama 3.1 70B on 8× A100, an FSDP2 alternative, and the use_ring_attention key, which is checked at launch but not applied at v0.77.0.",
+  "source": "https://trysoup.dev/docs/multi-gpu-deepspeed",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "9947c92b2f09dee356152eb7899a3b6d6b3911bf4c49b5ae3269d17580a4a1c9",
+  "headings": [
+    {
+      "level": 2,
+      "id": "install",
+      "title": "Install"
+    },
+    {
+      "level": 2,
+      "id": "when-to-use-which-zero-stage",
+      "title": "When to use which ZeRO stage"
+    },
+    {
+      "level": 2,
+      "id": "config-for-llama-3-1-70b-on-8-a100",
+      "title": "Config for Llama 3.1 70B on 8× A100"
+    },
+    {
+      "level": 2,
+      "id": "launch-on-8-gpus",
+      "title": "Launch on 8 GPUs"
+    },
+    {
+      "level": 2,
+      "id": "alternative-fsdp2",
+      "title": "Alternative: FSDP2"
+    },
+    {
+      "level": 2,
+      "id": "ring-flashattention-for-128k-context",
+      "title": "Ring FlashAttention for 128k+ context"
+    },
+    {
+      "level": 2,
+      "id": "tips",
+      "title": "Tips"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Multi-GPU training with DeepSpeed ZeRO-3</h1><p>Use Soup CLI with DeepSpeed ZeRO-3 to train large models across multiple GPUs. This guide shows how to fine-tune a <strong>70B model</strong> across 4–8 GPUs.</p><h2 id=\"install\">Install</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train,deepspeed]\""
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><code>[deepspeed]</code> adds ZeRO on top of the training stack; it does not pull it in on its own, because the base package is PyTorch-free.</p></blockquote><h2 id=\"when-to-use-which-zero-stage\">When to use which ZeRO stage</h2><div><table><thead><tr><th>Stage</th><th>What it shards</th><th>When to use</th></tr></thead><tbody><tr><td>ZeRO-2</td><td>Optimizer states + gradients</td><td>2–4 GPUs, 7B–13B models</td></tr><tr><td>ZeRO-3</td><td>Everything incl. parameters</td><td>4+ GPUs, 30B+ models</td></tr><tr><td>FSDP2</td><td>Fully sharded (PyTorch native)</td><td>Alternative to ZeRO-3</td></tr></tbody></table></div><h2 id=\"config-for-llama-3-1-70b-on-8-a100\">Config for Llama 3.1 70B on 8× A100</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-70B-Instruct\ntask: sft\nbackend: transformers       # root-level, NOT under training\n\ndata:\n  train: train.json\n  format: alpaca\n  max_length: 4096          # sequence length lives under data\n\ntraining:\n  epochs: 2\n  lr: 1.0e-4                # the key is lr, not learning_rate\n  batch_size: 1\n  gradient_accumulation_steps: 16\n  gradient_checkpointing: true\n  auto_mixed_precision: true\n  lora:\n    r: 32                   # LoRA turns on when r > 0; there is no enabled flag\n    alpha: 64\n\noutput: ./runs/llama70b"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Sharding is not a config key.</strong> There is no <code>training.distributed</code> block. DeepSpeed and FSDP are selected on the command line, so the same YAML runs on one GPU or eight.</p></blockquote><h2 id=\"launch-on-8-gpus\">Launch on 8 GPUs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config llama70b.yaml --gpus 8 --deepspeed zero3 --yes"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--yes</code> skips the confirmation prompt. Since v0.77.0 <code>soup train</code> with its stdin piped or redirected and no <code>--yes</code> exits 3 instead of waiting at that prompt, so pass it in any script, scheduler job or CI step.</p><p><code>--deepspeed</code> accepts <code>zero2</code>, <code>zero3</code>, <code>zero2_offload</code>, <code>zero3_offload</code>, <code>zero++</code>, or a path to a DeepSpeed config JSON. <strong>Since v0.74.0 your own file is resolved the way a preset is</strong>, and only for keys that are provably invalid for the run: <code>zero_hpz_partition_size</code> when the world size is not divisible by it, and the fp16 quantiser keys against a bf16 run. That matters because the documented way to customise ZeRO++ is to copy the preset JSON, which copies both defects, so an unresolved user file inherited a crash the presets are already protected from. A repair is printed and written to a temp copy: <strong>your file on disk is never modified</strong>, a config using none of those keys is passed through byte-identical, and malformed JSON is passed through untouched because DeepSpeed reports a bad config better than a traceback would. <code>zero3_offload</code> (v0.73.0) is stage 3 with CPU <strong>parameter</strong> offload, which is what a run short of VRAM actually wants and which could not be named on the command line before: <code>zero3</code> set no offload at all and the only offload preset was stage 2, optimizer-only. Measured on one H100 with Llama-3.1-8B in bf16: <strong>21.65 tok/s at a 38,135 MiB peak</strong>. Its <code>offload_optimizer</code> deliberately stays off, because turning it on makes DeepSpeed build a CPU Adam kernel against a matching CUDA toolkit and fail without one; copy the emitted JSON and flip it if you have <code>nvcc</code>. Note that DeepSpeed with LoRA was broken on <strong>every</strong> stage until v0.73.0, which repaired the supervised trainer; v0.74.0 then attached the same repair to every other DeepSpeed-capable trainer. Use <code>zero2_offload</code> when the optimizer state is what does not fit. Soup handles the <code>torchrun</code> / <code>deepspeed</code> launcher config automatically.</p><p>To span several machines instead of one, add <code>--nodes</code>, <code>--node-rank</code>, <code>--master-addr</code> and <code>--master-port</code> (v0.76.0); <code>--gpus</code> is then the count per node. See <a href=\"__DOCS_BASE__/multi-gpu#multi-node-launch\">Multi-node launch</a>.</p><h2 id=\"alternative-fsdp2\">Alternative: FSDP2</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config llama70b.yaml --gpus 8 --fsdp full_shard"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--fsdp</code> accepts <code>full_shard</code>, <code>shard_grad</code> or <code>full_offload</code>. FSDP2 is PyTorch-native and often simpler for LoRA workloads.</p><h2 id=\"ring-flashattention-for-128k-context\">Ring FlashAttention for 128k+ context</h2><blockquote><p><strong>Not applied (checked at v0.76.0 and again at v0.77.0).</strong> <code>training.use_ring_attention: true</code> is validated when <code>soup train</code> starts, and a failed check exits 1, but no trainer applies ring attention afterwards: the run proceeds with ordinary attention, so the flag does not split a long sequence across GPUs and saves no memory.</p></blockquote><p>The checks are CUDA, two or more GPUs, <code>ring-flash-attn</code> importable (that is all the <code>[ring-attn]</code> extra is needed for) and <code>data.max_length</code> of at least 8192:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[ring-attn]\""
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  max_length: 131072\n\ntraining:\n  use_ring_attention: true   # validated at launch; nothing applies it at v0.77.0"
+    },
+    {
+      "kind": "html",
+      "html": "<p>For long context today, <code>gradient_checkpointing</code>, <code>--deepspeed zero3</code> and <code>--fsdp full_shard</code> reduce the memory each GPU holds (recomputed activations, sharded parameters and optimizer state); none of them splits one sequence across GPUs.</p><h2 id=\"tips\">Tips</h2><ul><li>Always enable <code>gradient_checkpointing: true</code> for 70B+ models</li><li>CPU offload trades speed for VRAM — use only if OOM</li><li>Profile first: <code>soup profile --config llama70b.yaml</code> estimates memory + throughput before you spend GPU hours</li></ul><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/backends\">Backends reference</a></li><li><a href=\"__DOCS_BASE__/training\">Training methods</a></li></ul><nav><a href=\"__DOCS_BASE__/migrate-from-axolotl\"><span>Previous</span><span>Migrate from Axolotl to Soup CLI</span></a><a href=\"__DOCS_BASE__/cli-reference\"><span>Next</span><span>CLI Reference</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

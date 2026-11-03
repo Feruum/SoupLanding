@@ -1,0 +1,96 @@
+{
+  "slug": "anti-trend-insurance",
+  "title": "Anti-trend Insurance (v0.68.0)",
+  "description": "Soup CLI v0.68.0 anti-trend insurance — 5-bet hedge against paradigm shifts. soup compile is a DSPy + GEPA + TextGrad prompt-program compiler (5-optimiser allowlist, MAX_COMPILE_ITERS=1000). soup distill-prompt migrates long system prompts into weights. soup compile-tools optimises tool-call descriptions via textual gradients. soup apple-adapter converts HF safetensors ↔ MLX npz adapters with optional Merkle-root signing; the *-to-apple FoundationModels directions refuse with exit 3 until Apple publishes the format. soup local-rl is a LIVE personal-LLM feedback flywheel — POSIX 0o600 SQLite, thumbs harvested to DPO pairs in one command. +204 tests, 11,225 total.",
+  "source": "https://trysoup.dev/docs/anti-trend-insurance",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "782cf36a3659db0ea3dde19d5dd2f59c713ec26e13e1f05ceabc179c7492f2de",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-compile-dspy-gepa-textgrad-prompt-program-compiler",
+      "title": "soup compile — DSPy + GEPA + TextGrad prompt-program compiler"
+    },
+    {
+      "level": 2,
+      "id": "soup-distill-prompt-long-prompts-small-fine-tunes",
+      "title": "soup distill-prompt — long prompts → small fine-tunes"
+    },
+    {
+      "level": 2,
+      "id": "soup-compile-tools-textual-gradients-over-tool-descriptions",
+      "title": "soup compile-tools — textual gradients over tool descriptions"
+    },
+    {
+      "level": 2,
+      "id": "soup-apple-adapter-hf-mlx-apple-foundationmodels",
+      "title": "soup apple-adapter — HF ↔ MLX ↔ Apple FoundationModels"
+    },
+    {
+      "level": 2,
+      "id": "soup-local-rl-personal-llm-feedback-flywheel-live",
+      "title": "soup local-rl — personal-LLM feedback flywheel (LIVE)"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Anti-trend Insurance (v0.68.0)</h1><p>Five-bet hedge against paradigm shifts. If prompt engineering keeps winning, <code>soup compile</code> keeps you covered. If prompt costs wall out, <code>soup distill-prompt</code> migrates the system prompt into weights. <code>soup compile-tools</code> does the same trick for tool descriptions. <code>soup apple-adapter</code> converts HF and MLX adapters, with Apple FoundationModels (iOS 26+) directions that are accepted but refuse until Apple publishes the adapter format. And <code>soup local-rl</code> builds a personal-LLM feedback flywheel from thumbs-up/down on your own machine.</p><h2 id=\"soup-compile-dspy-gepa-textgrad-prompt-program-compiler\"><code>soup compile</code> — DSPy + GEPA + TextGrad prompt-program compiler</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup compile ./program.py --eval ./examples.jsonl \\\n  --optimizer mipro --max-iters 500 --output ./compiled_program.py"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Closed optimiser allowlist of 5: <code>mipro</code>, <code>gepa</code>, <code>textgrad</code>, <code>copro</code>, <code>bootstrap_fewshot</code>. Hard bound <code>MAX_COMPILE_ITERS=1000</code>.</p><p><code>--output</code> must stay under the working directory and must not be a symlink. Since v0.76.0 that is checked at plan time, before the optimizer and its LLM calls start: a destination outside the working directory or a symlink exits 2, and <code>--plan-only</code> refuses it too instead of printing the plan (#1445). Through v0.75.2 the whole optimization ran first and the path was refused at the end with an unhandled <code>ValueError</code> (exit 1).</p><p><code>--eval</code> is a JSON or JSONL file of example objects: a JSON array, a single object, or one object per line. YAML is not parsed. The plan step only checks that the path stays under the working directory, so <code>--plan-only</code> prints a clean plan for a <code>.yaml</code> suite (or for a file that does not exist), and the loader then keeps only lines that parse as JSON objects, which gives zero examples from a YAML file. The output is a compiled Python program (<code>--output</code>, default <code>compiled_program.py</code>), not JSON.</p><ul><li><code>validate_program_path</code> requires <code>.py</code>, cwd containment, <code>os.lstat + S_ISLNK</code> rejection via shared <code>paths.enforce_under_cwd_and_no_symlink</code></li><li><code>CompileResult</code> enforces finite-score (no NaN / ±Inf), iterations ≥ 0</li><li>Module is <code>commands/compile_cmd.py</code> because <code>compile</code> is a Python builtin</li><li><strong>Live as of v0.71.13</strong> (behind the <code>[compile]</code> extra) — <code>run_compile</code> dispatches DSPy / GEPA / TextGrad; <code>soup compile-tools</code> optimises tool schemas too; <code>--plan-only</code> still renders the plan and exits 0</li><li><strong>Since v0.77.0 the eval suite reaches the optimizer</strong> (#1810, #1956): <code>soup compile</code> and <code>soup compile-tools</code> pass the eval suite&#x27;s signal, the metric derived from it and the iteration bound to DSPy, TextGrad and GEPA, and <code>soup compile</code> prints <code>Score: unmeasured</code> for a result with no measured score. Before this release they did not, so a program compiled on an earlier version was not optimised against your suite: compile it again. A live <code>soup compile</code> now also exits 2 unless the program supplies what its optimizer uses: TextGrad a backward engine (<code>engine</code> in the program, or <code>textgrad.set_backward_engine(...)</code>), GEPA a <code>task_lm</code> or an <code>adapter</code>, and the DSPy optimizers a callable <code>metric</code> when the eval suite gives no examples.</li></ul><h2 id=\"soup-distill-prompt-long-prompts-small-fine-tunes\"><code>soup distill-prompt</code> — long prompts → small fine-tunes</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup distill-prompt --traces ./traces.jsonl \\\n  --teacher llama3.1:70b --student llama3.2:3b \\\n  --strategy sft --output ./dataset.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--teacher</code> and <code>--student</code> are model names <strong>in the provider you choose</strong>, not Hugging Face repo ids: <code>--provider</code> is <code>ollama</code> by default (or <code>vllm</code> or <code>anthropic</code>, with <code>--base-url</code> for the first two), so the example uses Ollama tags. The teacher is called once per trace; the student is called only for the <code>preference</code> strategy, where it supplies the <code>rejected</code> side. A call that fails, returns a malformed reply or returns empty text never becomes a row, and since v0.76.0 it is counted (#1274). If the run writes no rows because calls failed (a wrong model name, a provider that is down), the command prints <code>No usable rows produced: N of M provider calls failed for --provider &lt;p&gt; (&lt;endpoint&gt;); first error: ...</code> and exits 1. A partial outage keeps the successful rows and ends with a yellow <code>done with provider failures</code> panel carrying a <code>Provider calls: N of M failed</code> line; read it before you train on the file. <em>(Through v0.75.2 a failed call was skipped without a message, so a wrong model name finished with <code>Rows: 0</code>, an empty output file and exit 0, and a partial outage looked like a clean run.)</em></p><p><code>--temperature</code> sets the sampling temperature of the teacher and, under <code>preference</code>, the student (default 0.0, allowed 0 to 2, otherwise exit 2; this is checked when the run starts, so <code>--plan-only</code> does not reject it). <code>--max-rows N</code> stops once N rows have been written (a positive integer; by default every trace is used). It counts rows written, not model calls, so a prompt that gets no usable reply still costs a call. <code>--plan-only</code> prints the plan and calls no model.</p><p>Closed strategy set <code>{sft, preference, kl}</code>. Teacher / student IDs capped at 512 chars; null-byte + empty rejected. Composes with v0.71 cross-tokenizer ULD. <strong>Live as of v0.71.13</strong> (behind the <code>[compile]</code> extra) — <code>prepare_distill_dataset</code> calls the teacher once per trace via the v0.20 providers and emits sft/kl messages or preference chosen/rejected pairs.</p><h2 id=\"soup-compile-tools-textual-gradients-over-tool-descriptions\"><code>soup compile-tools</code> — textual gradients over tool descriptions</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup compile-tools ./spec.json --eval ./eval.jsonl --optimizer textgrad --engine gpt-4o\nsoup compile-tools ./spec.json --eval ./eval.jsonl --optimizer gepa --task-lm <model>"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Spec extension allowlist <code>{.json, .yaml, .yml}</code> (case-insensitive on Windows). TextGrad / GEPA optimise tool descriptions so model picks them more accurately. Since v0.77.0 TextGrad needs a backward engine (<code>--engine</code>, or one you set in TextGrad yourself), and GEPA a task model (<code>--task-lm</code>; <code>--reflection-lm</code> defaults to it); without them a live run exits 2 (<code>No backward engine configured for TextGrad. Pass --engine &lt;name&gt; ...</code>, <code>GEPA optimizer requires --task-lm to be specified.</code>), while <code>--plan-only</code> still prints the plan and exits 0. Through v0.76.1 the TextGrad path stepped an optimizer with no engine and the eval signal never reached it, so re-run tool descriptions compiled on an earlier version. Composes with v0.46 Agent Forge — Agent Forge parses the spec, ToolCompile optimises descriptions.</p><h2 id=\"soup-apple-adapter-hf-mlx-apple-foundationmodels\"><code>soup apple-adapter</code> — HF ↔ MLX ↔ Apple FoundationModels</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup apple-adapter ./adapter \\\n  --direction hf-to-mlx --output ./mlx-adapter --sign"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Closed direction allowlist of 4: <code>hf-to-mlx</code>, <code>mlx-to-hf</code>, <code>hf-to-apple</code>, <code>mlx-to-apple</code>. Explicit <code>S_ISDIR</code> + symlink rejection on source. <code>sign</code> must be real <code>bool</code> (bool-as-int defence). Reuses v0.60 Part B signing infrastructure and extends the v0.25 MLX backend. <strong>Live as of v0.71.21</strong> — <code>convert_apple_adapter</code> does the PEFT ↔ mlx-lm round trip for <code>hf-to-mlx</code> / <code>mlx-to-hf</code> (real bf16 adapter smoke); the <code>*-to-apple</code> directions stay upstream-gated until Apple&#x27;s on-device adapter spec settles: they are accepted by the allowlist and then refuse with exit 3 (&quot;no stable public spec yet&quot;), so only <code>hf-to-mlx</code> and <code>mlx-to-hf</code> convert anything.</p><p><code>--sign</code> here uses the <code>unsigned</code> backend: it writes <code>.soup-signature.json</code> with a Merkle root over the output files, so it detects later tampering but carries no ed25519 signature and says nothing about who produced the files, even though the summary prints &quot;Signed: True&quot;. For a real signature run <code>soup adapters sign ./mlx-adapter --backend ed25519 --key &lt;key.pem&gt;</code> on the output.</p><h2 id=\"soup-local-rl-personal-llm-feedback-flywheel-live\"><code>soup local-rl</code> — personal-LLM feedback flywheel (LIVE)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# The DB path must stay under the current working directory: a ~ path is refused.\nsoup local-rl init --db ./local.db\nsoup local-rl record --db ./local.db \\\n  --prompt \"summarise my last commit\" --response \"...\" --thumb up\n# or let the served model fill the same DB for you:\nsoup serve --model ./output --record-thumbs ./local.db\nsoup local-rl status --db ./local.db\nsoup local-rl harvest --db ./local.db --output ./pairs.jsonl\n\nsoup train --config dpo.yaml   # point data.train at ./pairs.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><strong>You do not have to call <code>record</code> by hand.</strong> <a href=\"__DOCS_BASE__/speculative-decoding#capturing-thumbs-from-the-served-model\"><code>soup serve --record-thumbs &lt;db&gt;</code></a> turns on <code>POST /v1/thumbs</code> and writes into this same database, which is the edge that closes the loop: serve, collect, harvest, train. Path contained under cwd, transformers backend only.</li><li><strong><code>soup loop watch</code> reads the same database since v0.77.0</strong> (#1440, #1832): with the pre-wired stages, set <code>soup loop init --thumbs-db ./local.db</code> (or <code>SOUP_LOOP_THUMBS_DB</code>) and its harvest adds the thumbs pairs to the trace pairs. See <a href=\"__DOCS_BASE__/soup-loop\">Soup Loop</a>.</li><li>POSIX <code>0o600</code> SQLite, <code>interactions</code> + <code>thumbs</code> tables (idempotent <code>CREATE TABLE IF NOT EXISTS</code>)</li><li>Parameterised inserts, 16 KiB prompt + 16 KiB response caps, null-byte rejection</li><li><code>harvest</code> walks thumbs by <code>ts ASC</code>, emits one <code>DpoPair{prompt, chosen, rejected}</code> per prompt with both an up and down (last-writes-win dedup), atomic JSONL write via <code>tempfile.mkstemp + os.replace</code></li><li><code>soup local-rl train</code> is <strong>live as of v0.71.13</strong> — <code>--once</code> harvests the latest thumbs DPO pairs and runs a real nightly DPO/KTO/ORPO train via a <code>soup train</code> subprocess (a <code>state</code> table skips re-runs with no new feedback or fewer than <code>--min-pairs</code>); without <code>--once</code> it renders an injection-safe systemd <code>.service</code>/<code>.timer</code> + launchd <code>.plist</code> scheduler scaffold</li><li>Since v0.76.0 the scaffold carries the <code>--min-pairs</code> and <code>-o</code> you passed (#1448); through v0.75.2 the nightly job ignored them and used the defaults (10 pairs, <code>local_rl_adapter/</code>), so regenerate unit files you installed earlier. A <code>--min-pairs</code> the nightly run would refuse exits 2 before any unit file is written</li><li><code>--train-method kto</code> writes <code>batch_size: 2</code> into the generated config, because <code>task: kto</code> is refused below a batch of 2 (#1420)</li><li><code>--backend</code> is accepted for compatibility, is validated, and has no effect on training: passing it prints <code>Note: --backend has no effect on training.</code> and it is not rendered into the scheduler scaffold (#1678)</li></ul><h2 id=\"numbers\">Numbers</h2><p>+204 tests in v0.68.0 (11,021 → <strong>11,225</strong>) across 6 new test files. 2 POSIX-only symlink tests skip on Windows.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/data-engineering-pro\">Data engineering pro (v0.69)</a> — <code>soup build</code> + <code>soup expect</code> build on the same TOCTOU helper consolidated here.</li><li><a href=\"__DOCS_BASE__/loop-hardening\">Loop hardening (v0.70)</a> — cross-tokenizer ULD pairs with <code>soup distill-prompt</code>.</li><li><a href=\"__DOCS_BASE__/mlx-backend\">MLX backend</a> — what <code>soup apple-adapter</code> extends.</li></ul><nav><a href=\"__DOCS_BASE__/rag-and-steering\"><span>Previous</span><span>RAG &amp; Steering</span></a><a href=\"__DOCS_BASE__/loop-hardening\"><span>Next</span><span>Loop Hardening</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

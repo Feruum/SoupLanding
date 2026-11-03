@@ -1,0 +1,102 @@
+{
+  "slug": "adapter-check",
+  "title": "Is the adapter alive: soup adapters check and audit",
+  "description": "soup adapters check says whether a LoRA adapter saved by the transformers path is trained; soup adapters audit compares a run's record with soup.yaml.",
+  "source": "https://trysoup.dev/docs/adapter-check",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "633ca4912ebebafc91041f7120f9e5377a6b787261c35eb3cfd91f9ad56dfafc",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-adapters-check",
+      "title": "soup adapters check"
+    },
+    {
+      "level": 3,
+      "id": "the-verdicts",
+      "title": "The verdicts"
+    },
+    {
+      "level": 3,
+      "id": "exit-codes",
+      "title": "Exit codes"
+    },
+    {
+      "level": 3,
+      "id": "what-it-cannot-check",
+      "title": "What it cannot check"
+    },
+    {
+      "level": 3,
+      "id": "json",
+      "title": "--json"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-audit",
+      "title": "soup adapters audit"
+    },
+    {
+      "level": 3,
+      "id": "what-the-record-contains-depends-on-the-backend",
+      "title": "What the record contains depends on the backend"
+    },
+    {
+      "level": 3,
+      "id": "exit-codes-2",
+      "title": "Exit codes"
+    },
+    {
+      "level": 3,
+      "id": "json-2",
+      "title": "--json"
+    },
+    {
+      "level": 2,
+      "id": "where-to-go-next",
+      "title": "Where to go next"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Is the adapter alive: soup adapters check and audit</h1><p>Two commands added in v0.76.0 answer the question a healthy loss curve cannot: <strong>did this run produce an adapter that does anything, and did it train the way the config said?</strong> Both exist because each of the failures below looked like a normal run. v0.72.0 saved layer-streamed adapters under keys that loaded as the untuned base, a streamed run on peft 0.21 or newer saved <a href=\"__DOCS_BASE__/an-empty-adapter\">an adapter holding zero tensors</a>, and the MLX backend accepted training options it silently dropped (see <a href=\"__DOCS_BASE__/mlx-honours-its-config\">what MLX honours</a>).</p><div><table><thead><tr><th>Command</th><th>Question</th><th>Needs</th></tr></thead><tbody><tr><td><code>soup adapters check</code></td><td>Is this LoRA adapter, saved by the transformers path, trained at all?</td><td>the adapter directory only</td></tr><tr><td><code>soup adapters audit</code></td><td>Did the run use the settings in <code>soup.yaml</code>?</td><td>the adapter directory and the config</td></tr></tbody></table></div><p>Neither loads a model, uses a GPU or touches the network. They are part of the <code>soup adapters</code> group described on <a href=\"__DOCS_BASE__/adapters\">the adapters page</a>.</p><h2 id=\"soup-adapters-check\"><code>soup adapters check</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters check ./out/adapter\nsoup adapters check ./out/adapter --json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It reads <code>adapter_model.safetensors</code> and <code>adapter_config.json</code> and prints one verdict as its last line: <code>alive</code>, or <code>inactive: &lt;reason&gt;</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "Adapter: /home/you/project/out/adapter\nTotal ||ΔW||_F: 13.316776\nLive fraction: 100.0% (4/4 layers)\nAll-zero lora_B layers: 0/4\nLeaked .inner. keys: 0\nalive"
+    },
+    {
+      "kind": "html",
+      "html": "<p>For every LoRA pair it computes <code>||ΔW||_F = scaling x ||B A||_F</code> in float64, where <code>scaling</code> is <code>lora_alpha / r</code> (<code>lora_alpha / sqrt(r)</code> when the config sets <code>use_rslora</code>, and <code>1.0</code> when <code>adapter_config.json</code> has no <code>r</code> or <code>lora_alpha</code>). The total is the square root of the sum of the squares. A layer is <strong>live</strong> when its <code>lora_B</code> is not all zero and its delta is above zero.</p><h3 id=\"the-verdicts\">The verdicts</h3><p>The first match in this list wins, so a leaked-key adapter reports the leak even if its weights are also zero.</p><div><table><thead><tr><th>Last line</th><th>What it means</th></tr></thead><tbody><tr><td><code>inactive: leaked .inner. keys detected (N tensors)</code></td><td>Tensor names carry the extra <code>.inner.</code> segment that v0.72.0 layer streaming wrote. Loaded into an ordinary model they match nothing, and the result is the untuned base. The weights themselves can be healthy; the adapter is still reported inactive</td></tr><tr><td><code>inactive: incomplete LoRA pairs detected (N orphans)</code></td><td>A <code>lora_A</code> without its <code>lora_B</code>, or the reverse</td></tr><tr><td><code>inactive: shape mismatch in LoRA projections (N layers)</code></td><td>A pair whose shapes cannot multiply. Best effort: a pair that happens to fit the transposed layout is read as that layout and reported <code>alive</code></td></tr><tr><td><code>inactive: non-finite weights detected (NaN/Inf)</code></td><td>The printed total reads <code>nan</code></td></tr><tr><td><code>inactive: no lora weights found</code></td><td>No <code>lora_A</code> / <code>lora_B</code> tensors at all. This is the verdict for the zero-tensor adapter described on the <a href=\"__DOCS_BASE__/an-empty-adapter\">v0.75.1 page</a>, and for a non-LoRA PEFT adapter such as VeRA</td></tr><tr><td><code>inactive: all lora_B layers are zero (N/N)</code></td><td>The adapter is still at its initial state: <code>lora_B</code> starts at zero, and nothing moved it</td></tr><tr><td><code>inactive: lora_B layers are zero (k/N)</code></td><td><strong>Any</strong> all-zero <code>lora_B</code> marks the whole adapter inactive, even when the other layers moved</td></tr><tr><td><code>inactive: total ||ΔW||_F is 0.0</code></td><td>Every delta is zero by another route</td></tr><tr><td><code>alive</code></td><td>Every pair is complete, finite and non-zero, and the total delta is above zero</td></tr></tbody></table></div><p><code>soup adapters diff</code> uses the same reader, so since v0.77.0 it reads bf16 adapters too.</p><p>Optional lines list the offending tensors for <code>Zero lora_B projections:</code>, <code>Incomplete LoRA pairs:</code>, <code>Shape-mismatched LoRA pairs:</code> and <code>Leaked wrapper keys:</code> (up to five, then <code>... and N more</code>); <code>Standalone non-LoRA tensors: N</code> gives only a count. In the per-layer names an internal <code>__LORA__</code> placeholder stands where <code>lora_A</code> or <code>lora_B</code> would be.</p><h3 id=\"exit-codes\">Exit codes</h3><div><table><thead><tr><th>Code</th><th>Meaning</th></tr></thead><tbody><tr><td>0</td><td><code>alive</code></td></tr><tr><td>2</td><td><code>inactive</code>. A usage error (missing <code>ADAPTER</code>, unknown flag) is also 2, so read the last line as well as the code</td></tr><tr><td>1</td><td>The command could not read the adapter (see below)</td></tr></tbody></table></div><p>Exit 1 covers: a directory that is missing, outside the current directory or a symlink; no <code>adapter_model.safetensors</code>; an <code>adapter_model.bin</code> (<code>re-save adapter as safetensors</code>); a weights file over 2 GiB, which is refused from its size before it is opened; a corrupt weights file, or one holding a tensor in a dtype NumPy cannot hold here, such as FP8 (<code>Unsupported safetensors weights in adapter_model.safetensors: tensor ... has unsupported dtype ...</code>); an <code>adapter_config.json</code> that is not a JSON object; and, since v0.77.0, a missing NumPy (reported as an unreadable weights file, see below). Through v0.76.1 a missing <code>safetensors</code> package was on this list too.</p><h3 id=\"what-it-cannot-check\">What it cannot check</h3><ul><li><strong>It needs NumPy.</strong> The command runs without PyTorch, and since v0.77.0 it reads the weights file&#x27;s header itself, so the <code>safetensors</code> package is no longer needed (through v0.76.1 it was, and a core install exited 1 with <code>safetensors package required; pip install safetensors</code>). NumPy is not a dependency of the light core install, and without it the command exits 1 with <code>Corrupt or unreadable safetensors weights in adapter_model.safetensors: No module named &#x27;numpy&#x27;</code>: the file is fine, the package is missing. The training extras bring NumPy.</li><li><strong>MLX adapters exit 1.</strong> The MLX trainer writes its weights as <code>adapters.safetensors</code>, and the command only looks for <code>adapter_model.safetensors</code>, so an MLX adapter directory reports <code>no adapter_model.safetensors found</code>. Use <a href=\"#soup-adapters-audit\">the audit command below</a> for those: it reads the MLX record.</li><li><strong><code>bfloat16</code> weights are read since v0.77.0</strong> (#2058, #2063): they are widened to float32 exactly, so an adapter saved from a bf16 run is checked like any other. <em>(Since closed in v0.77.0: through v0.76.1 a weights file holding <code>bfloat16</code> tensors exited 1 with <code>Corrupt or unreadable safetensors weights in adapter_model.safetensors: data type &#x27;bfloat16&#x27; not understood</code>, read by the v0.76.0 binary on a hand-built file.)</em> The v0.77.0 behaviour was checked here on a hand-built file with two bf16 tensors (<code>alive</code>, exit 0; with <code>lora_B</code> all zero, <code>inactive</code>, exit 2), not on a trained adapter.</li><li><strong>Only LoRA adapters saved by the transformers path are in scope.</strong> A VeRA adapter, or any other non-LoRA PEFT adapter, has no <code>lora_A</code> / <code>lora_B</code> pairs and reports <code>inactive: no lora weights found</code>, which is a statement about the format, not about whether it trained.</li><li><strong><code>rank_pattern</code> and <code>alpha_pattern</code> are ignored.</strong> An adapter with per-module ranks gets the single <code>lora_alpha / r</code> scaling, so the printed <code>||ΔW||_F</code> is a health number, not an exact delta.</li><li><strong><code>alive</code> means the adapter moved away from its initial state.</strong> It says nothing about whether the model got better. For that, run <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship</code></a>.</li></ul><h3 id=\"json\"><code>--json</code></h3><p><code>--json</code> prints one object with sorted keys: <code>adapter</code>, <code>verdict</code>, <code>verdict_line</code>, <code>reason</code>, <code>total_frobenius</code> (<code>null</code> when not finite), <code>live_fraction</code>, <code>live_layers</code>, <code>total_layers</code>, <code>all_zero_lora_b_layers</code>, <code>inner_keys</code>, <code>orphaned_layers</code>, <code>shape_mismatches</code>, <code>standalone_tensors</code> and <code>per_layer</code> (per pair: <code>name</code>, <code>frobenius</code>, <code>is_b_zero</code>, <code>has_non_finite</code>, <code>shape_a</code>, <code>shape_b</code>). The exit code is the same as in text mode.</p><h2 id=\"soup-adapters-audit\"><code>soup adapters audit</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters audit ./out/adapter --config soup.yaml\nsoup adapters audit ./out/adapter -c soup.yaml --json"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>check</code> asks whether the adapter is alive. <code>audit</code> asks whether the run that produced it used what you asked for. It loads <code>soup.yaml</code> through the schema (an omitted key is compared at its schema default), reads the settings recorded in <code>adapter_config.json</code> next to the weights, and compares them row by row.</p><p>The rows are <code>optimizer</code>, <code>learning_rate</code> (against the recorded peak, not the value copied from the config), <code>scheduler</code>, <code>warmup_ratio</code>, <code>weight_decay</code>, <code>max_grad_norm</code>, <code>gradient_accumulation_steps</code>, <code>gradient_checkpointing</code>, <code>data.train_on_responses_only</code>, <code>lora.r</code> and <code>lora.alpha</code>, plus <code>nan_skip_fraction</code> for <code>task: grpo</code>. Each ends as <code>ok</code>, <code>DIVERGED</code> or <code>unknown</code>. A setting the record cannot speak to is <code>unknown</code> and never <code>ok</code>.</p><p>The case it was written for is a warmup that rounds away. <code>warmup_ratio: 0.03</code> over 12 optimizer updates is zero warmup steps, so training started at the peak learning rate:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "warmup_ratio: 0.03 x 12 optimizer updates rounds to 0, so training started at the peak learning rate; raise warmup_ratio or lower gradient_accumulation_steps to produce more updates\n\n4 divergence(s)"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"what-the-record-contains-depends-on-the-backend\">What the record contains depends on the backend</h3><div><table><thead><tr><th>Adapter from</th><th>What <code>adapter_config.json</code> records</th><th>What <code>audit</code> can check</th></tr></thead><tbody><tr><td>The MLX backend</td><td>The effective optimizer, peak learning rate, schedule, warmup and total updates, weight decay, gradient clipping, accumulation, checkpointing, the response-only mask and the LoRA shape</td><td>All eleven rows</td></tr><tr><td>The transformers backend</td><td>PEFT&#x27;s own file, which holds LoRA shape and nothing else</td><td>Only <code>lora.r</code> and <code>lora.alpha</code>. The other nine rows read <code>unknown</code>, and the footer says so</td></tr><tr><td>Neither (an empty or unrecognised record)</td><td>Nothing Soup can read</td><td>Every row is <code>unknown</code></td></tr></tbody></table></div><p><strong>An MLX adapter trained with <code>lora.use_rslora: true</code> reads as diverged at v0.77.0.</strong> For <code>r: 8</code> and <code>alpha: 16</code> the <code>lora.alpha</code> row shows asked <code>16</code>, ran <code>45.25483399593904</code>, <code>DIVERGED</code>, and the command exits 2; the same config without <code>use_rslora</code> reads <code>16.0</code>, <code>ok</code>. Checked here on an <code>adapter_config.json</code> written by Soup&#x27;s own MLX record writer, not on a trained adapter. A CI step that gates on <code>soup adapters audit</code> fails such a run, so read the <code>lora.alpha</code> row before you act on the exit code.</p><p>An adapter that agrees on what it can check exits 0 with <code>No divergences, 9 unchecked</code> (or <code>11 unchecked</code> for an empty record). That is a statement about what was <em>checkable</em>, not a clean bill for the run. A CI job should read <code>checked_count</code> in the <code>--json</code> output to tell &quot;everything agreed&quot; from &quot;nothing could be compared&quot;.</p><h3 id=\"exit-codes-2\">Exit codes</h3><div><table><thead><tr><th>Code</th><th>Meaning</th></tr></thead><tbody><tr><td>0</td><td>No row diverged. <code>unknown</code> rows do not fail the command</td></tr><tr><td>2</td><td>At least one row is <code>DIVERGED</code></td></tr><tr><td>1</td><td>A path outside the working directory or a symlink, no <code>adapter_config.json</code>, a missing or invalid config, or a config the schema refuses (an unknown key exits 1 with <code>Could not load &lt;path&gt;: unknown config key &#x27;&lt;key&gt;&#x27; - refused.</code>). Since v0.76.1 that includes a config larger than 1 MiB or past the YAML nesting or expansion limits (<code>Could not load big.yaml: Config file big.yaml is larger than 1048576 bytes; refusing</code>)</td></tr></tbody></table></div><p><strong>A forgotten <code>--config</code> is exit 2 as well.</strong> <code>--config</code> is a required option, Click rejects the call before the command runs, and Click&#x27;s code is 2, the same as a divergence. A script that treats 2 as &quot;the run diverged&quot; cannot tell the two apart from the code alone.</p><h3 id=\"json-2\"><code>--json</code></h3><p>The object holds <code>record_kind</code> (<code>peft</code>, <code>mlx</code> or <code>unknown</code>), <code>diverged_count</code>, <code>unknown_count</code>, <code>checked_count</code>, <code>rows</code> (per row: <code>setting</code>, <code>asked</code>, <code>ran</code>, <code>status</code>, <code>detail</code>) and <code>unknown_reason</code>. Warnings from loading the config go to stderr, so stdout parses.</p><h2 id=\"where-to-go-next\">Where to go next</h2><ul><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle</a> and <a href=\"__DOCS_BASE__/adapters\">the adapters page</a>: diff, merge, bisect, blame, pr and the lockfile.</li><li><a href=\"__DOCS_BASE__/supply-chain-security\">Supply-chain security</a>: <code>scan</code>, <code>sign</code>, <code>verify</code> and <code>check-safetensors</code>, which ask different questions (is it safe to load, is it the file that was signed).</li><li><a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>: both commands in the table, including the codes that collide with Click&#x27;s.</li><li><a href=\"__DOCS_BASE__/an-empty-adapter\">A v0.75.1 adapter with nothing in it</a>: the failure this was built to catch.</li></ul><nav><a href=\"__DOCS_BASE__/adapters\"><span>Previous</span><span>soup adapters: git for LoRA</span></a><a href=\"__DOCS_BASE__/soup-loop\"><span>Next</span><span>soup loop: the production data flywheel</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

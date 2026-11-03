@@ -1,0 +1,74 @@
+{
+  "slug": "spectrum-targeted-training",
+  "title": "Spectrum targeted training (v0.71.23)",
+  "description": "soup spectrum scan ranks each weight matrix by singular-value SNR (Marchenko-Pastur noise threshold) and emits a training.unfrozen_parameters block, so you full-fine-tune only the high-signal layers. It streams safetensors one tensor at a time, so a CPU box can scan even a 70B with no model load. New in v0.71.23.",
+  "source": "https://trysoup.dev/docs/spectrum-targeted-training",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "f6e00e6be40e6970156747288ac9327d5195f03ff8f2af666c3d12229f016170",
+  "headings": [
+    {
+      "level": 2,
+      "id": "scan-a-model",
+      "title": "Scan a model"
+    },
+    {
+      "level": 2,
+      "id": "train-on-the-result",
+      "title": "Train on the result"
+    },
+    {
+      "level": 2,
+      "id": "how-the-snr-ranking-works",
+      "title": "How the SNR ranking works"
+    },
+    {
+      "level": 2,
+      "id": "constraints",
+      "title": "Constraints"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Spectrum targeted training (v0.71.23)</h1><p><strong>Spectrum</strong> picks the layers worth training. Instead of a full fine-tune (every weight) or a blanket LoRA (every layer, low rank), <code>soup spectrum scan</code> ranks each weight matrix by its <strong>signal-to-noise ratio</strong> and lets you full-fine-tune only the high-signal layers. You get most of the quality of a full fine-tune at a fraction of the memory and compute.</p><blockquote><p>The reference Spectrum implementation needs the model on a GPU to scan its layers. Soup&#x27;s scanner streams the <code>.safetensors</code> shards one tensor at a time, so it never loads the model. Peak RAM is the largest single weight matrix, which means you can scan a 70B on a laptop CPU.</p></blockquote><p><strong>Which files are the checkpoint (v0.77.0, #1806, #1906).</strong> The scan reads the files <code>model.safetensors.index.json</code> names; without an index, <code>model.safetensors</code>, else the <code>model-*-of-*.safetensors</code> shards, else every <code>*.safetensors</code> except <code>consolidated*</code>, and the Hub download fetches by the same rule. Before this release it read every top-level <code>*.safetensors</code>, so on a Mistral repository that ships a <code>consolidated.safetensors</code> (the mistral-inference copy transformers never loads) beside the shards it downloaded both and, in upstream&#x27;s words, &quot;scored both name sets&quot;, emitting <code>unfrozen_parameters</code> &quot;matching no parameter&quot;. A directory holding only a consolidated file is now refused with its name.</p><h2 id=\"scan-a-model\">Scan a model</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup spectrum scan --model meta-llama/Llama-3.1-8B --top-percent 50"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# write the patch straight to a file, restrict to specific module types\nsoup spectrum scan --model ./my-merged-model \\\n  --top-percent 25 \\\n  --modules mlp,attn \\\n  --output patch.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<div><table><thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><code>--model</code></td><td>(required)</td><td>HF Hub id or local path. Streamed shard-by-shard, never loaded.</td></tr><tr><td><code>--top-percent</code></td><td>50</td><td>Keep the top N% of layers by SNR, per module-type group.</td></tr><tr><td><code>--modules</code></td><td><code>all</code></td><td>Restrict the scan to <code>mlp</code>, <code>attn</code>, or a comma list.</td></tr><tr><td><code>--output</code></td><td>(stdout)</td><td>Write the <code>training.unfrozen_parameters</code> block to a file (kept under cwd).</td></tr><tr><td><code>--no-cache</code></td><td>off</td><td>Skip the scan cache at <code>~/.soup/spectrum/&lt;slug&gt;.json</code>.</td></tr></tbody></table></div><p>The command prints a per-group SNR table and a ready-to-paste config block.</p><h2 id=\"train-on-the-result\">Train on the result</h2><p>The scan emits a <code>training.unfrozen_parameters</code> list of regex patterns. Drop it into your <code>soup.yaml</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-8B\ntask: sft\ndata:\n  train: ./data/train.jsonl\ntraining:\n  quantization: none\n  unfrozen_parameters:\n    - \"model.layers.(2|5|8|11).mlp.down_proj\"\n    - \"model.layers.(2|5|8).self_attn.v_proj\""
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The SFT trainer freezes every parameter, then unfreezes only the matched set. This is a <strong>full fine-tune of a subset of layers</strong> (the matched weights train at full precision), not LoRA.</p><h2 id=\"how-the-snr-ranking-works\">How the SNR ranking works</h2><p>For each weight matrix, Spectrum takes the singular values and applies a <strong>Marchenko-Pastur</strong> noise threshold (<a href=\"https://arxiv.org/abs/2406.06623\">arXiv:2406.06623</a>): singular values above the random-matrix noise floor carry signal, the rest are noise. The ratio of signal energy to total energy is the layer&#x27;s SNR. Layers are ranked within each module-type group, so attention and MLP layers compete with their own kind rather than against each other.</p><p>The kernel is pure-numpy and <strong>transpose-invariant</strong> (the singular values of <code>W</code> and <code>W.T</code> are identical), so GPT-2 <code>Conv1D</code> weights (<code>c_attn</code> / <code>c_fc</code> / <code>c_proj</code>) are recognised alongside Llama-style <code>nn.Linear</code> names.</p><h2 id=\"constraints\">Constraints</h2><p><code>training.unfrozen_parameters</code> requires a full-precision SFT run and is mutually exclusive with the LoRA stack and the other layer-selection knobs:</p><ul><li>requires <code>task: sft</code>, <code>backend: transformers</code>, <code>modality: text</code>, <code>quantization: none</code></li><li>mutually exclusive with LoRA features, <code>freeze_layers</code>, <code>freeze_ratio</code>, <code>train_router_only</code>, <code>expand_layers</code>, and <code>stream_layers</code> (streaming keeps the base frozen on the <code>meta</code> device, so there is nothing for Spectrum to unfreeze)</li><li>since v0.77.0 also refused beside it: <code>use_mod: true</code>, because SFT installs no Mixture-of-Depths router on this route (#1752), and <code>training.fast_lora</code> (#1973)</li></ul><p><code>soup profile</code> budgets a Spectrum run as a full fine-tune of the model since v0.77.0, with optimizer state and gradients (#2041); through v0.76.1 it reported 0 trainable parameters and 0 GB of optimizer memory.</p><p>Patterns are validated at parse time: null bytes and empties are rejected, with caps on count (50k) and length (512). Since v0.75.1 the regex check is the shared <strong>structural</strong> one, which parses the pattern and refuses nested or alternating repetition, backreferences and more than three unbounded repeats, without ever matching with it. The guard it replaced was a single hand-written expression that caught <code>(x+)+y</code> and missed <code>((.+))+z</code>, <code>(.+){2,}z</code> and <code>(?:.|.)+z</code>, all of which backtrack exponentially against a parameter name. Hub downloads route through the SSRF-hardened, namespace-pinned loader; symlinked shards and matrices above a 2^31-element SVD cap are skipped, and <code>--output</code> stays under the working directory.</p><p>A Hugging Face cache snapshot has weights that are symlinks into the cache&#x27;s <code>blobs</code> store, which the scanner skips, so Soup first copies such a snapshot to regular files under its spectrum cache (<code>~/.soup/spectrum/weights/</code>, or under <code>SOUP_SPECTRUM_CACHE_DIR</code>) and reuses the copy while the snapshot is unchanged. As of v0.76.0 that copy step also accepts a local path to a snapshot (<code>.../models--org--name/snapshots/&lt;commit&gt;</code>) and the cache-wide shared blob store that <code>huggingface_hub</code> 1.32 and later use, and it refuses a <code>blobs</code> directory that is itself a link (#1629). This paragraph is read from the code, not run.</p><h2 id=\"re-run-this\">Re-run this</h2><div><table><thead><tr><th>If you trained</th><th>What was wrong</th><th>What to do</th></tr></thead><tbody><tr><td>Spectrum from a <code>soup spectrum scan</code> of a Hub repository that ships <code>consolidated.safetensors</code> beside its shards (Mistral&#x27;s do), before v0.77.0</td><td>The scan scored both name sets and emitted <code>unfrozen_parameters</code> matching no parameter of the model (#1806, #1906)</td><td>Scan again on v0.77.0 and re-train</td></tr></tbody></table></div><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/lean-install-live-wiring\">Lean install + live wiring (v0.71)</a> — the release line Spectrum caps off.</li><li><a href=\"__DOCS_BASE__/lora-quality\">LoRA quality</a> — when a blanket low-rank adapter is the better trade-off.</li><li><a href=\"__DOCS_BASE__/optimizer-zoo\">Optimizer &amp; PEFT zoo</a> — freeze ratios, LLaMA Pro, and the rest of the parameter-efficiency menu.</li></ul><nav><a href=\"__DOCS_BASE__/lean-install-live-wiring\"><span>Previous</span><span>Lean Install + Live Wiring</span></a><a href=\"__DOCS_BASE__/lisa\"><span>Next</span><span>LISA</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

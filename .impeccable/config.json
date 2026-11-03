@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-10-30T23:42:27.198Z",
+        "reason": "Agent decision: preserve the inherited Omarchy typography to honor the requested Omarchy design. These five declarations load language subsets of the same intentional typeface."
+      }
+    ]
+  }
+}

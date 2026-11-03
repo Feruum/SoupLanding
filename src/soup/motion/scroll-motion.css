@@ -1,0 +1,9 @@
+/* Enhancement only: server-rendered content is visible without JavaScript. */
+[data-soup-reveal='pending'] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce), print {
+  [data-soup-reveal='pending'] {
+    opacity: 1;
+  }
+}

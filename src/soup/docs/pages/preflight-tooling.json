@@ -1,0 +1,129 @@
+{
+  "slug": "preflight-tooling",
+  "title": "Pre-flight & Tooling (v0.64.0)",
+  "description": "Soup CLI v0.64.0 pre-flight & tooling — catch mistakes before you burn GPU hours. soup tunability ranks candidate bases for the Pareto frontier (a deterministic heuristic by default, --live to probe each one). soup plan/apply is Terraform-shaped drift detection. soup env lock snapshots the Python version, the CUDA version when it can find one, and the installed ones among 15 tracked packages, with ABI-mismatch detection. soup completions for bash/zsh/fish. soup license-advisor returns ok/warn/block per deploy target. Hardware-fit calculator predicts peak VRAM in 5 buckets with 10% safety margin.",
+  "source": "https://trysoup.dev/docs/preflight-tooling",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "8bb0ef83ac1a2ff4c461dc05b104415d52b948a23ae01e615a0685fa8c394438",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-tunability-pareto-frontier-of-base-model-efficiency",
+      "title": "soup tunability — Pareto frontier of base-model efficiency"
+    },
+    {
+      "level": 2,
+      "id": "soup-plan-soup-apply-terraform-shaped-drift-detection",
+      "title": "soup plan / soup apply — Terraform-shaped drift detection"
+    },
+    {
+      "level": 2,
+      "id": "soup-env-lock-status-check-hermetic-environment",
+      "title": "soup env lock / status / check — hermetic environment"
+    },
+    {
+      "level": 3,
+      "id": "soup-env-fix-the-repair-once-check-has-told-you-something-is-wrong",
+      "title": "soup env fix — the repair, once check has told you something is wrong"
+    },
+    {
+      "level": 2,
+      "id": "soup-completions-shell-bash-zsh-fish",
+      "title": "soup completions <shell> — bash / zsh / fish"
+    },
+    {
+      "level": 2,
+      "id": "soup-license-advisor-deploy-target-risk-gate",
+      "title": "soup license-advisor — deploy-target risk gate"
+    },
+    {
+      "level": 2,
+      "id": "hardware-fit-calculator-analytical-peak-vram",
+      "title": "Hardware-fit calculator — analytical peak VRAM"
+    },
+    {
+      "level": 2,
+      "id": "soup-doctor-and-soup-bench-train",
+      "title": "soup doctor and soup bench train"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Pre-flight &amp; Tooling (v0.64.0)</h1><p>Six surfaces that catch mistakes <strong>before</strong> you spend a GPU hour: pick the right base, lock the run plan, freeze the environment, install completions, advise on licenses, and predict peak VRAM.</p><h2 id=\"soup-tunability-pareto-frontier-of-base-model-efficiency\"><code>soup tunability</code> — Pareto frontier of base-model efficiency</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup tunability --dataset ./chats.jsonl --candidates qwen3-1.7b,llama-3.2-3b,phi-4-mini \\\n  --probe-steps 100 --holdout-size 64 --output ./tunability.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Ranks candidate bases by how much fine-tuning is likely to buy on your data, and reports which of them form the <strong>Pareto frontier</strong> (best efficiency for cost). By default the score is a deterministic heuristic, not a measurement. Add <code>--live</code> (with <code>--device</code>) to actually probe each candidate with a lightweight LoRA on a held-out slice and rank on measured training-loss deltas.</p><p><code>--candidates</code> is an <strong>allowlist</strong>, and a name outside it exits non-zero rather than falling back. The eight bundled candidates are <code>qwen3-0.6b</code>, <code>qwen3-1.7b</code>, <code>llama-3.2-1b</code>, <code>llama-3.2-3b</code>, <code>gemma-3-e2b</code>, <code>phi-4-mini</code>, <code>smollm3-1.7b</code> and <code>qwen2.5-1.5b</code>; <code>--list</code> prints them with their licences, and <code>--plan-only</code> dry-runs without probing.</p><ul><li>Candidate <strong>allowlist</strong> with licensing metadata (Apache-2.0 / MIT / LLaMA-3 / etc.)</li><li>Bounds: <code>probe_steps ∈ [10, 10000]</code>, <code>holdout_size ∈ [10, 100000]</code> rows</li><li>Safety: path containment, null-byte rejection, symlink-escape rejection</li><li>Output: per-candidate delta, wall-clock seconds, estimated USD cost, Pareto membership</li></ul><h2 id=\"soup-plan-soup-apply-terraform-shaped-drift-detection\"><code>soup plan</code> / <code>soup apply</code> — Terraform-shaped drift detection</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup plan --config soup.yaml --state ./soup.tfstate\nsoup apply --config soup.yaml --state ./soup.tfstate"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>plan</code> computes cost / ETA / peak-VRAM / SHA-256 hashes from the config and writes an <strong>immutable</strong> <code>soup.tfstate</code>. <code>apply</code> re-reads the config, detects any drift (batch size, dataset SHA, base SHA) and <strong>refuses to proceed</strong> (exit 3) until you re-plan. <code>apply</code> does not start training: with no drift it marks the plan applied in the state file and prints the <code>soup train --config ...</code> command to run.</p><p>Since v0.76.0 both commands run the same unknown-key check as <code>soup train</code>: a config with a key the schema does not know is refused with <code>unknown config key &#x27;x&#x27; - refused.</code> and exit 1. At v0.75.x they skipped it, so a plan could be written, and applied, for a config <code>soup train</code> would then reject. Apart from the YAML read limits below, that is the only check they run: they read the YAML as a plain mapping and do not run the schema validation that <code>soup train</code> does. Checked at v0.76.0: <code>soup plan</code> writes a plan for a config that sets <code>training.quantization_aware: true</code>, which <code>soup doctor --config</code> and <code>soup train</code> refuse at load. Checked again at v0.77.0, which refuses more at load: <code>soup plan</code> still writes a plan (exit 0) for a config that sets a staged field away from its default, one that <code>soup train</code> refuses with exit 1. Run <code>soup doctor --config soup.yaml</code> first (see <a href=\"__DOCS_BASE__/config-refusals\">the settings refused at load</a>). Since v0.76.1 both commands read the file under the shared YAML limits: a config larger than 1 MiB, nested more than 100 levels deep or expanding past its alias allowance exits 2 with one line such as <code>config &#x27;soup.yaml&#x27; is larger than 1048576 bytes; refusing</code> (v0.76.0 read such a file, and <code>plan</code> wrote a plan for it). A YAML syntax error still exits 1 (see <a href=\"__DOCS_BASE__/configuration#size-and-nesting-limits-v0-76-1\">Size and nesting limits</a>).</p><ul><li>Pure JSON state: <code>plan{cost, eta, sha}</code>, <code>applied: bool</code>, <code>applied_at</code>, <code>run_id</code></li><li>TOCTOU defense: <code>os.lstat</code> before open, symlinks rejected</li><li>Peak VRAM with 10% safety margin; spot pricing per GPU tier</li><li>Composes with v0.67 <code>soup lock</code> for full reproducibility</li></ul><h2 id=\"soup-env-lock-status-check-hermetic-environment\"><code>soup env lock</code> / <code>status</code> / <code>check</code> — hermetic environment</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup env lock --output ./soup-env.lock\nsoup env check --lock ./soup-env.lock   # exit 3 on ABI drift\nsoup env check                          # v0.73.3: also audits declared bounds, no lock needed"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Snapshots the Python version, the platform, the CUDA version and, for each of 15 ABI-sensitive packages that is installed, its version (<code>torch</code>, <code>transformers</code>, <code>peft</code>, <code>trl</code>, <code>accelerate</code>, <code>datasets</code>, <code>bitsandbytes</code>, <code>huggingface-hub</code>, <code>flash-attn</code>, <code>xformers</code>, <code>deepspeed</code>, <code>unsloth</code>, <code>vllm</code>, <code>sentencepiece</code>, <code>tokenizers</code>) into a JSON lockfile; a tracked package that is not installed is left out. <code>check</code> flags drift in any of them (a Python minor version, the platform, any change of the recorded CUDA version string, a tracked package whose version changed or that appeared or disappeared) that would silently break training. The CUDA version is read from the <code>CUDA_VERSION</code> or <code>CUDA_HOME</code> environment variable, or from PyTorch only if it is already imported; without the variables no CUDA version is recorded, so a CUDA change goes unseen.</p><p><strong>Since v0.73.3 it also audits your installed packages against Soup&#x27;s own declared version bounds</strong>, and exits 3 when one is violated. That runs first and <strong>independently of any lock file</strong>, so it catches the case it was reported for: installing a fast serving stack into a training environment silently pushes <code>transformers</code> past the upper bound Soup itself declares (<code>&lt;5.0.0</code> when this check shipped in v0.73.3, <code>&lt;6.0.0</code> since the v0.74 stack move), producing an environment Soup&#x27;s own metadata calls unsupported with no warning at any point. The bounds are read from package metadata rather than a second hardcoded copy, because a second copy is exactly the drift this is meant to catch. The lock diagnostic still prints either way, so a bounds violation cannot hide a missing lock file or an ABI drift.</p><p>The practical guidance that came with it: <strong>install <code>[serve-fast]</code> in a separate environment from <code>[train]</code>.</strong> Their resolutions are genuinely incompatible today.</p><h3 id=\"soup-env-fix-the-repair-once-check-has-told-you-something-is-wrong\"><code>soup env fix</code> — the repair, once <code>check</code> has told you something is wrong</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup env fix                                   # print a uv-pip install plan from the lock\nsoup env fix --format requirements             # print it as requirements lines instead\nsoup env fix --format requirements -o req.txt  # also write that file, under cwd"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It renders a reproducible install plan from <code>soup-env.lock</code> and <strong>prints it. It never installs anything</strong>, and that is deliberate rather than unfinished: recreating a virtual environment is environment-dependent, so Soup emits the commands for you to read, paste or script rather than shelling out to a package manager on your behalf. With no lock file it exits 1 and tells you to run <code>soup env lock</code> first.</p><ul><li>Fields: <code>soup_version</code>, <code>python_version</code>, <code>platform</code>, <code>cuda_version</code>, packages <code>{name, version, source}</code></li><li>Atomic write, file-size capped</li><li>Feeds the <code>env_hash</code> half of v0.67 <code>soup.lock</code> closure</li></ul><h2 id=\"soup-completions-shell-bash-zsh-fish\"><code>soup completions &lt;shell&gt;</code> — bash / zsh / fish</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup completions bash  | sudo tee /etc/bash_completion.d/soup\nsoup completions zsh   > ~/.zsh/completions/_soup\nsoup completions fish  > ~/.config/fish/completions/soup.fish"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Eval-safe shell completion scripts emitted to stdout (no Rich panels). Closed shell allowlist; all error messages go to stderr. They complete command and option names only: no option or argument has a value completer, so recipe names, config keys and file values do not complete.</p><h2 id=\"soup-license-advisor-deploy-target-risk-gate\"><code>soup license-advisor</code> — deploy-target risk gate</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup license-advisor --target b2c --license llama-3 --monthly-active-users 750000"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Returns <code>ok</code> / <code>warn</code> / <code>block</code> (exit 3 on block) for a (license, deploy-target, MAU) tuple. Targets: <code>b2c</code>, <code>defense</code>, <code>embedded</code> — each with distinct rules. Composes with v0.60 license-matrix on <code>soup adapters merge</code>.</p><h2 id=\"hardware-fit-calculator-analytical-peak-vram\">Hardware-fit calculator — analytical peak VRAM</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "python",
+      "code": "from soup_cli.utils.hardware_fit import HardwareFitInput, decide_hardware_fit\n\nreport = decide_hardware_fit(\n    HardwareFitInput(\n        params_b=8.0, seq_len=2048, batch_size=1,\n        optimizer=\"adamw_torch\", quant=\"4bit\", peft=\"qlora\",\n        gradient_checkpointing=True,\n    ),\n    available_vram_gb=24.0,\n)\n# report.ok, report.peak_vram_gb, report.required_with_margin_gb, report.reason\n# report.breakdown.weights_gb, .optimizer_gb, .gradients_gb, .activations_gb, .overhead_gb"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>estimate_peak_vram_gb(HardwareFitInput(...))</code> returns just the five-field <code>VRAMBreakdown</code> (in GB). Both are predictions from a static formula, not measurements.</p><p>Static predictor with a 5-bucket breakdown (weights / optimizer / gradients / activations / overhead) and a <strong>10% safety margin</strong>. Refuses to run if predicted peak exceeds available VRAM.</p><p>If you disagree with it, <code>soup train --allow-oom-attempt</code> bypasses this gate and launches anyway. It is opt-out rather than opt-in for a reason: a prediction that refuses a run which would have worked costs you an argument, while a run that launches and does not fit costs you the run. Note this is the <strong>analytical</strong> gate for an ordinary resident run. Layer streaming skips it entirely and uses its own budget instead, which this flag does not reach; the streaming equivalents are the config keys <code>stream_vram_probe</code> and <code>stream_vram_override</code>.</p><ul><li>9 quant tiers (<code>none</code>, <code>4bit</code>, <code>8bit</code>, <code>fp8</code>, <code>gptq</code>, <code>awq</code>, <code>aqlm</code>, <code>eetq</code>, <code>mxfp4</code>). Since v0.76.0 <code>soup train</code> runs the gate for all nine; through v0.75.2 the CLI checked only <code>none</code>, <code>4bit</code> and <code>8bit</code> (<code>mxfp4</code> joined in v0.76.0 with the other five, #1631, #1652). <code>fp8</code> is priced at 2.0 bytes per parameter (it was 1.0), because an FP8 base is dequantized on load and trains in bf16, and a refusal for it adds <code>An FP8 base is dequantized on load, so this estimate prices the bf16 model.</code> An <code>hqq:*</code> value has no memory model yet, so the run starts and prints <code>Pre-flight skipped: no memory model for quantization: hqq:4bit</code> instead of staying silent. A config in one of the six newly checked formats that used to start on a card too small for the estimate is now refused; <code>--allow-oom-attempt</code> launches it anyway. No measured error is published for these formats.</li><li>4 PEFT modes (<code>full</code>, <code>lora</code>, <code>dora</code>, <code>qlora</code>)</li><li>Where <code>soup train</code> gets the model size: a local checkpoint is measured from its safetensors headers (since v0.77.0 the checkpoint&#x27;s own files: the ones <code>model.safetensors.index.json</code> names, else <code>model.safetensors</code>, else the <code>model-*-of-*.safetensors</code> shards, else every <code>*.safetensors</code> except <code>consolidated*</code>. A <code>consolidated.safetensors</code> beside them, the mistral-inference copy Mistral&#x27;s repositories ship, is no longer counted, and the same rule applies to <code>soup profile</code> and <code>soup cost</code>, #1806, #1906); a Hub id is sized from its name (<code>72B</code>, <code>8x7B</code> read as 46.7B total, an active-parameter marker such as <code>-A22B</code> ignored, <code>135M</code> as 0.135B). <strong>A name with no size token is sized as 7B</strong>, so the gate can pass a run that will not fit: point <code>base:</code> at a local download to have it measured.</li><li>Bounds: <code>seq_len ∈ [64, 1M]</code>, <code>batch ∈ [1, 1024]</code>, <code>params ∈ (0, 1000B]</code></li><li>Activation memory halved under gradient checkpointing</li></ul><h2 id=\"soup-doctor-and-soup-bench-train\"><code>soup doctor</code> and <code>soup bench train</code></h2><p>Two more checks that run before a GPU hour sit on <a href=\"__DOCS_BASE__/fine-tune-doctor#soup-doctor-config-what-the-loader-refuses-v0-76-0-and-v0-77-0\">the Fine-tune Doctor page</a>: <code>soup doctor --config soup.yaml</code> (which settings your config switches on that its backend never reads, and the load refusals of v0.76.0 and v0.77.0, staged fields included) and <code>soup bench train</code> (a short run that fails when the model was not training). <code>soup doctor</code> itself, on a machine with an NVIDIA GPU, also reports each card&#x27;s compute capability and architecture family (Blackwell, Hopper, Ada, Ampere, Turing, Volta, Pascal), says when the installed PyTorch build has no native or PTX support for it and prints a CUDA-matched reinstall hint, and lists BF16, FP8 and NVFP4 hardware and software support in a <code>Precision features</code> block. That GPU panel was read from the code at v0.76.0 and not run here.</p><h2 id=\"numbers\">Numbers</h2><p>Six surfaces, +N tests on top of v0.63&#x27;s 10,035. Composes downstream with v0.65 eval depth, v0.66 post-train x-rays, and v0.67 adapter lifecycle.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/fine-tune-doctor\">Fine-tune Doctor</a> — <code>soup data doctor</code>, <code>soup data lint</code>, <code>soup doctor --config</code> and <code>soup bench train</code>.</li><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Soup lock</a> — v0.67 closes the env_hash → soup.lock reproducibility chain.</li><li><a href=\"__DOCS_BASE__/governance\">Governance</a> — v0.59 BOM + SLSA-3 + audit log layer on top of plan/apply.</li></ul><nav><a href=\"__DOCS_BASE__/advise\"><span>Previous</span><span>soup advise: pre-flight decision engine</span></a><a href=\"__DOCS_BASE__/fine-tune-doctor\"><span>Next</span><span>Fine-tune Doctor</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

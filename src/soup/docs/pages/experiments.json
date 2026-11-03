@@ -1,0 +1,265 @@
+{
+  "slug": "experiments",
+  "title": "Experiment Tracking",
+  "description": "Track training experiments, compare runs, and manage model checkpoints with Soup CLI's built-in SQLite tracker.",
+  "source": "https://trysoup.dev/docs/experiments",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "c5fad4eb2a41c34feaca70c68a2f3b218cf309e08adec4525a6d2e04372be252",
+  "headings": [
+    {
+      "level": 2,
+      "id": "list-runs",
+      "title": "List Runs"
+    },
+    {
+      "level": 2,
+      "id": "run-details",
+      "title": "Run Details"
+    },
+    {
+      "level": 3,
+      "id": "which-base-and-which-data-a-run-used-v0-77-0",
+      "title": "Which base and which data a run used (v0.77.0)"
+    },
+    {
+      "level": 3,
+      "id": "a-run-that-is-not-running-no-longer-says-it-is",
+      "title": "A run that is not running no longer says it is"
+    },
+    {
+      "level": 2,
+      "id": "compare-runs",
+      "title": "Compare Runs"
+    },
+    {
+      "level": 2,
+      "id": "delete-runs",
+      "title": "Delete Runs"
+    },
+    {
+      "level": 2,
+      "id": "reclaim-disk-without-losing-the-run",
+      "title": "Reclaim disk without losing the run"
+    },
+    {
+      "level": 2,
+      "id": "model-evaluation",
+      "title": "Model Evaluation"
+    },
+    {
+      "level": 3,
+      "id": "what-the-evaluation-commands-do-with-what-they-find",
+      "title": "What the evaluation commands do with what they find"
+    },
+    {
+      "level": 3,
+      "id": "custom-task-scorers",
+      "title": "Custom task scorers"
+    },
+    {
+      "level": 3,
+      "id": "aider-polyglot-soup-eval-aider-v0-74-0",
+      "title": "Aider Polyglot (soup eval aider, v0.74.0)"
+    },
+    {
+      "level": 2,
+      "id": "hyperparameter-sweep",
+      "title": "Hyperparameter Sweep"
+    },
+    {
+      "level": 3,
+      "id": "a-standalone-sweep-file",
+      "title": "A standalone sweep file"
+    },
+    {
+      "level": 3,
+      "id": "what-a-sweep-arm-is-and-what-it-records",
+      "title": "What a sweep arm is, and what it records"
+    },
+    {
+      "level": 2,
+      "id": "model-comparison",
+      "title": "Model Comparison"
+    },
+    {
+      "level": 2,
+      "id": "batch-inference",
+      "title": "Batch Inference"
+    },
+    {
+      "level": 2,
+      "id": "training-profiler-v0-23-0",
+      "title": "Training Profiler (v0.23.0+)"
+    },
+    {
+      "level": 2,
+      "id": "adapter-management-v0-22-0",
+      "title": "Adapter Management (v0.22.0+)"
+    },
+    {
+      "level": 2,
+      "id": "logging-integrations",
+      "title": "Logging Integrations"
+    },
+    {
+      "level": 3,
+      "id": "tensorboard",
+      "title": "TensorBoard"
+    },
+    {
+      "level": 3,
+      "id": "weights-biases",
+      "title": "Weights & Biases"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Experiment Tracking</h1><p>Every <code>soup train</code> run is automatically tracked in a local SQLite database (<code>~/.soup/experiments.db</code>).</p><h2 id=\"list-runs\">List Runs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Shows all training runs with task, model, status, and final loss. The run database at <code>~/.soup/experiments.db</code> is machine-wide, so this lists every run on the box; add <code>--cwd-only</code> to narrow it to runs whose <code>output_dir</code> sits under the current directory.</p><h2 id=\"run-details\">Run Details</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs show run_20260223_143052_a1b2"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Detailed info including config, metrics, and an ASCII loss curve. A failed run also shows an <code>Error:</code> line with the reason (below). When the curve shows a spike, <a href=\"__DOCS_BASE__/rewind\"><code>soup rewind</code></a> names the dataset rows that were in that step&#x27;s batch. Since v0.77.0 it also prints the base the run loaded, as <code>Revision:</code> and <code>Identity:</code> (next section).</p><h3 id=\"which-base-and-which-data-a-run-used-v0-77-0\">Which base and which data a run used (v0.77.0)</h3><p>On the transformers backend <code>soup train</code> binds the base it loads to one Hub commit (#1972, #2094, #2127). Just before the first load of the base it asks the Hub for the base&#x27;s current commit, in one metadata request with a 5-second timeout, and loads the model, tokenizer and config at that commit. This covers resident, layer-streamed and multi-GPU transformers runs; a multi-GPU launch resolves the commit once on rank 0 and shares it with every worker. The setup prints which case applied:</p><ul><li><code>Base revision: &lt;commit&gt; (bound Hub commit)</code>: the run loaded that commit.</li><li><code>Base revision: cache-path metadata; local bytes are unverified</code>: <code>base</code> is a Hugging Face cache snapshot directory (<code>.../snapshots/&lt;commit&gt;</code>). The commit in its name is recorded, but nothing checks the files against it.</li><li><code>Base revision: unknown (existing loading behavior preserved)</code>: a local directory, <code>HF_HUB_OFFLINE</code> or <code>TRANSFORMERS_OFFLINE</code>, a lookup that failed, or a load that is not bound. The run loads the base as before.</li></ul><p>Unsloth and MLX loads, the non-Hugging-Face hubs, and local or cached-path bases are not bound (#1902). A run whose environment declares a <code>WORLD_SIZE</code> of 2 or more without a launcher&#x27;s process group behind it stops with <code>distributed base identity needs the launcher&#x27;s process group</code>. The first pinned layer-streamed run on a Hub base after the upgrade re-shards into a new cache slot named for the commit; the old slot stays on disk.</p><p><code>soup train</code> also records the SHA-256 of the training file when it starts, before the file is loaded or transformed (#2024). It does that only for a single local text file (<code>.jsonl</code>, <code>.json</code>, <code>.csv</code>, <code>.parquet</code> or <code>.txt</code>) of at most 256 MiB that it can read within 5 seconds and that does not change while it is read. A Hub dataset, a URL, a list of files, <code>data.interleave</code>, <code>data.streaming</code>, <code>data.replay</code>, a forget or retain set, pre-tokenized data, a non-text modality, <code>task: unlearn</code> and <code>task: tts</code> are recorded as unknown. Nothing is printed and nothing is refused. The digest describes the source file&#x27;s bytes at that moment, not the rows the run trained on after formatting.</p><p><code>soup runs show</code> prints the source of the base revision as <code>Identity:</code> (<code>hub_commit</code>, <code>cache_path</code>, <code>local</code>, <code>offline</code>, <code>resolution_failed</code>, <code>unsupported_backend</code> or <code>unknown</code>); rows written before v0.77.0 read <code>unknown</code>, and nothing fills them in from the Hub&#x27;s state today. The run id, the base id, the commit and its source, and the training-file digest are also written beside the final artifact as <code>soup_run.json</code> in the output directory (by the saving process only), so keep that file when you copy an adapter. <a href=\"__DOCS_BASE__/registry\"><code>soup registry push</code></a> copies them into the registry entry, and since v0.77.0 a registry <code>name:tag</code> that matches several entries is refused instead of resolving to the newest (see the registry page). <code>soup export</code> reads <code>soup_run.json</code> back and loads the base an adapter was trained on at its recorded commit (<code>Base revision: &lt;commit&gt; (recorded run)</code>), and so does the live evaluation behind <code>soup ship</code>; at v0.77.0 <code>soup merge</code> does not read it and loads the base&#x27;s current revision. <code>soup push</code> uploads <code>soup_run.json</code> with the rest of the output directory.</p><p>These records detect drift; they are not an attestation. Of <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship --require-provenance</code></a>, the check built on such hashes, upstream writes: &quot;This is not a model run, attestation, signature or forgery protection. The unkeyed hashes detect drift; use the existing signing/attestation tools for a trust boundary.&quot;</p><h3 id=\"a-run-that-is-not-running-no-longer-says-it-is\">A run that is not running no longer says it is</h3><p>Until v0.73.3 a run whose watcher process died was reported <code>running</code> <strong>forever</strong>, and the listing hardcoded that word for any row it could not otherwise classify. That trained you to ignore the one status field that guards against starting a second concurrent run.</p><p>Both <code>soup runs</code> and <code>soup runs show</code> now reconcile on read: a <code>running</code> row whose recorded process is gone is rewritten to <strong><code>terminated</code> with an unknown exit code</strong>. Unknown, deliberately — a lost outcome is never recorded as a success — and the richer <code>completed</code> and <code>failed</code> statuses are left exactly as they are. Only runs recorded with a process id can be checked this way, so a run without one is left alone rather than guessed at.</p><p><strong>Since v0.76.0 <code>soup train</code> records its own process id</strong>, which is what makes that check reach a run you killed yourself. Through v0.75.2 only runs launched by the MCP server recorded one, so a <code>soup train</code> run killed with SIGKILL or Ctrl+C had nothing to check and stayed <code>running</code>; now the next <code>soup runs</code> marks it <code>terminated</code> (#764). Rows written by earlier versions still have no process id and are still left alone.</p><p>A failure anywhere after the run is registered (tokenizer or model load, quantization, the LoRA attach, dataset mapping, the rest of the command) now marks the row <code>failed</code> and stores the exception type and message as the run&#x27;s <code>error_message</code>, which <code>soup runs show</code> prints as <code>Error:</code>. The message is redacted for secrets and capped at 2,000 characters. Separately, a training log that arrives before the run&#x27;s first measured loss now stores no loss instead of a fabricated <code>0.0</code>, and the live panel shows <code>Loss: -</code> until one is measured (#1225).</p><p>On Windows this depended on a second fix, and it is a good example of a bug that cannot be reasoned around: the API that reports a process&#x27;s exit code returns 259 for a process that is still alive, but <strong>259 is also a perfectly legal exit code</strong>, so a child that genuinely exited with 259 was indistinguishable from one still running. Liveness is now decided by waiting on the process handle with a zero timeout, which is signalled the instant the process exits whatever code it exits with.</p><h2 id=\"compare-runs\">Compare Runs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs compare run_1 run_2"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Side-by-side comparison of two runs with loss curves and metrics.</p><h2 id=\"delete-runs\">Delete Runs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs delete run_1"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"reclaim-disk-without-losing-the-run\">Reclaim disk without losing the run</h2><p>Deleting a run is the blunt option. Checkpoints are what actually fill the disk, and most of that weight is optimizer state you will never load again.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs clean run_1 --dry-run        # estimate the saving first, delete nothing\nsoup runs clean run_1                  # surgical: drop optimizer states, keep the weights\nsoup runs clean run_1 --no-keep-weights # the one way to delete whole checkpoints\nsoup runs clean --all                  # every historical run"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>If you typed <code>--keep-weights</code> on Click 8.1, it did the opposite and deleted whole checkpoints.</strong> The option was a bare flag with a <code>True</code> default, and Click 8.1 treats that as a toggle, so passing it explicitly parsed as <code>False</code>. Anyone who read the flag name, typed it to be safe, and had Click 8.1 installed lost their non-best checkpoints. v0.75.1 makes it the paired <code>--keep-weights/--no-keep-weights</code>, so the default and the explicit flag now mean the same thing on every supported Click version, and <code>--no-keep-weights</code> is the one way to delete. Upstream added a repo-wide check that fails any True-default flag without a negative form, so this shape cannot come back.</p></blockquote><p><code>--keep-weights</code> defaults to <strong>on</strong>, which is the whole design: it deletes <code>optimizer.pt</code> from the lesser checkpoints and leaves the model weights, so you can still evaluate or export from any of them. <code>--dry-run</code> estimates the saving without touching anything, and <code>--force</code> skips the confirmation for CI.</p><p>This matters more than it sounds at scale: a LoRA run training a fraction of a percent of the model can drag a checkpoint hundreds of times the size of the adapter it produced.</p><p><strong>Which checkpoint is left whole.</strong> <code>clean</code> leaves untouched the checkpoint with the lowest loss recorded <em>at its own step</em>, compared only among the checkpoints. When no checkpoint has a recorded loss (a run shorter than <code>logging_steps</code> records none), it keeps the latest one and says so: <code>no checkpoint has a recorded loss; keeping the latest, checkpoint-N, whole.</code> It only touches runs whose output directory is under the current directory.</p><blockquote><p><strong>Before v0.76.0 the rule required the checkpoint to match the run&#x27;s overall lowest loss exactly.</strong> Whenever that loss was logged between two checkpoints, or the run was shorter than <code>logging_steps</code>, no checkpoint matched, so <code>soup runs clean</code> treated every checkpoint of the run as expendable: it stripped the optimizer state from all of them, and with <code>--no-keep-weights</code> it deleted all of them (#1225). If you ran it on such a run, check what you still have.</p></blockquote><h2 id=\"model-evaluation\">Model Evaluation</h2><p>Soup includes a comprehensive evaluation platform (v0.19.0+):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[eval]\"\n\n# Run benchmarks (mmlu, gsm8k, hellaswag, etc.)\nsoup eval benchmark --model ./output --benchmarks mmlu,gsm8k\n\n# Custom eval tasks from JSONL\nsoup eval custom --model ./output --tasks ./eval_tasks.jsonl\n\n# LLM-as-a-judge over saved outputs: --target is a JSONL file of\n# {\"prompt\": ..., \"response\": ...} rows (soup infer writes this shape)\nsoup eval judge --target ./results.jsonl --model gpt-4o --provider openai\n\n# Run the benchmarks and custom tasks listed in the eval block of soup.yaml\nsoup eval auto --config soup.yaml\n\n# Compare eval results between runs\nsoup eval compare run_1 run_2\n\n# Local leaderboard across models\nsoup eval leaderboard\n\n# Human A/B evaluation with Elo ratings\nsoup eval human --model-a ./model_v1 --model-b ./model_v2 --input ./prompts.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>On <code>soup eval judge</code>, <code>--model</code> names the <strong>judge</strong> model, and <code>--target</code> is the file of pairs to score, not the model under test. Every row needs <code>prompt</code> and <code>response</code>, or the command exits 1 naming the line.</p><p><code>soup eval auto</code> takes its work from an <code>eval</code> block in the config, and <code>--benchmarks</code> and <code>--tasks</code> override the two lists:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "eval:\n  auto_eval: true                 # also run both lists after soup train (v0.76.0)\n  benchmarks: [mmlu, gsm8k]       # lm-evaluation-harness task names\n  custom_tasks: ./eval_tasks.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup eval auto</code> needs the <code>output</code> directory to exist, so run it after <code>soup train</code>, and it exits 1 when neither list is set and, since v0.77.0, when no leg evaluated anything (<code>Auto-eval failed: nothing was evaluated. Every leg was skipped (see above); fix the cause and run again.</code>, #1905). Through v0.76.1 a run whose only leg was skipped still ended <code>Auto-eval complete.</code> with exit 0. One leg that ran is enough for exit 0.</p><p><strong><code>eval.auto_eval: true</code> runs these two lists from <code>soup train</code> itself, since v0.76.0.</strong> Once the model is saved, the chief process prints <code>Running auto-eval...</code>, runs <code>eval.benchmarks</code> and then <code>eval.custom_tasks</code> against the saved output, and records the scores under the run. A benchmark or custom-task failure prints a yellow notice and does not fail an otherwise successful run. Through v0.75.2 no trainer handed the <code>eval</code> block to the training command, so <code>auto_eval: true</code> did nothing and a finished run never started an evaluation by itself (#1487); if you relied on it, run <code>soup eval auto</code> against that output now.</p><p><code>soup train --trust-remote-code</code> is passed on to those evaluations. There is no <code>soup.yaml</code> key for it, and without the flag both stay off. <code>soup eval auto --trust-remote-code</code> now reaches its benchmark and custom-eval steps as well (through v0.75.2 it was accepted and nothing read it), and <code>soup eval benchmark</code> and <code>soup eval custom</code> take their own <code>--trust-remote-code</code>, off by default. The block&#x27;s <code>judge</code> key is accepted by the schema, but nothing in v0.77.0 reads it: judge evaluation is not part of auto-evaluation, so run <code>soup eval judge</code> yourself.</p><h3 id=\"what-the-evaluation-commands-do-with-what-they-find\">What the evaluation commands do with what they find</h3><p><code>soup eval benchmark</code> saves only the requested names that came back with a numeric metric (a real <code>0.0</code> counts; a boolean does not). A name missing from the results, or without a numeric result, is skipped and named (<code>Skipped &lt;name&gt;: not found</code> or <code>no numeric result</code>), and the banner reports the saved count: <code>Results saved to experiment tracker: N of M.</code> When nothing was saved it prints <code>Nothing measured; nothing saved to experiment tracker.</code> and exits 1. Through v0.75.2 such a name was saved as <code>0.0</code>.</p><p><code>soup eval compare</code>, <code>soup eval leaderboard</code> (per model and benchmark) and <code>soup registry diff</code> use the <strong>newest</strong> eval row for each benchmark, so re-running a benchmark replaces its score. Through v0.75.2 each of them let the oldest row win. A comparison that read a re-measured benchmark could show an improvement where there was a regression; re-run it, nothing stored changed.</p><p><code>soup eval judge</code> skips a row whose judge call keeps failing (a 429 after its retries, a timeout, a reply with no choices) with a warning, counts it, and still scores and saves the rest; it exits 1 only when every row fails. Once three requests in a row have spent their retries unanswered, it stops: one message names the judge URL and how many items were not judged, the scores from before the outage are shown but not saved, and the exit is 1 (#1522). The judge is asked for one JSON object, <code>{&quot;scores&quot;: {&quot;&lt;criterion&gt;&quot;: &lt;number&gt;}, &quot;reasoning&quot;: &quot;...&quot;}</code>, and Soup reads the first object in the reply that has a <code>scores</code> key. Criterion names match case-insensitively and <code>{&quot;score&quot;: N}</code> reads as <code>N</code>. A reply with no object, no finite number for a rubric criterion, or one criterion under two spellings is an error that names the criterion, not a score at the scale minimum, and a reply over 65,536 characters is refused unread. This paragraph is read from the code and upstream&#x27;s documentation, not run against a live judge.</p><h3 id=\"custom-task-scorers\">Custom task scorers</h3><p>Each row of the <code>soup eval custom --tasks</code> file carries a <code>prompt</code> and optionally <code>expected</code>, <code>scoring</code> and <code>category</code>. <code>scoring</code> takes one of <code>exact</code>, <code>contains</code>, <code>answer</code>, <code>regex</code>, <code>semantic</code>, <code>tool_call_match</code>, <code>tool_call_name_match</code> or <code>tool_call_args_subset</code>. The three string scorers read an output like this:</p><div><table><thead><tr><th><code>scoring</code></th><th>What it compares</th><th><code>expected: &quot;4&quot;</code> against <code>The answer is 4.</code></th><th>against <code>14</code></th></tr></thead><tbody><tr><td><code>answer</code></td><td>The final answer each side states, read with the parser GRPO&#x27;s <code>accuracy</code> reward uses (<code>#### 4</code>, <code>\\boxed{4}</code>, <code>The answer is 4.</code>); numbers compare by value</td><td>match</td><td>no match</td></tr><tr><td><code>contains</code></td><td><code>expected</code> as a whole token bounded by non-alphanumeric characters, case-insensitive</td><td>match</td><td>no match</td></tr><tr><td><code>exact</code></td><td>The whole stripped output, case-insensitive</td><td>no match</td><td>no match</td></tr></tbody></table></div><p><code>answer</code> refuses at load an <code>expected</code> that states no single answer (a multi-line worked solution with no <code>####</code>, an empty <code>\\boxed{}</code>, a hedge between values) and names the line. It reads the answer a model <em>states</em>: against a gold <code>Paris</code>, <code>Answer: Paris</code> and <code>Paris</code> match but <code>The capital of France is Paris.</code> does not, so prefer it for math and short-answer tasks and use <code>contains</code> for free text. <code>contains</code> cannot read negation (<code>It is not 4, so 5.</code> still contains <code>4</code>), and its bound is an ASCII alphanumeric run, so <code>4</code> still matches inside <code>3.4</code>. The eval gate&#x27;s <code>scorer:</code> override accepts <code>answer</code> too.</p><p><code>tool_call_match</code>, <code>tool_call_name_match</code> and <code>tool_call_args_subset</code> compare a JSON tool call. <strong>Since v0.77.0 the argument comparisons never treat a boolean and a number as equal, at any depth</strong> (#1755, #1756): against a gold <code>{&quot;enabled&quot;: true}</code>, an output <code>{&quot;enabled&quot;: 1}</code> scores 0.0 on <code>tool_call_match</code> and 0.5 on <code>tool_call_args_subset</code> (the tool name&#x27;s half), where v0.76 gave both full credit. Numbers still match across forms (<code>1</code> matches <code>1.0</code>). A score recorded with the old rule can be higher than the same outputs score now, so re-measure it. The bundled <code>mini_tool_call</code> suite scores only the tool name and did not move.</p><p>A <code>scoring</code> value outside the list above is refused when the tasks file is read, naming the line (<code>Line 1: invalid scoring &#x27;bogus&#x27;, must be one of: ...</code>), before any model loads, and <code>soup eval custom</code> exits 1. Since v0.77.0 that includes a value that is not a string, such as a list, which used to end in <code>TypeError: unhashable type</code> (#1926).</p><p><strong><code>contains</code> changed in v0.76.0.</strong> It used to be a raw substring test and paid <code>14</code> for an expected <code>4</code>. A result recorded with it (a <code>soup eval gate --baseline</code> file, a <code>registry://</code> row, a <code>soup eval custom --run-id</code> result) can be higher than the same outputs score now. A baseline recorded before v0.76.0 does print the generic scorer-revision (or unknown-provenance) warning, but that warning does not say that <code>contains</code> changed, so re-measure those baselines or compare only runs made on the same version. The scorer functions were run for the table above.</p><h3 id=\"aider-polyglot-soup-eval-aider-v0-74-0\">Aider Polyglot (<code>soup eval aider</code>, v0.74.0)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[aider]\"\ngit clone https://github.com/Aider-AI/aider.git\ncd aider\n./benchmark/docker_build.sh\ncd ..\ngit clone https://github.com/Aider-AI/polyglot-benchmark.git\n\nsoup eval aider --model openai/gpt-4.1 --output ./aider-results \\\n  --exercises-dir ./polyglot-benchmark --run-id run_20260301_143052_a1b2"
+    },
+    {
+      "kind": "html",
+      "html": "<p>This scores a model through Aider&#x27;s own benchmark harness, in Aider&#x27;s Docker image. <code>--model</code> is an Aider / LiteLLM model identifier such as <code>openai/gpt-4.1</code>, not a path to a local checkpoint. The <code>[aider]</code> extra alone does not make the command runnable, because the <code>aider-chat</code> wheel does not ship the harness: you build the <code>aider-benchmark</code> image from an Aider checkout and clone the exercises once, as above. Docker has to be running, and Soup checks the Docker CLI, the daemon and the image before it starts. The exercises are mounted read-only (a directory outside the current one is allowed, with a warning), and provider credentials reach the container by environment-variable name, never as a value on the command line: <code>OPENAI_API_KEY</code>, <code>OPENAI_API_BASE</code>, <code>ANTHROPIC_API_KEY</code>, <code>GEMINI_API_KEY</code>, <code>OPENROUTER_API_KEY</code> and the three <code>AZURE_API_*</code> variables, whichever are set.</p><p><code>--output</code> is a <strong>directory</strong>, not a report file, and it must sit under the current directory. It receives Aider&#x27;s per-exercise results and a <code>soup_result.json</code> with the model, the score, the error counts and aggregate details. <code>--run-id</code> must name an existing run; the <code>aider_polyglot</code> score is stored under it, which is what lets <code>soup eval compare run_before run_after</code> compare two of them. <code>--threads</code> (1 to 64, default 1), <code>--num-tests</code> (default <code>-1</code>, every exercise) and <code>--timeout</code> (60 to 86400 seconds, default 86400) bound the run. <code>--allow-host-services</code> lets the container reach services on the host, for a trusted local OpenAI-compatible endpoint; it also lets the model-written code the benchmark executes reach those services, so leave it off for a remote provider. The benchmark runs model-generated code, and Soup offers no host-execution fallback.</p><h2 id=\"hyperparameter-sweep\">Hyperparameter Sweep</h2><p>Search for the best hyperparameters:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Grid search\nsoup sweep --config soup.yaml --param lr=1e-5,2e-5,5e-5 --param lora_r=8,16,32\n\n# Random search with max runs\nsoup sweep --config soup.yaml --param lr=1e-5,2e-5,5e-5 --strategy random --max-runs 5\n\n# Preview without running\nsoup sweep --config soup.yaml --param lr=1e-5,2e-5 --dry-run\n\n# Early stopping: skip remaining runs if loss exceeds 1.5x best\nsoup sweep --config soup.yaml --param lr=1e-5,2e-5,5e-5 --early-stop 1.5\n\n# A standalone sweep file instead of repeated --param\nsoup sweep --config soup.yaml --sweep-config sweep.yaml --dry-run"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A parameter that is not a field of the config exits 1 (<code>sweep parameter does not match any config field</code>), and <code>--dry-run</code> runs that check, so a typo fails before any training. Since v0.77.0 a parameter that sets one of the staged fields, which Soup accepts but never reads (see <a href=\"__DOCS_BASE__/config-refusals\">Settings refused at load</a>), away from its default in any arm is refused the same way, under <code>--dry-run</code> too: <code>sweep parameter sets a field that is accepted but read by nothing: training.forgetting_eval_steps; refused as of v0.77. Remove it from --param.</code>, exit 1. A deprecated value such as <code>data.remove_unused_columns=true</code> is not pre-checked (<code>--dry-run</code> exits 0).</p><p>Two more changes in v0.77.0. A sweep in which no arm completed exits 1 with <code>No sweep run completed: N of N run(s) failed.</code>; through v0.76.1 it printed a table of <code>failed</code> rows and exited 0, and one completed arm is still exit 0 (#1905). A <code>random</code> sweep draws from each list&#x27;s distinct values, so <code>lr=1e-5,2e-5,1e-5</code> plans each distinct arm once and always finishes, <code>--dry-run</code> included (#2007); through v0.76.1 such a list could make the sweep hang.</p><h3 id=\"a-standalone-sweep-file\">A standalone sweep file</h3><p><code>--config</code> stays the base <code>soup.yaml</code>. <code>--sweep-config</code> points at a separate file that holds the whole search, in place of repeating <code>--param</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# sweep.yaml\nstrategy: random      # grid | random\nn_runs: 6             # 0 or absent: use --max-runs (a random sweep with neither plans at most 10 runs; a grid plans every combination)\nseed: 7\nparams:\n  lr: [1e-5, 2e-5, 5e-5]\n  lora_r: [8, 16, 32]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>params</code> maps each name to a non-empty list of scalars (at most 32 names, 64 values per name, a 256 KiB file, under the current directory). Giving both <code>--param</code> and <code>--sweep-config</code> is an error (<code>Use either --param or --sweep-config, not both.</code>, exit 1), and so is giving neither. The file&#x27;s <code>strategy</code> and <code>seed</code> win over <code>--strategy</code>, and a non-zero <code>n_runs</code> wins over <code>--max-runs</code>. Two consequences were run: a file that leaves <code>strategy</code> out is a grid sweep even when you pass <code>--strategy random</code>, because the file&#x27;s default wins; and <code>n_runs</code> only caps the count, so the 3 by 3 grid above with <code>strategy: grid</code> and <code>n_runs: 20</code> plans 9 runs.</p><h3 id=\"what-a-sweep-arm-is-and-what-it-records\">What a sweep arm is, and what it records</h3><p>Every arm builds the trainer that <code>soup train</code> would build for the config&#x27;s <code>task</code> and <code>backend</code> (v0.76.0). Through v0.75.2 <code>soup sweep</code> had its own shorter dispatch that knew SFT and twelve other tasks, so ten task values (<code>distill</code>, <code>tts</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>prm</code>, <code>unlearn</code>, <code>moe_lora_routing</code>, <code>online_dpo</code>, <code>asr</code>) reached the SFT trainer, and <code>backend: mlx</code> was never read. Each of those arms trained plain next-token cross-entropy while the tracker recorded the configured task, and the sweep ranked the numbers as if they were the configured objective. <strong>If you swept any of them, discard that sweep</strong> (#1213).</p><p>A diverged arm (a NaN or infinite final loss) stays in the results table, is labelled <code>diverged</code>, sorts after the finite losses, can never be marked the best run, and counts as worse than any finite early-stop threshold. An arm whose trainer cannot be built or set up is now marked <code>failed</code> in the tracker with the reason, where it used to stay <code>running</code> (#1464).</p><h2 id=\"model-comparison\">Model Comparison</h2><p>Compare outputs of two models side-by-side:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup diff --model-a ./model_v1 --model-b ./model_v2 --prompt \"Explain gravity\"\nsoup diff --model-a ./base --model-b ./finetuned --prompts test_prompts.jsonl\nsoup diff --model-a ./a --model-b ./b --prompts prompts.txt --output results.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both models must be existing local paths (exit 1 otherwise). For an adapter directory, <code>soup diff</code> reads the base model from its <code>adapter_config.json</code>; <code>--base-a</code> and <code>--base-b</code> name the base for model A and model B explicitly, and are required when that file records none (the command exits 1 with <code>Cannot detect base model</code>). A full (non-adapter) model is loaded from its own directory; the base is not used to load it. Custom modeling code is denied by default: a local model whose <code>config.json</code> has an <code>auto_map</code> is refused unless you pass <code>--trust-remote-code</code>.</p><h2 id=\"batch-inference\">Batch Inference</h2><p>Run a model on a list of prompts:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup infer --model ./output --input prompts.jsonl --output results.jsonl\nsoup infer --model ./output --input prompts.txt --output results.jsonl \\\n  --max-tokens 512 --temperature 0.3"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Output is JSONL with <code>prompt</code>, <code>response</code>, and <code>tokens_generated</code> fields.</p><p>Two opt-in options arrived in v0.76.0, both described on <a href=\"__DOCS_BASE__/soup-bench\">the <code>soup bench</code> page</a>. <code>--batch-size N</code> (default 1) generates N prompts together, left-padded, and writes the results in input order; in fp16 and bf16 a batched run may not produce the same tokens as batch size 1. <code>--cuda-graphs</code> is experimental CUDA graph decoding for a resident, unquantized Qwen2 or Llama model and needs PyTorch 2.14 or newer.</p><p><code>soup infer</code>, <code>soup chat</code> and <code>soup diff</code> take <code>--device</code> (<code>cpu</code>, <code>cuda</code>, <code>cuda:&lt;index&gt;</code> or <code>mps</code>; <code>mlx</code> is also accepted and loads like <code>cpu</code>), and when you leave it out Soup auto-detects one, so what follows applies either way. Since v0.76.0 the device decides how the model loads: <code>cpu</code> pins it to the CPU in float32, an explicit <code>cuda:&lt;index&gt;</code> or <code>mps</code> pins it to that device in float16, and plain <code>cuda</code> lets <code>accelerate</code> place it in float16. Any other value is refused (<code>Unsupported --device ...</code>). Through v0.75.2 these commands loaded with <code>device_map=&quot;auto&quot;</code> in float16 whatever you passed, so <code>--device cpu</code> could still put the model on a visible GPU. The cost to know about: <strong>on a CPU-only host the model now loads in float32</strong>, which doubles its RAM use (a 7B model needs about 28 GB instead of 14 GB).</p><h2 id=\"training-profiler-v0-23-0\">Training Profiler (v0.23.0+)</h2><p>Estimate memory, speed, and GPU requirements before training:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup profile --config soup.yaml            # model, task and quantization come from the config"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Shows estimated GPU memory, training speed, and hardware recommendations. Add <code>--json</code> to print the same figures as one JSON object (memory components, <code>total_memory_gb</code>, <code>tokens_per_sec</code>, <code>samples_per_sec</code>, <code>recommended_batch_size</code>, <code>compatible_gpus</code>, <code>gpu_memory_gb</code>, <code>gpu_memory_source</code>) for scripting.</p><p><code>gpu_memory_source</code> is <code>flag</code>, <code>detected</code> or <code>assumed</code>. With no GPU detected and no <code>--gpu</code>, the memory verdict is made against an assumed 24 GB and says so: the panel reads <code>No GPU detected: would fit in an assumed 24 GB (need ~3 GB). Pass --gpu for a real verdict.</code>, the speed panel reads <code>Typical A100 throughput, not specific to your GPU.</code>, and the JSON ends <code>&quot;gpu_memory_gb&quot;: 24.0, &quot;gpu_memory_source&quot;: &quot;assumed&quot;</code>. Pass <code>--gpu</code> with a name such as <code>RTX5070LAPTOP</code> to get a verdict for a real card (<code>&quot;gpu_memory_source&quot;: &quot;flag&quot;</code>); an unknown name lists the accepted ones and exits 1. (<code>soup profile --help</code> still gives only <code>rtx3090, rtx4090, a100, h100</code> as examples.)</p><p><strong>Full fine-tuning is budgeted as full fine-tuning since v0.77.0</strong> (#1423, #2041). A run with <code>lora.r: 0</code>, Spectrum, LISA, PRM, or a classifier without LoRA is sized with the whole parameter count, its gradients and its optimizer state, and the JSON gains <code>peft</code> (<code>full</code>, <code>lora</code> or <code>qlora</code>) and <code>gradients_memory_gb</code>. Through v0.76.1 such a run was sized as LoRA, with 0 trainable parameters and 0 GB of optimizer memory, so its estimate was far too small; re-run <code>soup profile</code> on a full fine-tune you sized with an older release. The same applies to the MCP <code>profile</code> tool.</p><h2 id=\"adapter-management-v0-22-0\">Adapter Management (v0.22.0+)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Scan directory for LoRA adapters\nsoup adapters list ./experiments\n\n# Show adapter metadata (base model, rank, size)\nsoup adapters info ./output\n\n# Compare two adapters side-by-side\nsoup adapters compare ./adapter_v1 ./adapter_v2\n\n# Is an adapter trained at all? (v0.76.0)\nsoup adapters check ./output"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup adapters check</code> ends in one verdict line, <code>alive</code> or <code>inactive: &lt;reason&gt;</code>, and <code>soup adapters audit</code> compares the settings a finished run recorded with the <code>soup.yaml</code> that started it: both are on <a href=\"__DOCS_BASE__/adapter-check\">their own page</a>.</p><h2 id=\"logging-integrations\">Logging Integrations</h2><h3 id=\"tensorboard\">TensorBoard</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --tensorboard\ntensorboard --logdir ./output/runs/"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"weights-biases\">Weights &amp; Biases</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[wandb]\"\nsoup train --config soup.yaml --wandb"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The <code>wandb</code> package comes from its own extra: neither <code>[train]</code> nor <code>[all]</code> installs it.</p><blockquote><p><code>--tensorboard</code> and <code>--wandb</code> cannot be used together.</p></blockquote><nav><a href=\"__DOCS_BASE__/model-catalog-v051\"><span>Previous</span><span>Model Catalog</span></a><a href=\"__DOCS_BASE__/rewind\"><span>Next</span><span>soup rewind</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

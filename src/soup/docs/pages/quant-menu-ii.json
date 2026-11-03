@@ -1,0 +1,124 @@
+{
+  "slug": "quant-menu-ii",
+  "title": "Quant Menu II (v0.53.0)",
+  "description": "Quant Menu II in Soup CLI — schema shipped in v0.53.0, every writer live as of v0.53.1. Unsloth Dynamic 2.0 GGUF ladder (14 rungs UD-Q8_K_XL … UD-IQ1_M) with live llama.cpp imatrix pipeline, IQ + Apple/ARM GGUF flavours, KV cache types (q8_0/bf16/f16 serve; fp8 is accepted by the schema but raises at serve time), FP8 attention, NVFP4 Blackwell, native unsloth_bnb_4bit, BNB double-quant (validated but read by nothing until v0.73.3, which also added soup merge --no-double-quant), reward-model quant (quantize_ref_model was read by no trainer and is refused at load since v0.77.0 when set), soup merge --save-format 4bit_forced single-shot, soup export --format torchao PTQ.",
+  "source": "https://trysoup.dev/docs/quant-menu-ii",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "f36baddb5d00463b99101c7aba86bd8a11a4384338d181cc5b14a869ad883a7f",
+  "headings": [
+    {
+      "level": 2,
+      "id": "unsloth-dynamic-2-0-gguf-ladder",
+      "title": "Unsloth Dynamic 2.0 GGUF ladder"
+    },
+    {
+      "level": 2,
+      "id": "iq-apple-arm-gguf-flavours",
+      "title": "IQ + Apple/ARM GGUF flavours"
+    },
+    {
+      "level": 2,
+      "id": "kv-cache-types",
+      "title": "KV cache types"
+    },
+    {
+      "level": 2,
+      "id": "fp8-attention-nvfp4-native-unsloth-bnb-4bit",
+      "title": "FP8 attention, NVFP4, native unsloth_bnb_4bit"
+    },
+    {
+      "level": 2,
+      "id": "lf-axolotl-parity",
+      "title": "LF / Axolotl parity"
+    },
+    {
+      "level": 2,
+      "id": "advanced-save-formats",
+      "title": "Advanced save formats"
+    },
+    {
+      "level": 2,
+      "id": "stats",
+      "title": "Stats"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Quant Menu II (v0.53.0)</h1><p>The full advanced-quantization surface. v0.53.0 shipped the closed allowlists and validators; v0.53.1 lit up every writer — 3-stage llama.cpp imatrix pipeline, TorchAO PTQ export, and single-shot BNB-4bit merge. See <a href=\"__DOCS_BASE__/v053-live-writers\">v0.53.1 live writers</a> for the live-wiring detail.</p><h2 id=\"unsloth-dynamic-2-0-gguf-ladder\">Unsloth Dynamic 2.0 GGUF ladder</h2><p>14-entry closed allowlist:</p><p><code>UD-Q8_K_XL · UD-Q6_K_XL · UD-Q5_K_XL · UD-Q4_K_XL · UD-Q3_K_XL · UD-Q2_K_XL · UD-IQ4_XS · UD-IQ3_M · UD-IQ3_XXS · UD-IQ2_M · UD-IQ2_XS · UD-IQ2_XXS · UD-IQ1_M · UD-IQ1_S</code></p><p><code>validate_ud_gguf_format</code> is case-insensitive with canonical normalisation.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup export --model ./output --format gguf-ud --gguf-flavour UD-Q4_K_XL --calibration-data calib.jsonl --output ./model.gguf"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Every UD rung and the low-bit IQ rungs (<code>IQ1_S</code>, <code>IQ1_M</code>, <code>IQ2_XXS</code>, <code>IQ2_XS</code>, <code>IQ2_S</code>, <code>IQ2_M</code>, <code>IQ3_XXS</code>, <code>IQ3_XS</code>) need <code>--calibration-data</code>, because the quantizer builds an importance matrix from it; without it the export fails with <code>flavour ... requires --calibration-data &lt;jsonl&gt;</code>. The Apple/ARM flavours and the other four IQ rungs (<code>IQ3_S</code>, <code>IQ3_M</code>, <code>IQ4_NL</code>, <code>IQ4_XS</code>) do not.</p><h2 id=\"iq-apple-arm-gguf-flavours\">IQ + Apple/ARM GGUF flavours</h2><ul><li>12-entry IQ family (IQ1/2/3/4 — including IQ4_NL non-linear)</li><li>10-entry Apple/ARM-friendly set (Q4_0_4_4, Q4_NL, Q5_K_M, etc.)</li></ul><p>Both wrapped in <code>MappingProxyType</code> metadata.</p><h2 id=\"kv-cache-types\">KV cache types</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  kv_cache_type: q8_0   # q8_0 | bf16 | f16 are servable; fp8 is accepted here and refused at serve time"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong><code>training.kv_cache_type</code> is accepted by the schema, but nothing in v0.77.0 reads it.</strong> The cache type is chosen when you serve, with <code>soup serve --model ./output --kv-cache-type q8_0</code> (<code>q8_0</code> needs the <code>hqq</code> package; <code>bf16</code> and <code>f16</code> set the cache dtype).</p><p>FP8 is accepted by the schema and <strong>unreachable at serve time</strong>: the transformers backend has no fp8 KV-cache path and raises, and the vLLM / SGLang routing that would provide one is not wired, so it raises earlier still. The Hopper capability check only decides which of the two error messages you get; a Hopper card does not make it work today.</p><h2 id=\"fp8-attention-nvfp4-native-unsloth-bnb-4bit\">FP8 attention, NVFP4, native unsloth_bnb_4bit</h2><p>Three separate configs, because the requirements in those comments are enforced at config load and no single config satisfies all three.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization_aware: fp8   # required, or fp8_attention is refused\n  fp8_attention: true       # not on mlx, unsloth or stream_layers"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  nvfp4: true               # CUDA + text only; Blackwell (SM 10.0 datacenter or 12.0 consumer), checked at runtime"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong><code>fp8_attention</code> asks the same card gate as FP8 training</strong>: compute capability 8.9 or higher (Ada, Hopper, Blackwell), checked at setup before the model loads. A card or torch build that cannot run it, a missing torchao, or a conversion that fails <strong>stops the run</strong> (v0.76.0, #835); through v0.75.2 it printed a yellow advisory and trained in bf16, and a pre-Hopper GPU degraded to an advisory rather than an error. <strong><code>nvfp4</code> is different: it still degrades.</strong> When no Blackwell device is detected, or torchao lacks the class, Soup prints a yellow <code>NVFP4: ...</code> line and the run continues in bf16, so look for <code>NVFP4 quantisation applied</code> in the log. When it does apply, <code>nvfp4: true</code> uses torchao&#x27;s <code>NVFP4TrainingConfig</code> (the linears become <code>NVFP4Linear</code> and the forward and backward GEMMs are quantised), which needs <code>torchao&gt;=0.18.0</code>, the <code>[qat]</code> extra&#x27;s floor since v0.76.0; a training step additionally needs triton and M, K and N divisible by 128, which Soup does not check. Through v0.75.2 Soup asked torchao for <code>NVFP4Config</code>, a class torchao has never exported, so on Blackwell the flag always fell back to the advisory and a bf16 run (#826).</p><p><strong>On <code>task: sft</code>, <code>fp8_attention</code> and <code>nvfp4</code> were not applied at all until v0.76.0</strong> (#800): the SFT trainer only handled <code>quantization_aware</code>, so those two keys were accepted and did nothing there. If you set either on an SFT run on v0.75.2 or earlier, that run trained without it. They are refused at config load on <code>backend: unsloth</code> and with <code>stream_layers: true</code> (#1124), and on tasks outside the 13-task allowlist.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "backend: unsloth\ntraining:\n  quantization: 4bit\n  unsloth_bnb_4bit: true    # both of the above are required"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"lf-axolotl-parity\">LF / Axolotl parity</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: ppo\ntraining:\n  quantization: 4bit\n  bnb_4bit_use_double_quant: true   # explicit true requires quantization='4bit'\n  quantize_reward_model: true       # PPO + reward_model tasks"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>quantize_ref_model: true</code> is refused at load since v0.77.0 (<code>training.quantize_ref_model is accepted but read by nothing; refused as of v0.77. Delete the line.</code>, #808; v0.76 only warned). Nothing ever read it, so it never quantized the reference model: the DPO trainer builds no reference model and the PPO trainer passes <code>ref_model=None</code>, rather than loading a second model. <code>quantize_reward_model</code> is honoured by the PPO and reward-model trainers.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization: 8bit\n  llm_int8: true                    # asserts quantization='8bit', so it cannot\n                                    # share a config with the 4-bit block above"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong><code>bnb_4bit_use_double_quant</code> was read by nothing until v0.73.3.</strong> Every place Soup built a 4-bit config hardcoded double-quantization <strong>on</strong>, so setting the key to <code>false</code> changed your config fingerprint and changed nothing about the run. It is honoured now at the three call sites Soup owns: the resident loader, the layer-streaming path (which reads it once and hands the same value to both the sharder and the meta skeleton, so streamed-versus-resident bit-exactness cannot drift), and the 4-bit save path. Two things travel with that. The field is now <strong>tri-state</strong>: unset means the shipped default, which is double-quant on, so a config that never set it trains identically; only an explicit <code>true</code> triggers the &quot;requires <code>quantization: 4bit</code>&quot; refusal. And because the resolved config now carries the field, a previously-unset config shows a <strong>one-time fingerprint drift</strong> in <code>soup ship --evidence</code> provenance and <code>soup lock check</code> with the numerics unchanged. <strong>The Unsloth loader cannot honour it</strong> — <code>FastLanguageModel</code> builds its own quantization config internally with double-quant hardcoded on and exposes no override.</p></blockquote><h2 id=\"advanced-save-formats\">Advanced save formats</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup merge --adapter ./output --save-format 4bit          # | 4bit_forced\nsoup merge --adapter ./output --save-format 4bit --no-double-quant   # v0.73.3; ignored for fp16\nsoup export --model ./output --format torchao --quant-config quant.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>save-format 4bit_forced</code> writes a single BNB-4bit merged checkpoint without a dequant / merge / requant cycle. It quantizes all linear layers including <code>lm_head</code>, so a model with tied embeddings (<code>tie_word_embeddings: true</code>) cannot use it: the tied head shares weights with the embeddings, which a 4-bit linear cannot hold, and the command refuses by name (after the fp16 merge has been staged and before the 4-bit reload: <code>Merge failed: ...</code>, exit 1). Use <code>--save-format 4bit</code> for such a model.</p><p><code>--quant-config</code> accepts a closed TorchAO allowlist: <code>Int4WeightOnly</code> / <code>Int8DynActInt4</code> / <code>Float8DynActFloat8</code> / <code>NVFP4</code>. These are Soup&#x27;s own scheme names, case-sensitive, and since v0.76.0 each is mapped to the torchao class that implements it (three of the four names Soup used to look up did not exist in torchao, #826). <code>Int4WeightOnly</code> and <code>Int8DynActInt4</code> accept <code>group_size</code>; <code>inner_k_tiles</code> was removed from the allowlist because torchao&#x27;s <code>Int4WeightOnlyConfig</code> raises <code>TypeError</code> for it.</p><h2 id=\"stats\">Stats</h2><ul><li>Net <strong>+157 tests</strong> (7,453 → 7,610 across 179 files)</li><li>154 tests in <code>test_v0530.py</code></li><li>5 review agents ran in parallel; every CRITICAL / HIGH / MEDIUM / LOW finding fixed or documented</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/quant-menu\">Quant Menu (v0.38)</a> — the original 9-format menu</li><li><a href=\"__DOCS_BASE__/training-speed-memory\">Speed &amp; Memory</a> — FP8 training, Cut CE, gradient checkpointing tiers</li><li><a href=\"__DOCS_BASE__/multi-gpu\">Multi-GPU</a> — ZeRO++ / FSDP2 / pipeline</li></ul><nav><a href=\"__DOCS_BASE__/quant-menu\"><span>Previous</span><span>Quant Menu</span></a><a href=\"__DOCS_BASE__/model-catalog-v051\"><span>Next</span><span>Model Catalog</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

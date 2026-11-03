@@ -1,0 +1,114 @@
+{
+  "slug": "post-train-xrays",
+  "title": "Post-train X-rays (v0.66.0)",
+  "description": "Soup CLI v0.66.0 post-train x-rays — mechanistic interpretability on every fine-tune. soup probe sae-diff applies a Sparse Autoencoder over pre/post activations (Gemma Scope / Pythia / Llama / GPT-2 closed allowlist). soup probe sleeper is a linear defection probe (≤1% OK, ≤5% MINOR, >5% MAJOR) whose bundled per-base weights are synthetic placeholders, so pass --weights for a real reading. soup probe interference builds an N×N catastrophic-interference matrix (gates CI merge at ≥20%). soup probe pack assembles per-base probe manifests. A DataInf-style influence kernel behind soup adapters blame (the CLI scores are synthetic placeholders).",
+  "source": "https://trysoup.dev/docs/post-train-xrays",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "ec75e7998002c18afe03da62d53c20c8a7626d21e988aeb7ab736dfda23c5b06",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-probe-sae-diff-sparse-autoencoder-feature-movement",
+      "title": "soup probe sae-diff — Sparse Autoencoder feature movement"
+    },
+    {
+      "level": 2,
+      "id": "soup-probe-sleeper-defection-agent-classifier",
+      "title": "soup probe sleeper — defection-agent classifier"
+    },
+    {
+      "level": 2,
+      "id": "soup-probe-interference-n-n-adapter-compatibility-matrix",
+      "title": "soup probe interference — N×N adapter compatibility matrix"
+    },
+    {
+      "level": 2,
+      "id": "soup-probe-pack-bundled-probes-per-base",
+      "title": "soup probe pack — bundled probes per base"
+    },
+    {
+      "level": 2,
+      "id": "soup-rewind-which-rows-were-behind-a-loss-spike-v0-76-0",
+      "title": "soup rewind: which rows were behind a loss spike (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "influence-function-blame-the-cli-scores-are-synthetic",
+      "title": "Influence-function blame (the CLI scores are synthetic)"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Post-train X-rays (v0.66.0)</h1><p>Mechanistic-interpretability on every fine-tune. Four probe families that surface what changed inside the model, not just what changed in outputs. Pure descriptive — no auto-mitigation, designed for CI logging and model cards.</p><h2 id=\"soup-probe-sae-diff-sparse-autoencoder-feature-movement\"><code>soup probe sae-diff</code> — Sparse Autoencoder feature movement</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup probe sae-diff ./gemma_scope.safetensors ./pre_acts.json ./post_acts.json \\\n  --top-k 20 --output ./sae_diff.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Encode pre-FT and post-FT activation batches through a Sparse Autoencoder; report the <strong>top-K features</strong> whose mean activation moved the most. Closed SAE-repo allowlist — and as of <strong>v0.71.8</strong> <code>--auto-download</code> fetches one from the HF Hub into <code>~/.soup/sae-cache/</code> (validated against the allowlist BEFORE any network call, via an SSRF-hardened <code>snapshot_download</code>):</p><ul><li>Gemma Scope (2B / 9B / 27B residual-stream)</li><li>EleutherAI Pythia SAEs</li><li>JBloomAus Llama SAEs</li><li>OpenAI GPT-2 SAE</li></ul><p>Bounds: top-k <code>[1, 10K]</code>, up to 1M features, up to 1M tokens per batch, 16 MiB evidence cap. v0.71.8 also adds <code>soup probe sleeper --weights</code>, <code>soup probe truth</code> / <code>harm</code>, <code>soup probe interference --measure</code> (live PEFT multi-adapter N×N matrix), and <code>soup train --capture-activations</code>. That last one has a partner flag, <strong><code>soup train --capture-prompts &lt;path&gt;</code></strong>, which records the prompts the activations belong to; the capture is not much use without them, and the path is cwd-contained and symlink-rejecting like every other write Soup makes.</p><h2 id=\"soup-probe-sleeper-defection-agent-classifier\"><code>soup probe sleeper</code> — defection-agent classifier</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup probe sleeper meta-llama/Llama-3-8B --evidence ./activations.json --output ./sleeper.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A <strong>linear defection probe</strong> applied to a 2D activation tensor (<code>{&quot;activations&quot;: [[...], ...]}</code>, one row per token, each row as wide as the probe&#x27;s hidden size, 4096 for Llama-3-8B; a mismatch exits 2). It reports the flagged-token rate and a verdict, and exits 2 on MAJOR:</p><div><table><thead><tr><th>Flagged rate</th><th>Verdict</th></tr></thead><tbody><tr><td>≤1%</td><td>OK</td></tr><tr><td>≤5%</td><td>MINOR</td></tr><tr><td>&gt;5%</td><td><strong>MAJOR</strong></td></tr></tbody></table></div><p><strong>The bundled probe weights are synthetic placeholders.</strong> With no <code>--weights</code>, the probe is a deterministic vector seeded from the base name: the math is real, but the six bundled bases carry no real calibrated vectors (the module itself lists this as a known limitation), so a verdict from the bundled probe only exercises the plumbing. It says nothing about your model. For a real reading pass <code>--weights &lt;probe.npz|.npy|.safetensors&gt;</code>, which also accepts any base id, or derive a probe from your own labelled activations with <code>compute_contrast_probe</code> (the contrast-pair method). The same holds for <code>soup probe truth</code> and <code>soup probe harm</code>, which take the same arguments (an honesty probe and a misuse probe, with 5% / 20% bands).</p><p>The base id is matched case-insensitively against the six bundled ids, and nothing shorter is accepted. The bundled bases are <code>Qwen/Qwen2-7B</code>, <code>google/gemma-2-2b</code>, <code>google/gemma-2-9b</code>, <code>meta-llama/Llama-2-7B</code>, <code>meta-llama/Llama-3-8B</code> and <code>mistralai/Mistral-7B-v0.1</code>; a short name such as <code>llama-3-8b</code> exits 2 (<code>soup probe pack --list</code> prints them). With no <code>--evidence</code> the command prints the probe&#x27;s description and a &quot;Pass --evidence&quot; notice and exits 0 without scoring anything; if you also pass <code>-o</code>, the file it writes is a neutral report with 0 tokens and verdict <code>OK</code>, which is not a result. 16 MiB cap; symlink rejection.</p><p><code>soup probe sleeper</code>, <code>truth</code>, <code>harm</code> and <code>sae-diff</code> import <code>numpy</code>, which Soup&#x27;s light core install does not declare; it arrives with the training stack. On a bare <code>pip install soup-cli</code> they exit 1 with <code>ModuleNotFoundError: No module named &#x27;numpy&#x27;</code> (checked at v0.76.0 on an install without it). <code>soup probe pack</code> and <code>soup probe interference</code> (the losses-JSON form) do not need it.</p><h2 id=\"soup-probe-interference-n-n-adapter-compatibility-matrix\"><code>soup probe interference</code> — N×N adapter compatibility matrix</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup probe interference ./losses.json --output ./matrix.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Input is operator-measured per-pair losses; output is an N×N catastrophic-interference matrix:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "score(A → B) = (loss(A_target | A+B) - loss(A_target | A alone)) / loss(A alone)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The losses file is JSON, where the key <code>&quot;a|b&quot;</code> is the loss on A&#x27;s domain with A and B loaded and <code>&quot;a|a&quot;</code> is the baseline with A alone:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"adapters\": [\"a\", \"b\"], \"losses\": {\"a|a\": 1.0, \"a|b\": 1.05, \"b|a\": 1.3, \"b|b\": 1.0}}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Or let Soup measure them: <code>soup probe interference --measure ./eval.jsonl --base-model &lt;id&gt; --adapter a=./a --adapter b=./b [--device cpu]</code> (two or more adapters).</p><div><table><thead><tr><th>Absolute score</th><th>Verdict</th></tr></thead><tbody><tr><td>&lt;5%</td><td>OK</td></tr><tr><td>&lt;20%</td><td>MINOR</td></tr><tr><td>≥20%</td><td><strong>MAJOR</strong> (exit 2, gates CI)</td></tr></tbody></table></div><p>Bounds: 2..16 adapters (4..256 pairs). Adapter names ≤256 chars; markup-escaped before render against injection.</p><h2 id=\"soup-probe-pack-bundled-probes-per-base\"><code>soup probe pack</code> — bundled probes per base</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup probe pack meta-llama/Llama-3-8B --output ./pack.json\nsoup probe pack --list"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Per-base manifest listing the sleeper, truth and harm probes for that base (the same six base ids as above; any other id exits 2). Metadata only: no weights are embedded, and there is no probe-weights fetcher, so bring your own with <code>--weights</code> (no command fetches probe weights; <code>soup probe sae-diff --auto-download</code> downloads an SAE, which is not a probe weight). 1..32 probes per pack; per-field caps against operator-controlled-input bloat.</p><h2 id=\"soup-rewind-which-rows-were-behind-a-loss-spike-v0-76-0\"><code>soup rewind</code>: which rows were behind a loss spike (v0.76.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup rewind                       # the most recent run\nsoup rewind <run-id> --step 412 --top 20 --json rewind.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A training flight recorder and its reader. During an SFT run, <code>training.rewind_log</code> (on by default) writes <code>&lt;output&gt;/rewind.jsonl</code>: for every micro-batch, the dataset row indices and each row&#x27;s loss and token count. <code>soup rewind</code> reads it back, finds the steps whose loss jumped, and ranks the rows of the worst one by how much of that step&#x27;s loss they carried. A step is a <code>critical</code> spike when its token-weighted loss is not finite, and a <code>warning</code> spike when it is more than twice the median of the previous 20 measured steps (it needs at least 3 of them). It then rebuilds the dataset to preview those rows, and withholds the preview with a notice when the dataset on disk no longer matches the one the run trained on. <code>--no-preview</code> skips loading the dataset, <code>--step N</code> details a step of your choice, and <code>--top</code> sets how many rows to list.</p><p>Three limits worth knowing. The recorder is SFT-only, so a DPO or GRPO run leaves no log, and <code>soup rewind</code> lists that among the three causes of a missing one. It is also switched off for resumed runs, with <code>packing</code>, and on a distributed launch (the run prints one line saying so); <code>soup rewind</code> then finds no usable log and exits 1. A run with no spike prints <code>No loss spikes recorded.</code>, exits 0 and, unless you pass <code>--step</code>, does <strong>not</strong> write the <code>--json</code> file. And when a loss is not finite the JSON carries <code>NaN</code> and <code>Infinity</code> literals, which a strict JSON parser rejects. Exit codes are 0 for an analysis (a clean run included), 1 for a missing run, log or step (or a log with no recorded micro-batches), and 2 for an invalid <code>--json</code> path or a mistyped flag. The full reference is on <a href=\"__DOCS_BASE__/rewind\">the rewind page</a>.</p><h2 id=\"influence-function-blame-the-cli-scores-are-synthetic\">Influence-function blame (the CLI scores are synthetic)</h2><p>Bundled in v0.66 alongside the probe family: a <strong>DataInf-style row attribution</strong> kernel that scores each training row by the cosine of its gradient against a probe gradient, times the row norm, and ranks the top rows. The kernel is real, but <code>soup adapters blame</code> does not feed it your adapter&#x27;s gradients: the CLI calls it with no probe function, so it ranks deterministic synthetic vectors seeded from the adapter path, dataset path and layer label. Treat its table as a placeholder until a caller supplies real per-row gradients; see <a href=\"__DOCS_BASE__/adapters\">Adapters</a>. The idea it is meant for pairs with v0.67 <code>soup adapters bisect</code>: bisect finds which checkpoint broke, blame is meant to say which rows caused it.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/diagnose\">Diagnose</a> — the 7-probe report card (6 at v0.56, citation recall added in v0.71.10); v0.66 adds 4 more probes on top.</li><li><a href=\"__DOCS_BASE__/rewind\">Rewind</a> — name the dataset rows behind a loss spike.</li><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle</a> — v0.67 bisect finds the broken checkpoint; blame is the intended follow-up for row-level attribution.</li></ul><nav><a href=\"__DOCS_BASE__/diagnose\"><span>Previous</span><span>soup diagnose: post-training model report card</span></a><a href=\"__DOCS_BASE__/tracker-eval-pro\"><span>Next</span><span>Tracker &amp; Eval Pro</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

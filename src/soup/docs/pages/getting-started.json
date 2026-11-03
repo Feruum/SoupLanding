@@ -1,0 +1,217 @@
+{
+  "slug": "getting-started",
+  "title": "Getting Started",
+  "description": "Install Soup CLI v0.77.0 (Apache-2.0) and start fine-tuning LLMs in minutes. The install split: pip install soup-cli is a light PyTorch-free CLI; pip install \"soup-cli[train]\" adds the training stack; pip install \"soup-cli[mcp]\" adds the MCP server so your coding agent can drive Soup. Python 3.11 to 3.13 (since v0.77.0; on Python 3.10, pip keeps installing v0.76.x), CUDA or Apple Silicon.",
+  "source": "https://trysoup.dev/docs/getting-started",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "ed88d4395dd70a45c17a0ea6d2fa25b501028b396cc01e66c1bb6584568f8952",
+  "headings": [
+    {
+      "level": 2,
+      "id": "installation",
+      "title": "Installation"
+    },
+    {
+      "level": 3,
+      "id": "upgrading-from-v0-76-or-earlier",
+      "title": "Upgrading from v0.76 or earlier"
+    },
+    {
+      "level": 3,
+      "id": "upgrading-from-v0-75-or-earlier",
+      "title": "Upgrading from v0.75 or earlier"
+    },
+    {
+      "level": 3,
+      "id": "requirements",
+      "title": "Requirements"
+    },
+    {
+      "level": 3,
+      "id": "docker-v0-77-0",
+      "title": "Docker (v0.77.0)"
+    },
+    {
+      "level": 3,
+      "id": "optional-extras",
+      "title": "Optional Extras"
+    },
+    {
+      "level": 3,
+      "id": "use-double-quotes-and-here-is-why",
+      "title": "Use double quotes, and here is why"
+    },
+    {
+      "level": 2,
+      "id": "quick-start",
+      "title": "Quick Start"
+    },
+    {
+      "level": 3,
+      "id": "1-create-a-config",
+      "title": "1. Create a config"
+    },
+    {
+      "level": 3,
+      "id": "2-train",
+      "title": "2. Train"
+    },
+    {
+      "level": 3,
+      "id": "3-chat-with-your-model",
+      "title": "3. Chat with your model"
+    },
+    {
+      "level": 3,
+      "id": "4-push-to-huggingface",
+      "title": "4. Push to HuggingFace"
+    },
+    {
+      "level": 3,
+      "id": "5-export-and-serve",
+      "title": "5. Export and serve"
+    },
+    {
+      "level": 2,
+      "id": "health-check",
+      "title": "Health Check"
+    },
+    {
+      "level": 2,
+      "id": "quick-demo",
+      "title": "Quick Demo"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Getting Started</h1><h2 id=\"installation\">Installation</h2><p>As of <strong>v0.71.0</strong> the install is split. <code>pip install soup-cli</code> is a light, <strong>PyTorch-free</strong> CLI + data-tools install — <code>soup init</code>, <code>soup data …</code>, and the inspection commands all work on it. To fine-tune, add the <code>[train]</code> extra:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Light core: CLI + config + data tools, no PyTorch\npip install soup-cli\n\n# Add the training stack (torch, transformers, peft, trl, datasets, …)\npip install \"soup-cli[train]\"\n\n# Everything (train + serve + ui + data + mcp) in one shot\npip install \"soup-cli[all]\"\n\n# Or from GitHub: the main branch, which runs ahead of the latest release and carries changes that are not in any tag\npip install git+https://github.com/MakazhanAlpamys/Soup.git"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Upgrading from ≤ v0.70?</strong> <code>pip install soup-cli</code> no longer pulls PyTorch. If you train, reinstall with <code>pip install &quot;soup-cli[train]&quot;</code> — a missing heavy dependency now surfaces a friendly <code>Training needs the [train] extra</code> message instead of an <code>ImportError</code>.</p></blockquote><h3 id=\"upgrading-from-v0-76-or-earlier\">Upgrading from v0.76 or earlier</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install -U soup-cli            # or: pipx upgrade soup-cli\npip install -U \"soup-cli[train]\"   # the training stack\nsoup --version                     # soup v0.77.0\nsoup doctor --config soup.yaml     # before the first run of an existing config"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>A <code>soup.yaml</code> that loaded on v0.76 can stop loading on v0.77.0.</strong> The settings v0.76 warned about are refused now: the 31 staged fields that nothing reads, when set away from their default, <code>data.remove_unused_columns: true</code>, and <code>training.quantization: 4bit</code> or <code>8bit</code> (or <code>load_in_8bit: true</code>) on a task that never quantizes, plus fourteen of the fifteen settings that, in upstream&#x27;s list, v0.76 accepted without a word and never applied (the fifteenth, a KTO row with a malformed label, is dropped at data load with a reason). Each refusal is one line that names the setting and what to delete or change, for example <code>training.early_stop_patience is accepted but read by nothing; refused as of v0.77. Delete the line.</code> <code>soup doctor --config</code> exits 2 on it and <code>soup train</code> exits 1. <code>soup ab --beta</code> is refused too (exit 2). <a href=\"__DOCS_BASE__/warnings-now-refused\">What changed in v0.77.0</a> has the list and the re-run table, and <a href=\"__DOCS_BASE__/config-refusals\">Settings refused at load</a> groups the refusals by what they touch, with the start of each message and what to change.</p></blockquote><blockquote><p><strong>On Python 3.10, <code>pip install -U soup-cli</code> stays on v0.76.x and says nothing.</strong> v0.77.0 needs Python 3.11 to 3.13, so check <code>soup --version</code> after you upgrade. If pipx built Soup&#x27;s environment with Python 3.10, reinstall it on a newer interpreter: <code>pipx install --force --python python3.12 &quot;soup-cli[train]&quot;</code>. To stay on the v0.76 line on purpose for Python 3.10, pin it: <code>pip install &quot;soup-cli[train]&lt;0.77&quot;</code>. AWQ and GPTQ export (removed in v0.77.0) need v0.76.x and its <code>[awq]</code> or <code>[gptq]</code> extra, for example <code>pip install &quot;soup-cli[awq]&lt;0.77&quot;</code>; upstream notes that both projects are archived and incompatible with <code>[train]</code>. v0.76.x receives security fixes only, until 0.78.0 is released.</p></blockquote><p>In scripts and CI jobs, pass <code>--yes</code> to <code>soup train</code>: since v0.77.0 it exits 3 when standard input is a pipe or a redirected file and <code>--yes</code> is not given, instead of waiting at <code>Start training?</code>.</p><h3 id=\"upgrading-from-v0-75-or-earlier\">Upgrading from v0.75 or earlier</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install -U soup-cli            # a fresh install with pipx: pipx install soup-cli\npip install -U \"soup-cli[train]\"   # the training stack\nsoup doctor --config soup.yaml     # before you train"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>A <code>soup.yaml</code> that loaded on v0.75 can stop loading on v0.76.0.</strong> v0.76.0 refuses settings that were accepted and never applied (for three of them, <code>use_longlora</code>, <code>ebft_variant</code> and <code>quantization_aware: true</code>, applied wrongly). Run <code>soup doctor --config soup.yaml</code> after you upgrade and before you train.</p></blockquote><p><code>soup doctor --config</code> loads your config with the current rules. If something is refused it prints the error, which names the field and what to change, then <code>Config could not be loaded (see above).</code>, and exits 2; a missing file also exits 2 (<code>Config not found: &lt;path&gt;</code>). Unknown keys are reported together, but it stops at the first cross-field refusal, so fix that setting and run it again until it prints no error. On v0.76 a setting that nothing reads only warned, for example <code>Warning: training.early_stop_patience is accepted but read by nothing; v0.77 will refuse it</code>, and the load continued with exit 0. (Since closed in v0.77.0: those fields are refused at load, see the section above.) <a href=\"__DOCS_BASE__/config-refusals\">Settings refused at load</a> groups the refusals by what they touch, with the start of each message and what to change, and lists the 31 staged fields.</p><p><strong>A clean <code>Config check</code> line is not an all-clear.</strong> After the load the command prints a <code>Config check</code> that lists settings the backend never reads, but its table covers eight combinations of task, backend and modality at v0.77.0: <code>sft</code>, <code>dpo</code>, <code>orpo</code>, <code>simpo</code> and <code>kto</code> on <code>mlx</code>, <code>sft</code> on <code>unsloth</code> (which has no entries left, because its unread settings are refused at load now), and <code>sft</code> on <code>transformers</code> with vision or with audio. It lists only settings you wrote and set away from their default. For anything else, plain <code>sft</code> on <code>transformers</code> included, it prints <code>None of the 0 setting(s) known to be unread on task=sft backend=transformers is switched on in this config.</code>, which means the combination was not reviewed rather than that nothing is wrong. The refusal at load is what protects you; the table only adds to it.</p><p>A config that must load on both v0.75 and v0.76.0 needs the refused key removed, not renamed. <a href=\"__DOCS_BASE__/settings-refused-at-load\">What changed in v0.76.0</a> has the full list, the re-run table and the exit-code move: <code>0</code> pass, <code>2</code> gate failure and <code>3</code> usage or input error on eleven gate and verdict commands, so a CI step that tests for exit 1 as &quot;the gate failed&quot; now lets a failing gate through.</p><p><strong>v0.76.1 puts read limits in front of the load.</strong> Since v0.76.1 every YAML file Soup reads goes through one loader. Nesting is limited to 100 levels, and the document&#x27;s top-level mapping counts as the first, so 99 levels of brackets under a top-level key is the deepest structure that loads; expansion through anchors, aliases and merge keys is limited to one node per source byte plus 10,000; and a <code>soup.yaml</code> may be at most 1 MiB. A <code>soup.yaml</code> that is over a limit, cannot be read or is not valid YAML stops the load with one line naming the file and the problem (for example <code>Config file soup.yaml is larger than 1048576 bytes; refusing</code>): <code>soup train</code> exits 1 and <code>soup doctor --config</code> exits 2. These are new refusals, so a config that loaded on v0.76.0 can stop loading, and <code>soup doctor --config soup.yaml</code> is the first check here too. <a href=\"__DOCS_BASE__/configuration#size-and-nesting-limits-v0-76-1\">Configuration</a> has the size caps of the other readers.</p><p><strong>Two dependency traps the upgrade can hit.</strong> Both concern a package that was already in your environment, and since v0.76.1 the install itself deals with the second.</p><ul><li><code>click</code> is now declared as <code>click&gt;=8.0.0,&lt;8.5</code>. click 8.5.0 drops the description of every positional argument from every <code>soup &lt;command&gt; --help</code> page, so a fresh install that resolved the newest click showed <code>ADAPTER  TEXT  [required]</code> with nothing after it. If another package in the same environment needs click 8.5 or newer, install Soup in its own environment (<code>pipx</code> does this).</li><li><code>typer</code>: Soup declares <code>typer&gt;=0.15.4</code> since v0.76.1 (#1802, #1858). Below Typer 0.12.4 no command can start, <code>soup --help</code> included (<code>Type not yet supported: int | None</code>), and Typer 0.12.4 to 0.15.3 start the CLI only next to Click 8.1 or older. Upgrading Soup now upgrades such a Typer, or names the conflict, at install time, and <code>soup doctor</code>, wherever it can start, reports it as <code>outdated (need &gt;=0.15.4)</code>; that report is advisory and does not change <code>soup doctor</code>&#x27;s exit code. Through v0.76.0 Soup declared <code>typer&gt;=0.9.0</code>, so <code>pip install -U soup-cli</code> left an older typer in place; on v0.76.0 or earlier the fix is <code>pip install -U &quot;typer&gt;=0.15.4,&lt;0.21&quot;</code> (the ceiling v0.76.x declares; v0.77.0 declares <code>typer&gt;=0.15.4,&lt;0.28</code>, so on v0.77.0 the fix is <code>pip install -U &quot;typer&gt;=0.15.4,&lt;0.28&quot;</code>). A fresh install was never affected.</li></ul><h3 id=\"requirements\">Requirements</h3><blockquote><p><strong>On Debian 12, Ubuntu 23.04 or anything newer, plain <code>pip install</code> fails outside a virtualenv</strong> with <code>error: externally-managed-environment</code>, and it is not a Soup problem.</p></blockquote><p>Those distributions ship an <code>EXTERNALLY-MANAGED</code> marker in the system Python, so pip refuses to write into a <code>site-packages</code> that <code>apt</code> also manages (<a href=\"https://peps.python.org/pep-0668/\">PEP 668</a>). It is the default on current Debian and Ubuntu, so it is the ordinary first-run experience there rather than an edge case, and nothing in Soup can rescue it: the package is not installed yet when the command runs.</p><p>Soup declares a <code>soup</code> console script, which makes it an application rather than a library, so <strong>upstream&#x27;s README now leads with <code>pipx</code></strong>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pipx install soup-cli               # or: uv tool install soup-cli\npipx install \"soup-cli[train]\"      # extras spelled exactly as below"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both give Soup its own virtualenv and put the command on <code>PATH</code>, which is outside PEP 668&#x27;s scope entirely. Every <code>pip</code> line on this page stays correct <strong>inside</strong> a virtualenv, a Colab notebook or a Docker image, and <code>python3 -m venv .venv</code> then plain <code>pip</code> works just as well. Use <code>pip</code> rather than <code>pipx</code> if you also want to <code>import soup_cli</code> from your own code, because pipx isolation is the wrong shape for that.</p><p><strong>Default: resident QLoRA</strong></p><ul><li><strong>Python 3.11, 3.12 or 3.13</strong> since v0.77.0 (<code>requires-python = &quot;&gt;=3.11,&lt;3.14&quot;</code>; v0.73.0 to v0.76.x declared <code>&gt;=3.10,&lt;3.13</code>, and the floor was raised from 3.9 in v0.71.0). Python 3.13 is supported; upstream&#x27;s CI runs it in its nightly and release runs, not on pull requests. Python 3.10 reached end of life on 2026-10-01, and on it pip and pipx keep installing v0.76.x without an error, so check <code>soup --version</code>. For Python 3.10 pin <code>pip install &quot;soup-cli[train]&lt;0.77&quot;</code>; see <a href=\"#upgrading-from-v0-76-or-earlier\">Upgrading from v0.76 or earlier</a></li><li><strong>The <code>[train]</code> stack, as of v0.77.0 (unchanged since v0.76.0)</strong>: <code>torch&gt;=2.6.0</code>, <code>transformers&gt;=5.16.1,&lt;6.0.0</code>, <code>trl&gt;=0.29.0,&lt;1.0.0</code>, <code>peft&gt;=0.20.0,&lt;1.0.0</code>, <code>accelerate&gt;=0.27.0</code>, and since v0.76.0 <code>requests&gt;=2.32.2</code>. A fresh install resolves all of that for you; an environment you are upgrading may not (see the two traps above). The core install declares <code>typer&gt;=0.15.4,&lt;0.28</code> (the floor since v0.76.1, when it replaced <code>&gt;=0.9.0</code>, which was below the working floor; the ceiling moved from <code>&lt;0.21.0</code> in v0.77.0) and <code>click&gt;=8.0.0,&lt;8.5</code>. One consequence worth knowing: <code>pip install &quot;soup-cli[train,mlx]&quot;</code> resolves for the first time in v0.74.0, because the two extras previously declared <code>transformers</code> ranges that could not be satisfied together at all</li><li>CUDA-compatible GPU (recommended); Apple Silicon (MPS) or CPU (experimental) also work</li><li>8 GB+ VRAM for 7B models with QLoRA</li></ul><blockquote><p><strong>The torch floor moved to 2.6.0 in v0.75.0, and that closed a real trap.</strong> v0.74.0 declared <code>torch&gt;=2.5.0</code> while <code>trl&gt;=0.29</code> could not import at 2.5.1 at all, because it needs the public FSDP2 API that arrives in 2.6.0, so a pinned 2.5.x environment silently lost DPO, KTO, GRPO and BCO. pip could not catch it, since <code>trl</code> declares no torch dependency. v0.74.0 published the hole rather than guessing at a fix, because 2.5.1 was measured to fail and 2.6 had not been measured to work; v0.75.0 raised the floor <strong>and proved it in CI</strong>. If you pin torch yourself, pin 2.6.0 or newer.</p></blockquote><blockquote><p><strong>Two install-time failures that v0.76.0 repairs, if you are on v0.75.2 or earlier.</strong> Fresh environments created after 5 October 2026 could not run <code>task: grpo</code> or <code>task: online_dpo</code>: <code>datasets</code> 5.1.0 stopped installing <code>requests</code>, which trl imports unconditionally for those two trainers. GRPO failed with <code>RuntimeError: Failed to import trl.trainer.grpo_trainer</code> and online DPO with <code>installed trl 0.29.1 does not provide &#x27;OnlineDPOConfig&#x27;</code>, each ending in <code>No module named &#x27;requests&#x27;</code>. The <code>[train]</code> extra now declares <code>requests&gt;=2.32.2</code>; on an earlier release <code>pip install &quot;requests&gt;=2.32.2&quot;</code> fixes both, and the other trainers were not affected (#1637). Separately, on transformers 5.19.0, which the <code>[train]</code> range admits, every <code>task: ppo</code> run stopped at its first checkpoint with <code>AttributeError: &#x27;PPOTrainer&#x27; object has no attribute &#x27;is_distributed_loading_by_transformers&#x27;</code>; v0.76.0 fixes it and no other task was affected (#1682).</p></blockquote><p><strong>If the model does not fit: layer streaming (opt-in, BETA)</strong></p><ul><li>Set <code>training.stream_layers: true</code> in <code>soup.yaml</code> and the frozen base never loads into VRAM: Llama-3.1-8B fine-tunes in <strong>3.32 GB on a 4 GB card</strong> (measured on v0.72.2; the <a href=\"__DOCS_BASE__/layer-streaming\">layer streaming</a> page has the later row and its caveats). Slower than resident training, so leave it off for a model that already fits. See <a href=\"__DOCS_BASE__/layer-streaming\">Layer Streaming</a>.</li></ul><p>Streaming bounds the decoder stack to one layer at a time. Embeddings and the logits tensor stay resident, so peak VRAM still depends on the model, just much less.</p><h3 id=\"docker-v0-77-0\">Docker (v0.77.0)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "docker pull ghcr.io/makazhanalpamys/soup:0.77.0\ndocker run --rm --gpus all -v \"$(pwd)\":/workspace ghcr.io/makazhanalpamys/soup:0.77.0 \\\n  train --config soup.yaml --yes"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Upstream&#x27;s release workflow publishes an image for each release, and the v0.77.0 release notes name it (the tag <code>latest</code> follows the newest release; pin the version tag so a later release does not change your image). It is Ubuntu 24.04 with Python 3.12 on NVIDIA&#x27;s CUDA 12.8 runtime, and it installs exactly <code>soup-cli[train,serve,data,eval]==0.77.0</code>, so the <code>[fast]</code>, <code>[serve-fast]</code>, <code>[sglang]</code> and <code>[mlx]</code> extras are not in it. The host needs a driver that supports CUDA 12.8 (upstream says 570 or newer on GeForce). The image&#x27;s entrypoint is <code>soup</code> and its working directory <code>/workspace</code>, so the words after the image name are a Soup command and the mounted directory is where <code>soup.yaml</code>, the data and the output live. Keep <code>--yes</code>: <code>docker run</code> without <code>-it</code> gives <code>soup train</code> a standard input that is not a terminal, and since v0.77.0 it exits 3 rather than wait at a confirmation nobody can answer. The image was not pulled for this page.</p><h3 id=\"optional-extras\">Optional Extras</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train]\"      # Training stack: torch, transformers, peft, trl, …\npip install \"soup-cli[fast]\"       # Unsloth 2-5x training speedup\npip install \"soup-cli[mlx]\"        # Apple Silicon backend (M1–M4)\npip install \"soup-cli[serve]\"      # FastAPI inference server\npip install \"soup-cli[serve-fast]\" # vLLM backend\npip install \"soup-cli[sglang]\"     # SGLang backend (sglang>=0.5.1 since v0.77.0)\npip install \"soup-cli[eval]\"       # lm-evaluation-harness\npip install \"soup-cli[data]\"       # MinHash dedup + semantic split (scikit-learn)\npip install \"soup-cli[data-pro]\"   # langdetect + Presidio PII\npip install \"soup-cli[vision]\"     # Pillow for vision fine-tuning\npip install \"soup-cli[audio]\"      # librosa + soundfile + torchaudio\npip install \"soup-cli[qat]\"        # torchao>=0.18.0: FP8 / NVFP4 training and soup export --format torchao\npip install \"soup-cli[liger]\"      # Liger Kernel fused ops\npip install \"soup-cli[onnx]\"       # ONNX export\npip install \"soup-cli[tensorrt]\"   # TensorRT-LLM export\npip install \"soup-cli[ui]\"         # Web UI dashboard\npip install \"soup-cli[tui]\"        # Full-screen Textual dashboard\npip install \"soup-cli[trackers]\"   # MLflow / SwanLab / Trackio logging\npip install \"soup-cli[wandb]\"      # Weights & Biases, for soup train --wandb\npip install \"soup-cli[generate]\"   # httpx, for soup data generate provider calls\npip install \"soup-cli[deepspeed]\"  # ZeRO distributed training\npip install \"soup-cli[ring-attn]\"  # ring-flash-attn (training.use_ring_attention is checked but not applied in v0.77.0)\npip install \"soup-cli[remote]\"     # Remote datasets (s3 / gs / az; oci needs ocifs, installed separately)\npip install \"soup-cli[sign]\"       # ed25519 adapter / attestation signing\npip install \"soup-cli[sigstore]\"   # Sigstore keyless signing (v0.76.0; sigstore>=4.4.0,<5.0.0; not part of [all])\npip install \"soup-cli[compile]\"    # DSPy / GEPA / TextGrad prompt compiler\npip install \"soup-cli[carbon]\"     # codecarbon energy / CO2 tracking\npip install \"soup-cli[modal]\"      # Serverless cloud GPU (soup train --cloud modal; --cloud lambda needs no extra)\npip install \"soup-cli[aider]\"      # Aider CLI, for soup eval aider (v0.74.0)\npip install \"soup-cli[mcp]\"        # MCP server (soup mcp serve) for coding agents\npip install \"soup-cli[cce]\"        # Cut Cross-Entropy (training.use_cut_ce)\npip install \"soup-cli[mix]\"        # scikit-optimize, for soup data mix --optimize\npip install \"soup-cli[pdf]\"        # reportlab, for the EU AI Act Annex XI/XII PDFs\npip install \"soup-cli[documents]\"  # pypdf + python-docx, the PDF and DOCX readers for soup data ingest (v0.77.0)\npip install \"soup-cli[dev]\"        # the test and lint stack, for contributing\npip install \"soup-cli[all]\"        # shorthand for train + serve + ui + data + mcp"
+    },
+    {
+      "kind": "html",
+      "html": "<p>That is 36 extras. <code>[all]</code> is only <code>train + serve + ui + data + mcp</code>: it does not pull <code>[sigstore]</code>, <code>[documents]</code> or <code>[wandb]</code>.</p><blockquote><p><strong>The <code>[awq]</code> and <code>[gptq]</code> extras no longer exist, and AWQ and GPTQ export were removed in v0.77.0.</strong> <code>soup export --format awq</code> or <code>gptq</code> exits 1 and names the formats that remain (<code>gguf</code>, <code>onnx</code>, <code>tensorrt</code>, <code>bitnet</code>, <code>tq1_0</code>, <code>torchao</code>, <code>gguf-ud</code>); <code>--bits</code>, <code>--group-size</code> and <code>--calibration-samples</code> are gone (exit 2, <code>No such option</code>); <code>soup quantize --to awq</code> or <code>gptq</code> exits 2. AWQ and GPTQ export need v0.76.x and its <code>[awq]</code> or <code>[gptq]</code> extra, for example <code>pip install &quot;soup-cli[awq]&lt;0.77&quot;</code>; upstream notes that both projects are archived and incompatible with <code>[train]</code>. <a href=\"__DOCS_BASE__/export\">Model export</a> has the detail. Training LoRA on top of an already AWQ- or GPTQ-quantized base (<code>training.quantization: awq</code> or <code>gptq</code>) is a different feature and is unchanged.</p></blockquote><h3 id=\"use-double-quotes-and-here-is-why\">Use double quotes, and here is why</h3><p><code>pip install &quot;soup-cli[train]&quot;</code> is the <strong>only spelling that works in every shell</strong>: <code>cmd.exe</code>, PowerShell, bash and zsh. Every command above uses it.</p><p>Older tutorials and videos, including some of ours, show the single-quoted <code>pip install &#x27;soup-cli[train]&#x27;</code>. That is bash, zsh and PowerShell syntax. Windows <code>cmd.exe</code> has no single-quote quoting, so it hands the quotes straight to pip:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "ERROR: Invalid requirement: \"'soup-cli[train]'\": Expected package name at the start of dependency specifier"
+    },
+    {
+      "kind": "html",
+      "html": "<p>If you hit that, swap the <code>&#x27;</code> for <code>&quot;</code>. Nothing is wrong with the package: pip is rejecting a literal quote character. Dropping the quotes entirely also works on Windows, but then zsh reads <code>[train]</code> as a glob and fails instead.</p><h2 id=\"quick-start\">Quick Start</h2><h3 id=\"1-create-a-config\">1. Create a config</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Interactive wizard\nsoup init\n\n# Or use a template\nsoup init --template chat"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"2-train\">2. Train</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Soup automatically detects your GPU, sets optimal batch size, configures LoRA, and begins training. It asks <code>Start training?</code> first; in a script or CI job pass <code>--yes</code>, because since v0.77.0 it exits 3 when standard input is a pipe or a redirected file and <code>--yes</code> is not given.</p><h3 id=\"3-chat-with-your-model\">3. Chat with your model</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup chat --model ./output"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"4-push-to-huggingface\">4. Push to HuggingFace</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup push --model ./output --repo your-username/my-model"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"5-export-and-serve\">5. Export and serve</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Export to GGUF for Ollama / llama.cpp\nsoup export --model ./output --format gguf --quant q4_k_m\n\n# Start OpenAI-compatible server\nsoup serve --model ./output --port 8000"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"health-check\">Health Check</h2><p>Check your environment for compatibility issues:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup doctor\nsoup doctor --config soup.yaml     # also load a config under the current rules; exit 2 if it cannot load"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Shows Python version, GPU availability, all dependency versions, and fix suggestions. Since v0.76.0 it also prints, for each NVIDIA GPU, its compute capability and architecture (for example <code>sm_89 (Ada)</code>), says in red when the installed PyTorch build contains no code for that architecture and prints a reinstall hint matched to your driver, and adds a &quot;Precision features&quot; block for BF16, FP8 and NVFP4 (whether the hardware and the software path support each). On Apple Silicon it prints an <code>MLX</code> panel with the MLX version, chip and unified memory, or <code>not installed</code> with the <code>[mlx]</code> install line, and since v0.77.0 its MPS panel shows <code>HF_DEACTIVATE_ASYNC_LOAD</code>, which <code>soup train</code> sets to 1 on MPS (for the transformers backend; see <a href=\"__DOCS_BASE__/environment-variables\">Environment variables</a>). When the header of <code>nvidia-smi</code> cannot be read it gives no PyTorch index URL at all, rather than guessing one. A <code>transformers</code>, <code>peft</code> or <code>trl</code> at its next major version (6, 1 and 1) makes <code>soup doctor</code> exit 1, as does a missing core dependency. A core dependency below its floor is listed as <code>outdated</code> with the command that upgrades it and does not change the exit code; since v0.76.1 that includes a Typer below 0.15.4, wherever <code>soup doctor</code> can start (below Typer 0.12.4 no command can, and 0.12.4 to 0.15.3 start only next to Click 8.1 or older).</p><p>With <code>--config</code>, since v0.77.0 a config that cannot be loaded stops the command before <code>All checks passed!</code> is printed, so that line no longer appears above a refusal; the system, GPU and dependency tables still print first.</p><p>Upgrading from v0.76 or earlier? <code>soup doctor --config soup.yaml</code> is the step to run first; see <a href=\"#upgrading-from-v0-76-or-earlier\">Upgrading from v0.76 or earlier</a> above.</p><h2 id=\"quick-demo\">Quick Demo</h2><p>Run a complete demo in one command:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup quickstart          # Creates sample data + config + trains TinyLlama\nsoup quickstart --dry-run # Just create files without training"
+    },
+    {
+      "kind": "html",
+      "html": "<nav><span></span><a href=\"__DOCS_BASE__/configuration\"><span>Next</span><span>Configuration</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+---
+import SoupPage from '../../soup/SoupPage.astro'
+import { soupLocales } from '../../soup/locales'
+export function getStaticPaths() {
+  return Object.keys(soupLocales).filter(code => code !== 'en').map(locale => ({ params: { locale } }))
+}
+const language = Astro.params.locale!
+---
+<SoupPage language={language} />

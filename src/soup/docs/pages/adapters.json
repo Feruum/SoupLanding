@@ -1,0 +1,100 @@
+{
+  "slug": "adapters",
+  "title": "soup adapters — git for LoRA",
+  "description": "soup adapters — git for LoRA. diff (per-layer Frobenius + SVD effective rank), merge (linear / TIES / DARE / SVD, pure numpy), blame (dataset-shard planner with budget parsing; its CLI influence scores are synthetic), branch / checkout / branches (named pointers to a LoRA config: checkout re-copies the config only while its SHA-256 still matches; the dataset hash and the base-model id are recorded for provenance). Since v0.76.0 soup adapters check says whether a LoRA adapter saved by the transformers path is trained at all, and soup adapters audit compares what a run recorded with your soup.yaml. New in v0.57.0.",
+  "source": "https://trysoup.dev/docs/adapters",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "1f4f8cb03870f268a98dd0602734d14876202a351a83e4b0ce4f3eda4d7cc8d8",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-adapters-diff",
+      "title": "soup adapters diff"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-merge-5-strategies",
+      "title": "soup adapters merge — 5 strategies"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-blame-dataset-row-attribution-the-plan-is-real-the-cli-scores-are-not",
+      "title": "soup adapters blame — dataset-row attribution (the plan is real, the CLI scores are not)"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-branch-named-sha-pinned-configs",
+      "title": "soup adapters branch — named, SHA-pinned configs"
+    },
+    {
+      "level": 2,
+      "id": "soup-adapters-checkout-copy-the-branch-s-config-back-out",
+      "title": "soup adapters checkout — copy the branch's config back out"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\"><code>soup adapters</code> — git for LoRA</h1><p>After 6 weeks of running experiments you have 30 adapter folders and no idea which one to ship. <code>soup adapters</code> (v0.57.0, finished in v0.67.0) treats LoRA adapters as first-class versioned objects.</p><p><code>soup adapters</code> has eighteen subcommands. The table covers the git-for-LoRA set from v0.57 and v0.67 plus <code>soup lock</code>; <code>list</code>, <code>info</code> and <code>compare</code> are the basic inspection commands, <a href=\"__DOCS_BASE__/adapter-arithmetic\"><code>arithmetic</code></a> is v0.71.34, and <code>check</code> and <code>audit</code> are new in v0.76.0 and have <a href=\"__DOCS_BASE__/adapter-check\">their own page</a>.</p><div><table><thead><tr><th>Command</th><th>What it does</th><th>Shipped</th></tr></thead><tbody><tr><td><code>soup adapters diff</code></td><td>Per-layer Frobenius + relative drift + SVD effective rank</td><td>v0.57</td></tr><tr><td><code>soup adapters merge</code></td><td>5 strategies: linear / TIES / DARE / SVD / <strong>CMA-ES</strong></td><td>v0.57 + v0.67</td></tr><tr><td><code>soup adapters blame</code></td><td>Dataset-row attribution: the plan is real, the scores the CLI prints are synthetic (see below)</td><td>v0.57 + v0.66</td></tr><tr><td><code>soup adapters branch</code></td><td>Name a LoRA config with SHA-pinned hashes</td><td>v0.57</td></tr><tr><td><code>soup adapters checkout</code></td><td>Copy the branch&#x27;s config back out; refuses if that file has changed</td><td>v0.57</td></tr><tr><td><code>soup adapters branches</code></td><td>List everything</td><td>v0.57</td></tr><tr><td><code>soup adapters pr</code></td><td>GitHub-shaped PR markdown with eval-delta + sample diffs</td><td><strong>v0.67</strong></td></tr><tr><td><code>soup adapters bisect</code></td><td>Binary-search checkpoint history for regression boundary</td><td><strong>v0.67</strong></td></tr><tr><td><code>soup lock write / show / check</code></td><td>SHA256 closure over base, dataset and env; <code>check</code> exits 2 on drift (3 for a missing or unreadable lock)</td><td><strong>v0.67</strong></td></tr><tr><td><code>soup adapters check</code></td><td>Is a LoRA adapter saved by the transformers path trained at all? One verdict line, <code>alive</code> or <code>inactive: &lt;reason&gt;</code>, exit 0 or 2. See <a href=\"__DOCS_BASE__/adapter-check\">the check page</a></td><td><strong>v0.76</strong></td></tr><tr><td><code>soup adapters audit</code></td><td>Did the run use the settings in <code>soup.yaml</code>? Compares the config with what the adapter recorded, exit 2 on a divergence</td><td><strong>v0.76</strong></td></tr><tr><td>(v0.60 supply chain)</td><td><code>scan</code> / <code>sign</code> / <code>verify</code> / <code>check-safetensors</code>; <code>sign</code> also takes <code>--backend sigstore</code> since v0.76</td><td>v0.60</td></tr></tbody></table></div><p>All adapter math is <strong>pure numpy, no torch</strong>. <code>.bin</code> adapters are rejected with an actionable &quot;re-save as safetensors&quot; message. See <a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle (v0.67)</a> for the v0.67 surfaces.</p><h2 id=\"soup-adapters-diff\"><code>soup adapters diff</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters diff adapter-a/ adapter-b/ --top-k 10 --format markdown"
+    },
+    {
+      "kind": "html",
+      "html": "<p>For each layer:</p><ul><li>Frobenius norm of the delta</li><li>Relative drift (Frobenius / norm of a)</li><li><strong>SVD effective rank</strong> — <code>effective_rank(s) = exp(H(s²/Σs²))</code> where <code>H</code> is Shannon entropy. Tells you whether a high-rank adapter actually used its rank.</li></ul><p><code>--top-k</code> ranks layers by drift. <code>--format</code> accepts <code>table</code> / <code>json</code> / <code>markdown</code> and routes through <code>render_report_*</code>.</p><p>Since v0.77.0 <code>soup adapters diff</code> reads a bfloat16 adapter, widened to float32 exactly, through the same reader as <a href=\"__DOCS_BASE__/adapter-check\"><code>soup adapters check</code></a>; through v0.76.1 it failed with <code>data type &#x27;bfloat16&#x27; not understood</code> (#2058, #2063). It needs NumPy (not PyTorch, and since v0.77.0 not the <code>safetensors</code> package); without NumPy it stops with a Python traceback ending in <code>ModuleNotFoundError: No module named &#x27;numpy&#x27;</code> (exit 1).</p><h2 id=\"soup-adapters-merge-5-strategies\"><code>soup adapters merge</code> — 5 strategies</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters merge a/ b/ c/ -o merged/ \\\n  --strategy ties --weights 0.4,0.3,0.3 --density 0.7 --seed 0\n\n# v0.67 — evolutionary search over the simplex\nsoup adapters merge a/ b/ c/ -o merged/ \\\n  --strategy cmaes --eval ./tasks.jsonl --budget 1h"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Strategies:</p><ul><li><strong><code>linear</code></strong> — weighted average. Baseline.</li><li><strong><code>ties</code></strong> (Yadav et al. 2023) — trim by <code>density</code> → elect majority sign → disjoint average. Tied-sign defaults to <code>+1</code>.</li><li><strong><code>dare</code></strong> (Yu et al. 2024) — Bernoulli drop with <code>density</code>, rescale by <code>1/density</code>, deterministic via <code>--seed</code>.</li><li><strong><code>svd</code></strong> — linear-merge then low-rank SVD reconstruction (<code>--rank</code>).</li><li><strong><code>cmaes</code></strong> (v0.67, Sakana-style) — rank-mu CMA-ES (pure Python, no <code>cma</code> dep) over N-1 softmaxed logits on the simplex. Population [2..256], generations [1..10K], plateau-detects after 3 no-improvement gens. An eval-fn failure scores a sentinel so one broken eval does not crash the run; since v0.77.0 a search in which <strong>every</strong> evaluation failed stops instead (below).</li></ul><p><strong><code>--eval</code> must be a <code>.jsonl</code> file of eval tasks</strong>: one JSON object per line with a <code>prompt</code> and optionally <code>expected</code>, <code>scoring</code> and <code>category</code>, the same file <code>soup eval custom --tasks</code> reads. A <code>.yaml</code> suite is not read; since v0.77.0 the &quot;requires --eval&quot; error text says so (<code>path to a .jsonl eval suite; the loader accepts .jsonl only</code>), where through v0.76.1 it said &quot;YAML/JSONL&quot;. Any failure while scoring a candidate (an unreadable suite, or a base model that fails to load) scores -1e9 instead of stopping the run. <strong>Since v0.77.0 a search in which every evaluation failed exits 2 and writes no adapter</strong> (#1808, #1905), with <code>cmaes merge failed: every evaluation failed: N evaluation(s) over M generation(s), none returned a finite score. First failure: ... No merge is written; fix the eval suite or the scorer and run again.</code> Through v0.76.1 that case wrote a &quot;converged&quot; merge built from the first random sample and exited 0, with a <code>Best score</code> of -1000000000.0000 in the final panel. A search where only some candidates failed still finishes, so check the <code>Best score</code> line before you use the result.</p><blockquote><p><strong>Re-run this.</strong> A <code>soup adapters merge --strategy cmaes</code> run from before v0.77.0 whose final panel&#x27;s <code>Best score:</code> line read -1000000000.0000 had no evaluation that returned a score: the merge it wrote was the first random sample&#x27;s weighting, not a search result (#1905). Fix the eval suite and run the merge again.</p></blockquote><p><strong>Live as of v0.71.4</strong> — <code>--canary &lt;canary.json&gt;</code> scores the merged adapter OK/MINOR/MAJOR via the Quant-Lobotomy taxonomy (<code>--strict-verdict</code> exits 2 on MAJOR), and <code>--strategy cmaes</code> runs the full evolutionary eval-suite loop (merge → materialise → score → write best). The canary file holds precomputed scores shaped <code>{&quot;baseline_scores&quot;: [...], &quot;candidate_scores&quot;: [...]}</code>, not an eval suite, and <code>--canary</code> and <code>--strict-verdict</code> are <strong>refused with <code>--strategy cmaes</code></strong> (exit 2): the <code>--eval</code> suite already drives that search. The backdoor-scan + license-conflict gates run for every strategy.</p><h2 id=\"soup-adapters-blame-dataset-row-attribution-the-plan-is-real-the-cli-scores-are-not\"><code>soup adapters blame</code> — dataset-row attribution (the plan is real, the CLI scores are not)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters blame adapter/ --dataset eval.jsonl --layer q_proj.7 --budget 5m --shards 4 --plan-only"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The plan half is real. It splits the dataset into <code>--shards</code> hold-out ranges (2 to 100) and checks they fit a wall-clock budget. <code>parse_budget</code> accepts <code>60s</code> / <code>5m</code> / <code>2h</code> (bounds <code>[60s, 24h]</code>, default <code>4h</code>). <code>_MIN_PER_SHARD_SECONDS = 30</code> checks feasibility, so if the budget can&#x27;t cover <code>shards × 30s</code> the plan is reported infeasible and nothing runs. It returns a frozen <code>BlamePlan</code> with one <code>BlameShardWork</code> per shard, and <code>--plan-only</code> prints it and stops.</p><p>Without <code>--plan-only</code> the command goes on to print a ranked influence table (<code>--top-k</code> rows, 1 to 10,000, default 50; <code>-o</code> also writes JSON). <strong>At v0.77.0 that table is not measured from your adapter</strong> (the blame code is unchanged since v0.76.0). The v0.66.0 runner implements a DataInf-style influence score (cosine of a row gradient against a probe gradient, times the row norm) and takes a caller-supplied probe function that returns real per-row gradients, but the CLI never passes one. With no probe function the runner falls back to a deterministic synthetic probe: random per-row vectors seeded from the adapter path, dataset path and <code>--layer</code> string. The adapter is never opened and the dataset is only counted, so the run finishes in a fraction of a second, and an adapter directory that does not exist still prints a table and exits 0. Use the <code>row_id</code> and <code>influence</code> columns as placeholders, not as evidence about your data. <code>--layer</code> is a label recorded in the output (up to 256 characters), not a selector.</p><h2 id=\"soup-adapters-branch-named-sha-pinned-configs\"><code>soup adapters branch</code> — named, SHA-pinned configs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters branch chat-llama-v3 -c soup.yaml --base meta-llama/Llama-3.1-8B --dataset data.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Records a frozen <code>Branch</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "name              chat-llama-v3\nconfig_path       soup.yaml\nconfig_sha256     a3f1...\ndataset_sha256    7c92...\nbase_model        meta-llama/Llama-3.1-8B\ncreated_at        2026-05-15T23:14:02Z\nsoup_version      0.58.0"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Branch-name regex: <code>^[A-Za-z0-9][A-Za-z0-9._\\-]{0,127}$</code>. Config files capped at 1 MiB. Pointer file capped at 1,024 entries. Atomic write + POSIX <code>0o600</code>. <code>SOUP_BRANCHES_DIR</code> env override containment-checked to <code>$HOME</code> / <code>$CWD</code> / <code>$TMPDIR</code>.</p><h2 id=\"soup-adapters-checkout-copy-the-branch-s-config-back-out\"><code>soup adapters checkout</code> — copy the branch&#x27;s config back out</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters checkout chat-llama-v3 -o restored-soup.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Copies the config file the branch points at to <code>-o</code>, but only if that file still hashes to the recorded <code>config_sha256</code>. <strong>A branch stores a pointer and hashes, not a copy of the config.</strong> Edit <code>soup.yaml</code> after making the branch and <code>checkout</code> exits 2 with <code>branch config drifted from snapshot SHA</code>, and because the original contents were never stored, the earlier version cannot be restored from the branch at all: keep a copy or a commit of any config you may want back. The dataset hash is recorded for provenance but is <strong>not re-checked</strong>, so editing the dataset does not make <code>checkout</code> fail.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/adapter-check\">Is the adapter alive</a> — v0.76 <code>soup adapters check</code> and <code>soup adapters audit</code>: whether a LoRA adapter saved by the transformers path is trained at all, and whether the run used the config&#x27;s settings.</li><li><a href=\"__DOCS_BASE__/adapter-arithmetic\">Adapter algebra</a> — v0.71.34 adds <code>soup adapters arithmetic</code>: add, scale and negate LoRA deltas.</li><li><a href=\"__DOCS_BASE__/registry\">Registry</a> — lineage DAG of full training runs</li><li><a href=\"__DOCS_BASE__/soup-cans\">Soup Cans</a> — package an adapter + config + data ref into a portable bundle</li><li><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle (v0.67)</a> — <code>soup adapters merge --strategy cmaes</code> evolutionary search, <code>soup adapters pr</code> GitHub-shaped reviews, <code>soup adapters bisect</code> regression history, and <code>soup lock</code> shared SHA256 closure</li><li><a href=\"__DOCS_BASE__/supply-chain-security\">Supply-chain security (v0.60)</a> — <code>soup adapters scan / sign / verify</code> for backdoor detection + Merkle-root tamper protection</li></ul><nav><a href=\"__DOCS_BASE__/plugins\"><span>Previous</span><span>Plugin System &amp; Ecosystem</span></a><a href=\"__DOCS_BASE__/adapter-check\"><span>Next</span><span>Adapter check &amp; audit</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

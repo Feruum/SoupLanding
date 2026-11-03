@@ -1,0 +1,162 @@
+{
+  "slug": "registry",
+  "title": "Model Registry",
+  "description": "Local model registry with lineage DAG. soup registry push/list/show/diff/search/promote tracks every fine-tune at ~/.soup/registry.db. New in v0.26.0; since v0.77.0 push --data records the SHA-256 of the file registered as the training input (not proof of what the run trained on) and --idempotency-key makes a push safe to retry.",
+  "source": "https://trysoup.dev/docs/registry",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "5845d792b9a0d0e71c2c4daaf79e991573c4afe2929cc01b187ca0f0460189b2",
+  "headings": [
+    {
+      "level": 2,
+      "id": "why-a-registry",
+      "title": "Why a registry"
+    },
+    {
+      "level": 2,
+      "id": "push-a-run",
+      "title": "Push a run"
+    },
+    {
+      "level": 3,
+      "id": "record-the-training-data-and-make-a-push-safe-to-retry-v0-77-0",
+      "title": "Record the training data and make a push safe to retry (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "list-show-search",
+      "title": "List, show, search"
+    },
+    {
+      "level": 2,
+      "id": "referring-to-an-entry",
+      "title": "Referring to an entry"
+    },
+    {
+      "level": 2,
+      "id": "diff-two-versions",
+      "title": "Diff two versions"
+    },
+    {
+      "level": 2,
+      "id": "attach-things-to-an-entry",
+      "title": "Attach things to an entry"
+    },
+    {
+      "level": 2,
+      "id": "promote-to-prod",
+      "title": "Promote to prod"
+    },
+    {
+      "level": 2,
+      "id": "lineage-dag",
+      "title": "Lineage DAG"
+    },
+    {
+      "level": 2,
+      "id": "delete",
+      "title": "Delete"
+    },
+    {
+      "level": 2,
+      "id": "use-as-an-eval-gate-baseline",
+      "title": "Use as an eval-gate baseline"
+    },
+    {
+      "level": 2,
+      "id": "storage",
+      "title": "Storage"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Model Registry</h1><p>v0.26.0 ships a local model registry at <code>~/.soup/registry.db</code>. Every fine-tune can be pushed, tagged, searched, diffed, and walked as a lineage DAG — entirely offline, no server, no cloud.</p><h2 id=\"why-a-registry\">Why a registry</h2><p>Most people end up with 17 checkpoint directories called <code>output-3-final</code> and no idea which one won. The registry fixes that: one row per fine-tune, carrying config, eval baseline, and parent lineage.</p><h2 id=\"push-a-run\">Push a run</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# After training a model\nsoup registry push \\\n  --run-id run_20260420_143052_a1b2 \\\n  --name chat-llama \\\n  --tag v1 \\\n  --notes \"Alpaca 15k, 2 epochs, lr=2e-4\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>The registry derives lineage from the run&#x27;s config (same base model, different run id); there is no <code>--parent</code> flag.</p><h3 id=\"record-the-training-data-and-make-a-push-safe-to-retry-v0-77-0\">Record the training data and make a push safe to retry (v0.77.0)</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Record the training file's SHA-256 as the entry's data_hash\nsoup registry push --run-id <id> --name chat-llama --tag v1 --data data/train.jsonl\n\n# Make a push safe to retry after a crash or a timeout\nsoup registry push --run-id <id> --name chat-llama --tag v1 --idempotency-key job-42"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--data &lt;file&gt;</code> stores the file&#x27;s SHA-256 as the entry&#x27;s <code>data_hash</code>. Upstream&#x27;s help is exact about what that means: it is the file registered as the training input, not proof of what the run trained on. The file must exist and sit under the current directory, or the push exits 1 before the database is opened (<code>--data file not found: ...</code>, <code>--data must be under the current working directory: ...</code>). Without <code>--data</code>, the push copies the SHA-256 that <code>soup train</code> recorded at startup, when there is one (#2024).</p><p><strong>What a run records about its data and its base (v0.77.0).</strong> <code>soup train</code> hashes a single local raw text-training file (<code>data.train</code>) before it loads or transforms it and records the SHA-256 of the whole file as <code>training_data_sha256</code>, in the experiment tracker and in <code>soup_run.json</code> beside the final artifact; <code>soup registry push --run-id</code> copies it without reopening today&#x27;s file (#2024). It describes the source bytes at startup, not the examples that trained the model. Capture is bounded (256 MiB, 5 seconds checked between reads), and a larger, unreadable or changing file is recorded as unknown, never as the hash of a prefix. A Hub dataset, a URL, <code>data.interleave</code>, <code>data.streaming</code>, <code>data.replay</code>, forget and retain sets, pre-tokenized data, <code>task: unlearn</code>, <code>task: tts</code> and non-text modalities stay unknown, and so do runs from before v0.77.0. The push also copies the run&#x27;s recorded base revision and how it was known; on the transformers backend, resident, layer-streamed and multi-GPU runs record the Hub commit of the base they loaded, while Unsloth and MLX loads, the non-Hugging-Face hubs, and local or cached-path bases are not bound (#1902). See <a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a> for how <code>soup train</code> resolves that commit. <code>soup registry show</code> prints <code>base_revision</code>, <code>base_revision_source</code>, <code>training_data_sha256</code> and <code>data_hash</code>, with <code>unknown</code> or <code>-</code> when nothing was recorded. A <code>cache_path</code> source only reflects a local directory name and does not verify its bytes.</p><p><code>--idempotency-key &lt;key&gt;</code> (1 to 128 characters from letters, digits, <code>.</code>, <code>_</code>, <code>:</code> and <code>-</code>) makes a retry write nothing and return the existing entry, printed as <code>Already registered</code>, provided the name, base model, task, run, config, data hash and recorded base identity match and the tag is one of the entry&#x27;s tags. Anything else under the same key is refused, naming the entry and the fields that differ (<code>idempotency key &#x27;job-42&#x27; is already used by entry reg_..., which has a different config_hash</code>), exit 1. Notes are not compared (#1964).</p><h2 id=\"list-show-search\">List, show, search</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# List everything\nsoup registry list\n\n# Filter\nsoup registry list --name chat-llama\nsoup registry list --tag prod\nsoup registry list --base Qwen/Qwen3-8B --task sft\n\n# Show details + lineage\nsoup registry show chat-llama:v1\n\n# Search across name, base, task, notes\nsoup registry search \"medical\""
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--limit</code> (<code>-l</code>) caps the rows: <code>soup registry list</code> shows 100 by default and <code>soup registry search</code> 50. A value outside the allowed range is clamped, not rejected: 1 to 1000 for <code>list</code>, 1 to 500 for <code>search</code>.</p><h2 id=\"referring-to-an-entry\">Referring to an entry</h2><p>Every command that takes a reference accepts an entry id, a unique id prefix, <code>name:tag</code> (the form <code>soup registry push</code> prints, for example <code>chat-llama:v1</code>) or <code>registry://&lt;id&gt;</code>. The separator is a colon: <code>chat-llama@v1</code> is read as an id prefix, matches nothing and exits 1 with &quot;Registry entry not found&quot;. A <code>name:tag</code> must match exactly one entry. <code>soup registry push</code> never replaces an entry, so pushing the same name and tag twice keeps both, and since v0.77.0 a <code>name:tag</code> that matches several entries is refused with an error that names the candidates (<code>reference &#x27;chat-llama:v1&#x27; matches 2 entries (...) - use the full id</code>). Each command maps that to its own exit code: <code>soup registry show</code> and <code>soup card</code> exit 1, <code>soup eval gate --baseline registry://...</code> and <code>soup eval quant-check</code> exit 3, and <code>soup adapters branch --from-registry</code> exits 2. Pass the entry id or a unique id prefix then, or use <code>--idempotency-key</code> on the push so a retry does not create the twin. Through v0.76.x the most recent entry was used silently (#1934).</p><h2 id=\"diff-two-versions\">Diff two versions</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup registry diff chat-llama:v1 chat-llama:v2"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup registry diff</code> prints a table of config differences between the two entries, and an eval-delta table when either entry has eval results attached:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "     Config diff: reg_20261006_6a0a45ef1ac4 -> reg_20261006_10a81a6c72ae\n┌─────────────────┬─────────┬────────┬────────┐\n│ Path            │ Kind    │ Left   │ Right  │\n├─────────────────┼─────────┼────────┼────────┤\n│ training.lora.r │ changed │ 16     │ 32     │\n│ training.lr     │ changed │ 0.0002 │ 0.0003 │\n└─────────────────┴─────────┴────────┴────────┘"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>When a benchmark was measured more than once, the newest score is the one compared.</strong> Since v0.76.0 <code>soup registry diff</code>, <code>soup eval compare</code> and <code>soup eval leaderboard</code> pick one row per benchmark through a shared helper (newest <code>created_at</code> first, then insertion order for equal timestamps; a row with no score is skipped). Through v0.75.2 each of them let the oldest score win and ignored a re-measurement: upstream&#x27;s example is run A logging 0.30 then 0.45 and run B logging 0.50 then 0.40, where the diff reported +0.20 and no regression instead of the real -0.05 regression. If you compared entries that had been measured more than once on an earlier release, re-run the comparison; nothing in the stored rows changed. The same rule now applies to <code>soup card</code>&#x27;s scorecard and to a <code>registry://&lt;id&gt;</code> baseline in the <a href=\"__DOCS_BASE__/eval-gate\">eval gate</a>.</p><h2 id=\"attach-things-to-an-entry\">Attach things to an entry</h2><p>An entry can carry artifact files. Each attached file is stored as one record with its path (which must sit under the working directory), SHA-256 and size; a directory is refused, so a command that produces several files attaches each one. The <code>kind</code> is a closed list: <code>adapter</code>, <code>merged</code>, <code>gguf</code>, <code>awq</code>, <code>gptq</code>, <code>onnx</code>, <code>tensorrt</code>, <code>torchao</code>, <code>dataset</code>, <code>config</code>, <code>eval_results</code>, <code>eval_suite</code>, <code>canaries</code>, <code>diagnose_report</code>, <code>steering_vector</code>, <code>judge_calibration</code>, <code>branch_ref</code>, <code>edited_model</code>, <code>grace_codebook</code>, <code>shrink_report</code>, <code>bom</code> and <code>attestation</code> (<code>awq</code> and <code>gptq</code> stay in the list for entries recorded by v0.76.x and earlier; since v0.77.0 no <code>soup export</code> format produces them). There is no <code>soup registry attach</code> command; the attach happens through a flag on the command that produces the file:</p><div><table><thead><tr><th>Command and flag</th><th>Attaches as</th></tr></thead><tbody><tr><td><code>soup export --registry-id &lt;id&gt;</code></td><td><code>gguf</code> (also for <code>gguf-ud</code>, <code>bitnet</code> and <code>tq1_0</code>), <code>onnx</code>, <code>tensorrt</code> or <code>torchao</code>: every produced weight or engine file (on v0.76.x also <code>awq</code> and <code>gptq</code>, whose export was removed in v0.77.0). Through v0.75.2 only the plain <code>gguf</code> path recorded anything</td></tr><tr><td><code>soup diagnose --attach-to-registry &lt;id&gt; --output report.json</code></td><td><code>diagnose_report</code></td></tr><tr><td><code>soup eval unlearning</code> or <code>soup eval custom --attach-to-registry &lt;id&gt;</code></td><td><code>eval_results</code></td></tr><tr><td><code>soup steer train --registry-id &lt;id&gt;</code></td><td><code>steering_vector</code> (the <code>steering_vector.safetensors</code> file)</td></tr><tr><td><code>soup edit set --registry-id &lt;id&gt; --output &lt;dir&gt;</code></td><td><code>edited_model</code> (the weight files <code>save_pretrained</code> wrote) or <code>grace_codebook</code></td></tr><tr><td><code>soup shrink --attach-to-registry &lt;id&gt;</code></td><td><code>shrink_report</code></td></tr><tr><td><code>soup bom emit</code> or <code>soup attest emit --attach-to-registry &lt;id&gt;</code></td><td><code>bom</code> or <code>attestation</code></td></tr></tbody></table></div><p><strong>What a failed attach does depends on the command.</strong> Since v0.76.0 <code>soup diagnose</code>, <code>soup eval unlearning</code>, <code>soup steer train</code> and <code>soup edit set</code> treat a requested attach as part of success: a failed attach (unknown or ambiguous entry, unreadable registry, no weight file) prints an error and exits 1 with the file left on disk, and, for <code>soup diagnose</code>, <code>soup eval unlearning</code> and <code>soup edit set</code>, the flag without <code>--output</code> is refused before anything runs (exit 3 for <code>soup diagnose</code>, 2 for the other two); <code>soup steer train</code> has no such refusal, because its <code>--output</code> is optional. Through v0.75.2 those four passed the registry helper arguments it does not take, or a directory, so they printed a warning, recorded nothing and exited 0. <code>soup export --registry-id</code> is the exception: a failed attach there is a yellow warning and the command still exits 0, because the export itself succeeded, and when no <code>--registry-id</code> is given and no entry matches the model&#x27;s output directory it records nothing and prints nothing.</p><h2 id=\"promote-to-prod\">Promote to prod</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup registry promote chat-llama:v2 --tag prod"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Tagging is how you mark stable versions. Any number of tags can point at the same entry.</p><h2 id=\"lineage-dag\">Lineage DAG</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup history chat-llama"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup history</code> takes an entry name and prints one node per entry with that name: its id, its tags in parentheses and its creation time. Where they exist, <code>ancestors</code>, <code>descendants</code> and <code>branches</code> appear as child nodes. It prints no eval scores.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "chat-llama\n├── reg_20261006_6a0a45ef1ac4 (v1) 2026-10-06T01:14\n└── reg_20261006_10a81a6c72ae (prod, v2) 2026-10-06T01:14"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Cycle detection is enforced on every walk — forking a descendant back onto an ancestor raises an error.</p><h2 id=\"delete\">Delete</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup registry delete chat-llama:v1 --yes"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup registry delete &lt;ref&gt; --yes</code> deletes that one entry together with the database rows that hang off it (its tags, artifact records and lineage links). Entries that descended from it are <strong>not</strong> deleted; they lose the link. It removes registry records only, not the files they point at. Without <code>--yes</code> it only prints <code>About to delete &lt;id&gt; (&lt;name&gt;). Pass --yes to confirm.</code> and exits 0, so there is no interactive confirmation and no subtree preview.</p><h2 id=\"use-as-an-eval-gate-baseline\">Use as an eval-gate baseline</h2><p>The <a href=\"__DOCS_BASE__/eval-gate\">eval gate</a> accepts <code>registry://&lt;id&gt;</code> as the baseline, so quality regressions are diffed against any historical run rather than a static file.</p><h2 id=\"storage\">Storage</h2><ul><li>SQLite at <code>~/.soup/registry.db</code> — human-readable, portable</li><li>Single writer, no daemon</li><li>Name (up to 128 characters) and tag (up to 64) are validated: letters, digits, <code>_</code>, <code>-</code> and <code>.</code> only, starting with an alphanumeric, so neither can contain <code>:</code>, <code>@</code> or a path separator</li><li>SQL LIKE-wildcard escaping on every search term</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/eval-gate\">Eval gate</a> — baselines can point at registry entries</li><li><a href=\"__DOCS_BASE__/soup-cans\">Soup Cans</a> — export a registry entry as a portable <code>.can</code></li><li><a href=\"__DOCS_BASE__/cli-reference\">CLI reference</a></li></ul><nav><a href=\"__DOCS_BASE__/export\"><span>Previous</span><span>Model Export</span></a><a href=\"__DOCS_BASE__/hf-hub-integration\"><span>Next</span><span>HuggingFace Hub</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+---
+import DocumentationPage from '../../soup/DocumentationPage.astro'
+import { getDocSlugs } from '../../soup/docs/documents'
+export function getStaticPaths() {
+  return getDocSlugs().map(slug => ({ params: { slug } }))
+}
+---
+<DocumentationPage slug={Astro.params.slug!} />

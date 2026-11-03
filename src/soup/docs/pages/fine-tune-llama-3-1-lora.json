@@ -1,0 +1,129 @@
+{
+  "slug": "fine-tune-llama-3-1-lora",
+  "title": "Fine-tune Llama 3.1 with LoRA using Soup CLI",
+  "description": "How to fine-tune Meta Llama 3.1 8B with LoRA on a single GPU using Soup CLI. Full example: install, dataset, YAML config, training, and export.",
+  "source": "https://trysoup.dev/docs/fine-tune-llama-3-1-lora",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "738870048b8801cc795518fc92ca4cb6b5eba192bcaba75cef4c4ff1e760fccc",
+  "headings": [
+    {
+      "level": 2,
+      "id": "why-lora-on-llama-3-1",
+      "title": "Why LoRA on Llama 3.1?"
+    },
+    {
+      "level": 2,
+      "id": "1-install",
+      "title": "1. Install"
+    },
+    {
+      "level": 2,
+      "id": "2-prepare-your-dataset",
+      "title": "2. Prepare your dataset"
+    },
+    {
+      "level": 2,
+      "id": "3-create-the-config",
+      "title": "3. Create the config"
+    },
+    {
+      "level": 2,
+      "id": "before-you-train",
+      "title": "Before you train"
+    },
+    {
+      "level": 2,
+      "id": "4-train",
+      "title": "4. Train"
+    },
+    {
+      "level": 2,
+      "id": "5-chat-with-your-fine-tuned-model",
+      "title": "5. Chat with your fine-tuned model"
+    },
+    {
+      "level": 2,
+      "id": "6-export-for-deployment",
+      "title": "6. Export for deployment"
+    },
+    {
+      "level": 2,
+      "id": "troubleshooting",
+      "title": "Troubleshooting"
+    },
+    {
+      "level": 2,
+      "id": "next-steps",
+      "title": "Next steps"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Fine-tune Llama 3.1 with LoRA using Soup CLI</h1><p>This guide shows how to fine-tune <strong>Meta Llama 3.1 8B</strong> with LoRA adapters on a custom dataset using Soup CLI. End-to-end from install to inference on a single GPU; how long the training step takes depends on your dataset size, sequence length and card, and no timing is promised here.</p><h2 id=\"why-lora-on-llama-3-1\">Why LoRA on Llama 3.1?</h2><p>LoRA (Low-Rank Adaptation) trains only a small fraction (~0.1%) of model parameters, which means:</p><ul><li>Train 8B parameter Llama 3.1 on a single 24GB GPU (RTX 4090, A10)</li><li>Checkpoints are tiny (~100MB instead of 16GB)</li><li>Faster training and easier experimentation</li></ul><h2 id=\"1-install\">1. Install</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train,fast]\""
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p>Since v0.71.0 the base <code>soup-cli</code> package is a light, PyTorch-free CLI. <code>[train]</code> adds the training stack; <code>[fast]</code> adds Unsloth on top. Installing <code>[fast]</code> alone cannot train. Since v0.77.0 Soup needs Python 3.11 to 3.13 (<code>&gt;=3.11,&lt;3.14</code>); on Python 3.10, pip keeps installing v0.76.x.</p></blockquote><p>The <code>[fast]</code> extra adds Unsloth for 2–5× training speedup on Llama-family models.</p><h2 id=\"2-prepare-your-dataset\">2. Prepare your dataset</h2><p>Use the Alpaca format (JSON list of instruction/input/output triples):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "[\n  {\n    \"instruction\": \"Summarize the following text.\",\n    \"input\": \"Soup CLI is a fine-tuning toolkit...\",\n    \"output\": \"Soup CLI is an open-source LLM fine-tuning tool.\"\n  }\n]"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Save as <code>train.json</code>. One row only shows the shape of the file. Soup holds out 10% of the rows for validation by default (<code>data.val_split</code>), and a one-row file leaves nothing to train on: since v0.76.0 <code>soup train --dry-run</code> on it exits 1 with <code>No training rows: train.json loaded 0 train samples as format &#x27;alpaca&#x27;.</code> Use your real dataset.</p><h2 id=\"3-create-the-config\">3. Create the config</h2><p>Save as <code>llama31.yaml</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-8B-Instruct\ntask: sft\nbackend: unsloth            # root-level, NOT under training\n\ndata:\n  train: train.json\n  format: alpaca\n  max_length: 2048          # sequence length lives under data\n\ntraining:\n  epochs: 3\n  lr: 2.0e-4                # the key is lr, not learning_rate\n  batch_size: 2\n  gradient_accumulation_steps: 8\n  gradient_checkpointing: true   # since v0.77.0 the default false turns Unsloth's off\n  lora:\n    r: 16                   # LoRA turns on when r > 0; there is no enabled flag\n    alpha: 32\n    dropout: 0.05\n    target_modules: [q_proj, k_proj, v_proj, o_proj]\n\noutput: ./runs/llama31"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Spelling matters, and until v0.74.0 nothing told you so.</strong> Writing <code>learning_rate</code> instead of <code>lr</code>, or nesting <code>backend</code> under <code>training</code>, used to be dropped in silence and the default used instead. Since v0.74.0 loading a config walks the whole tree and reports every key it cannot place, and <strong>since v0.75.0 the config is refused</strong>: <code>soup train</code> exits 1 before the training stack is imported and prints <code>unknown config key &#x27;training.learning_rate&#x27; - refused.</code> When the key is close to a real one the message adds a suggestion (<code>bacth_size</code> gets <code>did you mean &#x27;batch_size&#x27;?</code>); <code>learning_rate</code> is not close to <code>lr</code>, so you get the refusal alone. Check the spelling against <a href=\"__DOCS_BASE__/configuration\">Configuration</a>.</p></blockquote><p><strong>Why <code>gradient_checkpointing: true</code> is spelled out (v0.77.0, #1981).</strong> Through v0.76.x the Unsloth backend always used Unsloth&#x27;s own checkpointing kernel, whatever the config said. Since v0.77.0 it honours <code>training.gradient_checkpointing</code>, and the schema default is <code>false</code>, which turns checkpointing off and uses more activation memory. <code>true</code> keeps Unsloth&#x27;s kernel, as every earlier release used.</p><h2 id=\"before-you-train\">Before you train</h2><p>Run <code>soup doctor --config llama31.yaml</code> first. Since v0.76.0 many more settings are refused when the config loads, each naming the field and what to change, so a config that loaded on an older release can stop loading. <code>soup doctor --config</code> prints the error and exits 2 without loading a model (it stops at the first cross-field refusal, so fix that setting and run it again until it prints no error), and since v0.77.0 it no longer prints <code>All checks passed!</code> above a refusal. Several things v0.76 only warned about are refused at v0.77.0, for example a staged field (validated, read by nothing) set away from its default, which stops the load with a line ending <code>refused as of v0.77. Delete the line.</code>, and the deprecated <code>data.remove_unused_columns: true</code>. See <a href=\"__DOCS_BASE__/config-refusals\">Config refusals</a>.</p><h2 id=\"4-train\">4. Train</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config llama31.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>In a script or CI job, pass <code>--yes</code>: since v0.77.0 <code>soup train</code> with its stdin piped or redirected and no <code>--yes</code> exits 3 instead of waiting at the confirmation prompt.</p><p>Soup detects your GPU and trains the LoRA adapters through Unsloth (<code>backend: unsloth</code>). FlashAttention is not switched on for you: <code>training.use_flash_attn</code> defaults to <code>false</code>. How long it takes depends on your sequence length, batch size and hardware; <code>soup profile --config llama31.yaml</code> estimates memory and speed before you start.</p><h2 id=\"5-chat-with-your-fine-tuned-model\">5. Chat with your fine-tuned model</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup chat --model ./runs/llama31"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"6-export-for-deployment\">6. Export for deployment</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Merge LoRA into base model and export GGUF for Ollama\nsoup export --model ./runs/llama31 --format gguf --quant q4_k_m"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Soup writes the training output (the adapter and tokenizer) straight into the <code>output</code> directory, so <code>./runs/llama31</code> above is the config&#x27;s <code>output:</code> value, and there is no <code>latest</code> subdirectory. Without <code>--output</code>, the GGUF is written next to the model directory as <code>./runs/llama31.q4_k_m.gguf</code>.</p><h2 id=\"troubleshooting\">Troubleshooting</h2><p><strong>Out of memory?</strong> Enable QLoRA (a 4-bit base model). Note <code>4bit</code> is already the default, so this is only worth setting explicitly if you changed it:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization: 4bit\n  lora:\n    r: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Slow training?</strong> Ensure <code>backend: unsloth</code> is set at the <strong>root</strong> of the config (not under <code>training</code>) and that you installed <code>pip install &quot;soup-cli[train,fast]&quot;</code>.</p><h2 id=\"next-steps\">Next steps</h2><ul><li><a href=\"__DOCS_BASE__/export-to-gguf-ollama\">Export to GGUF and Ollama</a></li><li><a href=\"__DOCS_BASE__/multi-gpu-deepspeed\">Multi-GPU training with DeepSpeed</a></li><li><a href=\"__DOCS_BASE__/training\">Training methods reference</a></li></ul><nav><a href=\"__DOCS_BASE__/migration\"><span>Previous</span><span>Migration</span></a><a href=\"__DOCS_BASE__/fine-tune-qwen-3\"><span>Next</span><span>Fine-tune Qwen 3 on a custom dataset</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

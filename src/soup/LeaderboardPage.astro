@@ -1,0 +1,182 @@
+---
+import SoupLayout from './SoupLayout.astro'
+import { SoupHeader } from './SoupHeader'
+import { SoupFooter } from './SoupFooter'
+import { getMessages } from './catalogue'
+import { getFooterGroups } from './locales'
+import { format, kaggle } from './leaderboard/data'
+import { leaderboardStrings } from './leaderboard/strings'
+import './leaderboard/leaderboard.css'
+const { language = 'en' } = Astro.props
+const m = await getMessages(language)
+const { s, lang } = leaderboardStrings(language)
+const f = format(language)
+const fill = (text: string) =>
+  text
+    .replace('{notebooks}', f.number(kaggle.notebooks))
+    .replace('{s}', f.number(kaggle.best.speedup))
+    .replace('{m}', f.number(kaggle.best.memory))
+const TEMPLATE_REPO = 'makazhanalpamys/soup-kernel-challenge'
+const kind = (team: (typeof kaggle.teams)[number]) =>
+  team.kaggle ? 'notebook' : team.github ? 'repo' : 'team'
+const filters = [
+  ['all', s.filterAll],
+  ['team', s.filterTeams],
+  ['notebook', s.filterNotebooks],
+  ['repo', s.filterRepos],
+]
+const sorts = [
+  ['points', s.sortPoints],
+  ['speedup', s.sortSpeed],
+  ['memory', s.sortMemory],
+  ['peak', s.sortPeak],
+]
+const all = f.number(kaggle.teams.length)
+---
+<SoupLayout language={language} path="leaderboard/" title={`${s.title} — Soup`} description={s.lede}>
+  <div class="soup-site">
+    <SoupHeader language={language} m={m} path="leaderboard/" client:load />
+    <main id="main" class="soup-leaderboard" lang={lang} dir={lang === 'en' && language !== 'en' ? 'ltr' : undefined}>
+      <section class="lb-container lb-hero">
+        <p class="lb-eyebrow"><span class="lb-dot"></span>{s.eyebrow}</p>
+        <h1>{s.title} <em class="lb-tag">{s.unofficial}</em></h1>
+        <p class="lb-lede">{fill(s.lede)}</p>
+        <p class="lb-unofficial"><strong>{s.unofficial}</strong> {s.unofficialNote}</p>
+        <p class="lb-meta">
+          <span>{s.teams}: {f.number(kaggle.teams.length)}</span>
+          <span>{s.notebooks}: {f.number(kaggle.notebooks)}</span>
+          <span>{s.window}</span>
+        </p>
+      </section>
+
+      <section class="lb-container lb-group" data-lb-board data-shown={s.shown}>
+        <form class="lb-filters" role="search">
+          <label class="lb-search">
+            <span class="sr-only">{s.search}</span>
+            <input type="search" name="q" placeholder={s.searchPlaceholder} autocomplete="off" spellcheck="false" />
+          </label>
+          <fieldset class="lb-chips">
+            <legend class="sr-only">{s.filterLabel}</legend>
+            {filters.map(([value, label], index) => (
+              <label><input type="radio" name="kind" value={value} checked={index === 0} /><span>{label}</span></label>
+            ))}
+          </fieldset>
+          <label class="lb-check"><input type="checkbox" name="loss" /><span>{s.withinLoss}</span></label>
+          <label class="lb-sort">
+            <span>{s.sortBy}</span>
+            <select name="sort">
+              {sorts.map(([value, label]) => <option value={value}>{label}</option>)}
+            </select>
+          </label>
+          <button type="reset" class="lb-reset">{s.reset}</button>
+        </form>
+        <p class="lb-count" aria-live="polite" data-lb-count>{s.shown.replace('{n}', all).replace('{total}', all)}</p>
+        <div class="lb-table-wrap" tabindex="0" role="region" aria-label={`${s.tableLabel} (${s.unofficial})`}>
+          <table class="lb-table lb-kaggle">
+            <caption class="sr-only">{s.tableLabel} ({s.unofficial})</caption>
+            <thead>
+              <tr>
+                <th scope="col">{s.rank}</th>
+                <th scope="col">{s.team}</th>
+                <th scope="col" class="lb-num">{s.speedup}</th>
+                <th scope="col" class="lb-num">{s.memory}</th>
+                <th scope="col" class="lb-num">{s.peak}</th>
+                <th scope="col" class="lb-num">{s.loss}</th>
+                <th scope="col" class="lb-num">{s.kagglePoints}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {kaggle.teams.map((team) => (
+                <tr
+                  data-name={team.team.toLowerCase()}
+                  data-kind={kind(team)}
+                  data-speedup={team.speedup}
+                  data-memory={team.memory}
+                  data-peak={team.peak_mib}
+                  data-loss={team.loss_pct}
+                  data-place={team.place}
+                >
+                  <td class="lb-rank">{String(team.place).padStart(2, '0')}</td>
+                  <th scope="row">
+                    {team.kaggle || team.github ? (
+                      <a class="lb-repo" href={team.kaggle ?? team.github} rel="noopener nofollow" target="_blank"><bdi dir="ltr">{team.team}</bdi><span aria-hidden="true">↗</span></a>
+                    ) : (
+                      <bdi dir="ltr" class="lb-team">{team.team}</bdi>
+                    )}
+                    {team.kaggle && <span class="lb-mark" title={s.kaggleNotebookMark}>*</span>}
+                    {team.team === TEMPLATE_REPO && <span class="lb-mark" title={s.kaggleTemplateMark}>†</span>}
+                  </th>
+                  <td class="lb-num">{f.ratio(team.speedup)}</td>
+                  <td class="lb-num">{f.ratio(team.memory)}</td>
+                  <td class="lb-num">{f.number(team.peak_mib)}</td>
+                  <td class="lb-num">{f.pct(team.loss_pct)}</td>
+                  <td class="lb-num lb-total"><strong>{f.points(team.points)}</strong><span>{s.of65}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="lb-empty" data-lb-empty hidden>{s.nothingFound}</p>
+        <p class="lb-legend"><span>* — {s.kaggleNotebookMark}</span> <span>† — {s.kaggleTemplateMark}</span></p>
+        <p class="lb-note">{s.kaggleIncomplete}: <bdi dir="ltr">{kaggle.incomplete.join(', ')}</bdi>.</p>
+      </section>
+
+      <section class="lb-container lb-rules">
+        <h2>{s.rulesTitle}</h2>
+        <ol>
+          <li>{fill(s.kaggleNote)}</li>
+          <li>{fill(s.kaggleScore)}</li>
+          <li>{s.kaggleLimits}</li>
+          <li>{s.kaggleSource}.</li>
+        </ol>
+      </section>
+    </main>
+    <SoupFooter language={language} m={m} path="leaderboard/" groups={getFooterGroups(language)} client:visible />
+  </div>
+</SoupLayout>
+
+<script>
+  // Filtering is a convenience over the full server-rendered table.
+  const board = document.querySelector<HTMLElement>('[data-lb-board]')
+  const form = board?.querySelector('form')
+  const body = board?.querySelector('tbody')
+  if (board && form && body) {
+    const rows = Array.from(body.rows)
+    const count = board.querySelector('[data-lb-count]')!
+    const empty = board.querySelector<HTMLElement>('[data-lb-empty]')!
+    const number = new Intl.NumberFormat(document.documentElement.lang || 'en')
+    const total = number.format(rows.length)
+    const value = (row: HTMLElement, key: string) => Number(row.dataset[key])
+    // Lower is better only for the GPU peak; points keep the table's own order.
+    const order: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+      points: (a, b) => value(a, 'place') - value(b, 'place'),
+      speedup: (a, b) => value(b, 'speedup') - value(a, 'speedup'),
+      memory: (a, b) => value(b, 'memory') - value(a, 'memory'),
+      peak: (a, b) => value(a, 'peak') - value(b, 'peak'),
+    }
+    const apply = () => {
+      const data = new FormData(form)
+      const query = String(data.get('q') ?? '').trim().toLowerCase()
+      const kind = String(data.get('kind') ?? 'all')
+      const loss = data.get('loss') !== null
+      let shown = 0
+      for (const row of rows) {
+        const visible =
+          (!query || row.dataset.name!.includes(query)) &&
+          (kind === 'all' || row.dataset.kind === kind) &&
+          (!loss || value(row, 'loss') <= 0.5)
+        row.hidden = !visible
+        if (visible) shown++
+      }
+      body.append(...rows.sort(order[String(data.get('sort'))] ?? order.points))
+      count.textContent = board.dataset
+        .shown!.replace('{n}', number.format(shown))
+        .replace('{total}', total)
+      empty.hidden = shown > 0
+    }
+    form.addEventListener('submit', (event) => event.preventDefault())
+    form.addEventListener('input', apply)
+    form.addEventListener('change', apply)
+    form.addEventListener('reset', () => setTimeout(apply))
+  }
+</script>

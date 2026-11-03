@@ -1,0 +1,133 @@
+{
+  "slug": "multimodal",
+  "title": "Vision & Audio Fine-Tuning",
+  "description": "Fine-tune vision and audio models with Soup CLI. LLaVA, ShareGPT4V, audio data formats. Pillow and librosa integrations. For Whisper speech-to-text fine-tuning see the dedicated ASR page (task: asr, v0.71.32).",
+  "source": "https://trysoup.dev/docs/multimodal",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "a6c6f4e6541d75f0067812ad5fab09d117cfa5b291e5557c1551ccfac381f76f",
+  "headings": [
+    {
+      "level": 2,
+      "id": "vision-multimodal",
+      "title": "Vision / Multimodal"
+    },
+    {
+      "level": 3,
+      "id": "vision-data-formats",
+      "title": "Vision Data Formats"
+    },
+    {
+      "level": 2,
+      "id": "audio-speech",
+      "title": "Audio / Speech"
+    },
+    {
+      "level": 3,
+      "id": "audio-data-format",
+      "title": "Audio Data Format"
+    },
+    {
+      "level": 2,
+      "id": "continued-pre-training",
+      "title": "Continued Pre-training"
+    },
+    {
+      "level": 2,
+      "id": "embedding-fine-tuning",
+      "title": "Embedding Fine-Tuning"
+    },
+    {
+      "level": 3,
+      "id": "embedding-data-format",
+      "title": "Embedding Data Format"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Vision &amp; Audio Fine-Tuning</h1><h2 id=\"vision-multimodal\">Vision / Multimodal</h2><p>Fine-tune vision-language models (LLaMA-3.2-Vision, Qwen2-VL, Pixtral):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[vision]\"\nsoup init --template vision"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.2-11B-Vision-Instruct\ntask: sft\nmodality: vision\n\ndata:\n  train: ./data/vision_train.jsonl\n  format: llava\n  image_dir: ./data/images\n  val_split: 0.1\n\ntraining:\n  epochs: 3\n  lr: 1e-5\n  quantization: 4bit\n  lora:\n    r: 64\n    alpha: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"vision-data-formats\">Vision Data Formats</h3><p><strong>LLaVA:</strong></p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"image\": \"photo.jpg\", \"conversations\": [{\"from\": \"human\", \"value\": \"<image>\\nDescribe this image.\"}, {\"from\": \"gpt\", \"value\": \"A cat on a mat.\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>ShareGPT4V:</strong></p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"image\": \"chart.png\", \"conversations\": [{\"from\": \"human\", \"value\": \"<image>\\nWhat does this show?\"}, {\"from\": \"gpt\", \"value\": \"Quarterly revenue.\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A relative <code>image</code> path resolves against <code>data.image_dir</code>, or against the directory of the data file when <code>image_dir</code> is unset. A Hub dataset or a remote URI has no data file directory, so set <code>data.image_dir</code> when its rows hold image paths: since v0.76.0 the load stops with a message naming the setting if you set neither (<code>data.image_dir: .</code> resolves them under the working directory), and a row whose file lies outside the directory is skipped with the usual &quot;rows skipped&quot; warning. Before that, rows from a streaming <code>data.interleave</code>, a remote URI or a Hub dataset kept the path as written, so a relative path was opened against the working directory and <code>image_dir</code> had no effect. An image a Hub dataset has already decoded is passed on as before, and Parquet image structs (<code>{&quot;bytes&quot;: ..., &quot;path&quot;: ...}</code>) are accepted, their <code>path</code> following the same rules. The same holds for <code>audio</code> paths and <code>data.audio_dir</code>.</p><p><code>soup data inspect</code> automatically shows image statistics (count, formats, missing files) for vision datasets, resolving paths the same way (or with <code>--image-dir</code>). The full path rule, including the remote URI, Hub dataset and replay-file cases, is on <a href=\"__DOCS_BASE__/data-formats#image-and-audio-paths\">Data formats</a>.</p><p>Vision and audio SFT supervise every sequence token: the multimodal collators do no assistant-only masking, so <code>data.train_on_responses_only</code> and <code>data.mask_history</code> have no effect there (#1156). Since v0.77.0 <code>soup doctor --config</code> lists only <code>data.mask_history</code> as ignored on <code>modality: vision</code> or <code>audio</code> (#1791 dropped the <code>train_on_responses_only</code> row); through v0.76.1 it listed both. <code>training.moe_lora</code>, <code>rope_scaling_type</code>, <code>freeze_layers</code> and <code>freeze_ratio</code> are refused at config load on vision and audio SFT.</p><p>Three more refusals at config load since v0.77.0:</p><ul><li><strong><code>backend: unsloth</code> with <code>modality: vision</code> or <code>audio</code> on SFT</strong> (#2015): the vision and audio setup paths load through transformers and never used Unsloth, so such a run silently ran on transformers. The setting loaded and was never applied: use <code>backend: transformers</code>, which changes nothing about what trains.</li><li><strong><code>llava</code> and <code>sharegpt4v</code> rows on preference tasks</strong> (<code>dpo</code>, <code>ipo</code>, <code>simpo</code>, <code>orpo</code>, <code>bco</code>, <code>preference</code>; #2064): they have no vision-preference row path, so use a text preference format. On v0.76 such a run failed after the model had loaded. The <code>pixtral-dpo</code> recipe was retired with it.</li><li><strong><code>modality: vision</code> or <code>audio</code> with <code>task: distill</code></strong> (#2014): the distill trainer loads a text-only student and teacher, so the setting was never applied and deleting it changes nothing about what trains.</li></ul><h2 id=\"audio-speech\">Audio / Speech</h2><p>Fine-tune audio-language models (Qwen2-Audio, Whisper):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[audio]\"\nsoup init --template audio"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: Qwen/Qwen2-Audio-7B-Instruct\ntask: sft\nmodality: audio\n\ndata:\n  train: ./data/audio_train.jsonl\n  format: audio\n  audio_dir: ./data/audio\n  val_split: 0.1\n\ntraining:\n  epochs: 3\n  lr: 1e-5\n  quantization: 4bit\n  lora:\n    r: 64\n    alpha: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"audio-data-format\">Audio Data Format</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"audio\": \"recording.wav\", \"messages\": [{\"role\": \"user\", \"content\": \"Transcribe this audio.\"}, {\"role\": \"assistant\", \"content\": \"Hello world.\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>A relative <code>audio</code> path resolves against <code>data.audio_dir</code> (or the data file&#x27;s directory) by the same rule as image paths: see <a href=\"__DOCS_BASE__/data-formats#image-and-audio-paths\">Data formats</a>.</p><blockquote><p>Want to fine-tune Whisper itself (speech-to-text, not audio understanding)? That is a dedicated task since v0.71.32: see <a href=\"__DOCS_BASE__/asr-fine-tuning\">ASR fine-tuning</a> (<code>task: asr</code>, <code>format: asr</code>, built-in WER/CER, whisper-tiny/base train on a 4 GB GPU).</p></blockquote><h2 id=\"continued-pre-training\">Continued Pre-training</h2><p>Continue training on raw text for domain adaptation:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: meta-llama/Llama-3.1-8B\ntask: pretrain\n\ndata:\n  train: ./data/corpus.jsonl     # {\"text\": \"...\"} or plain .txt files\n  format: plaintext\n  max_length: 4096\n\ntraining:\n  epochs: 1\n  lr: 1e-5\n  quantization: 4bit"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"embedding-fine-tuning\">Embedding Fine-Tuning</h2><p>Train sentence embedding models with contrastive learning:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: sentence-transformers/all-MiniLM-L6-v2\ntask: embedding\n\ndata:\n  train: ./data/embeddings.jsonl\n  format: embedding\n\ntraining:\n  embedding_loss: contrastive    # contrastive, triplet, cosine\n  embedding_pooling: mean\n  embedding_margin: 0.5\n  embedding_temperature: 0.05"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"embedding-data-format\">Embedding Data Format</h3>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"anchor\": \"What is Python?\", \"positive\": \"Python is a programming language.\"}\n{\"anchor\": \"What is Python?\", \"positive\": \"A programming language.\", \"negative\": \"A type of snake.\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>embedding_loss: contrastive</code> (the default) needs other rows in the batch as negatives, so since v0.76.0 <code>batch_size: 1</code> is refused at config load (#1234): with one row the loss and gradient are exactly 0 and the adapter never moves. <code>batch_size: auto</code> resolves to at least 2, the last partial batch of an epoch is dropped, and a batch larger than the training set is lowered to its size. Use <code>triplet</code> (with <code>negative</code> rows) or <code>cosine</code> for a batch of 1.</p><nav><a href=\"__DOCS_BASE__/backends\"><span>Previous</span><span>Backends &amp; Performance</span></a><a href=\"__DOCS_BASE__/autopilot\"><span>Next</span><span>Autopilot</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

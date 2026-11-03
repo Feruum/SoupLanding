@@ -1,0 +1,106 @@
+{
+  "slug": "unlearning",
+  "title": "Unlearning & Knowledge Edit (v0.61.0)",
+  "description": "Soup CLI v0.61.0 unlearning & knowledge edit. task: unlearn with NPO / SimNPO / RMU methods, data.forget_set + retain_set. soup eval unlearning scores Forget Quality / Model Utility / PrivLeak from TOFU / MUSE / WMDP evidence you supply (it runs no benchmark itself; with no evidence every metric is a neutral OK). soup edit set --method rome|memit|alphaedit|grace surgically patches facts without retraining. soup edit diff runs probe prompts through two models and lists the answers that changed (it exits 2 on a partial combination of --before-model, --after-model and --probes; with none of the three it prints an empty table and exits 0). Sequential Edit Governor refuses further edits after 50 edits or a norm blow-up (it cannot stop the edit that causes the blow-up; a store path that is refused or cannot be created disables it with a note, while a corrupt SQLite store stops the command with an error). +193 tests.",
+  "source": "https://trysoup.dev/docs/unlearning",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "079541d9bc62e6aefbeb245a6348fd25e95dae25745b6e507fd8f5818e818ced",
+  "headings": [
+    {
+      "level": 2,
+      "id": "task-unlearn-remove-specific-data-keep-the-rest",
+      "title": "task: unlearn — remove specific data, keep the rest"
+    },
+    {
+      "level": 3,
+      "id": "sequence-length-batch-and-optimizer-settings-v0-76-0",
+      "title": "Sequence length, batch and optimizer settings (v0.76.0)"
+    },
+    {
+      "level": 3,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-unlearning-score-tofu-muse-wmdp-evidence",
+      "title": "soup eval unlearning — score TOFU / MUSE / WMDP evidence"
+    },
+    {
+      "level": 2,
+      "id": "soup-edit-set-rome-memit-alphaedit",
+      "title": "soup edit set — ROME / MEMIT / AlphaEdit"
+    },
+    {
+      "level": 2,
+      "id": "soup-edit-diff-which-probe-answers-changed",
+      "title": "soup edit diff — which probe answers changed"
+    },
+    {
+      "level": 2,
+      "id": "sequential-edit-governor",
+      "title": "Sequential Edit Governor"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Unlearning &amp; Knowledge Edit (v0.61.0)</h1><p>GDPR right-to-be-forgotten as a first-class task. Surgical fact patches without retraining.</p><h2 id=\"task-unlearn-remove-specific-data-keep-the-rest\"><code>task: unlearn</code> — remove specific data, keep the rest</h2><p>Three methods, all wired as live trainers:</p><div><table><thead><tr><th>Method</th><th>Loss shape</th><th>Needs reference model</th><th>Notes</th></tr></thead><tbody><tr><td><strong>NPO</strong> (Negative Preference Optimization)</td><td>DPO-shaped, negative-only</td><td>yes</td><td>Pair with a retain set; NPO and SimNPO warn loudly without one</td></tr><tr><td><strong>SimNPO</strong></td><td>Length-normalized NPO</td><td>no</td><td>Faster on long sequences</td></tr><tr><td><strong>RMU</strong> (Representation Misdirection Unlearning)</td><td>Residual-stream noise on forget inputs</td><td>yes</td><td>Best for concept-level removal</td></tr></tbody></table></div><p>NPO and RMU each load a second, frozen copy of the base model next to the LoRA-wrapped policy (RMU runs that copy over each retain input when a retain set is given), so they cost a second full-precision model in memory. Only SimNPO is reference-free.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# soup.yaml\nbase: meta-llama/Llama-3.1-8B\ntask: unlearn\ntraining:\n  epochs: 3\n  unlearn_method: simnpo\n  unlearn_alpha: 0.7\ndata:\n  train: ./private_data_to_remove.jsonl\n  forget_set: ./private_data_to_remove.jsonl\n  retain_set: ./general_knowledge.jsonl\noutput: ./unlearned_model"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>data.train</code> is required by the schema for every task, and <code>soup train</code> still loads and format-checks that file before the unlearn trainer starts (a missing path stops the run with <code>Data file not found</code>), but the unlearn trainer itself never uses its rows; it reads <code>forget_set</code> and <code>retain_set</code>. <code>unlearn_alpha</code> (0.0–10.0) is the retain-set weight, and it needs <code>unlearn_method</code> to be set. It defaults to <strong>unset</strong>, and an unset value resolves to <strong>1.0</strong> in the trainer, not to 0.5. An explicit <code>unlearn_alpha: 0.0</code> is pure forget loss since v0.77.0, for NPO, SimNPO and RMU (#2108, #2114). <em>(Since closed in v0.77.0: through v0.76.1 the trainer read 0.0 as falsy and used 1.0, so a run that gave a <code>retain_set</code> and asked for no retain term trained with one at full weight.)</em> <code>forget_set</code> is required; <code>retain_set</code> is optional but strongly recommended for NPO.</p><h3 id=\"sequence-length-batch-and-optimizer-settings-v0-76-0\">Sequence length, batch and optimizer settings (v0.76.0)</h3><p><strong>Behavior break.</strong> The unlearn trainer now reads <code>data.max_length</code> for every forget and retain row. Through v0.75.2 it tokenised them to a hard-coded 256 tokens. <code>data.max_length</code> defaults to 2,048, so an existing configuration can use more memory and take longer: set <code>data.max_length: 256</code> to keep the old limit (#805).</p><ul><li>It honours <code>optimizer</code>, <code>scheduler</code>, <code>warmup_ratio</code>, <code>weight_decay</code> and <code>max_grad_norm</code>, and it accumulates <code>batch_size</code> x <code>gradient_accumulation_steps</code> examples per optimizer update. Before this, the loop used a bare <code>torch.optim.AdamW</code> with no scheduler and no gradient clipping, took one example per update, and ignored those settings.</li><li><code>batch_size: auto</code> resolves to 1 (not to a memory estimate), so the same config makes the same number of updates on any card.</li><li>Since v0.77.0 it honours <code>training.gradient_checkpointing</code> too (#797, #2140). The loop has no Hugging Face <code>Trainer</code>, so the unlearn trainer turns checkpointing on for its policy model itself; any enabled tier is full checkpointing. The default <code>false</code> is unchanged: through v0.76.1 the key was ignored and the run always trained with checkpointing off.</li><li><code>initial_loss</code> and <code>final_loss</code> remain per-example losses on their original scale, and the 2,000-step budget counts examples, not optimizer updates.</li><li>The output directory is checked before any model is loaded: an <code>output</code> outside the working directory, or a symlink, stops the run first (it used to load the policy and the frozen reference copy and run every step before refusing) (#1445).</li></ul><p>Settings that no unlearn run applies are refused or flagged when the config loads, rather than ignored: <code>training.eval_steps</code> (unlearning trains on <code>forget_set</code> and <code>retain_set</code> and never evaluates a validation split), <code>training.loraplus_lr_ratio</code>, <code>loss_watchdog</code>, <code>loss_spike_recovery</code> and <code>grad_accum_auto_tune</code> (the trainer attaches no live callback), and <code>backend: unsloth</code>. An explicit <code>training.quantization: 4bit</code> or <code>8bit</code> (or <code>load_in_8bit: true</code>) is refused at load since v0.77.0, because the trainer never quantises the base: <code>training.quantization: 4bit has no effect on task=&#x27;unlearn&#x27;: its trainer never quantises the base, so no run can honour it. Delete the line or set quantization: none. Refused as of Soup v0.77.</code> (<code>soup train</code> exits 1). v0.76 loaded it with a warning and treated it as <code>none</code>. <code>soup train --resume</code> and <code>--hf-resume</code> on <code>task: unlearn</code> exit non-zero with a message naming the task. <code>training.moe_lora</code> is read by unlearn since v0.76.0 (#1151).</p><p><em>(Since closed in v0.76.0: a finished <code>task: unlearn</code> run used to end with <code>KeyError: &#x27;duration&#x27;</code> in the &quot;Training Complete!&quot; panel, after the adapter was saved and the tracker row written, because the wrapper returned only <code>duration_secs</code> (#1529). If you saw that traceback, the run itself had finished.)</em></p><h3 id=\"re-run-this\">Re-run this</h3><div><table><thead><tr><th>If you ran</th><th>What was different</th><th>What to do</th></tr></thead><tbody><tr><td><code>task: unlearn</code> with <code>optimizer</code>, <code>scheduler</code>, <code>warmup_ratio</code>, <code>weight_decay</code>, <code>max_grad_norm</code> or <code>gradient_accumulation_steps</code> set</td><td>The trainer did not read them: one example per update, a bare AdamW, a fixed 256-token limit (#805)</td><td>Settings you wrote for these were not applied, so a re-run now uses them. Note the new 2,048-token default, or set <code>data.max_length: 256</code> to reproduce the old limit</td></tr><tr><td><code>task: unlearn</code> with an explicit <code>unlearn_alpha: 0.0</code> and a <code>data.retain_set</code> (any method)</td><td>It ran as 1.0: the retain term kept full weight (#2108, #2114)</td><td>Re-run on v0.77.0 if you wanted pure forget loss</td></tr></tbody></table></div><h2 id=\"soup-eval-unlearning-score-tofu-muse-wmdp-evidence\"><code>soup eval unlearning</code> — score TOFU / MUSE / WMDP evidence</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval unlearning <run-id> --benchmark tofu --evidence ./unlearn_evidence.json --output ./unlearn_report.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Soup does not run the TOFU, MUSE or WMDP benchmarks.</strong> The command loads no model. <code>&lt;run-id&gt;</code> is only a label, and the scores come from an evidence JSON that you produce with your own harness:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\n  \"forget_quality\": {\"pre_loss\": 0.5, \"post_loss\": 2.5},\n  \"model_utility\": {\"pre_acc\": 0.70, \"post_acc\": 0.68},\n  \"priv_leak\": {\"mia_auc\": 0.52}\n}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Three metrics are scored, and <code>--benchmark</code> (<code>tofu</code> by default, or <code>muse</code> or <code>wmdp</code>) labels the report:</p><ul><li><strong>Forget Quality</strong> — the pre/post forget-set loss change.</li><li><strong>Model Utility</strong> — retain accuracy preserved.</li><li><strong>PrivLeak</strong> — membership-inference AUC, scored by its distance from 0.5.</li></ul><p>Scores roll up into an OK / MINOR / MAJOR verdict mirroring v0.56 diagnose, and the command exits 2 on MAJOR. <code>--output</code> writes the rendered report, and <code>--attach-to-registry &lt;id&gt;</code> attaches that file to a registry entry as an <code>eval_results</code> artifact. Since v0.76.0 a requested attach is part of the command&#x27;s success (#1683): <code>--attach-to-registry</code> without <code>--output</code> is refused before anything runs (exit 2), and a failed attach (unknown or ambiguous entry, unreadable registry) prints an error and exits 1 with the report left on disk. <em>(Through v0.75.2 the attach raised a <code>TypeError</code> on every run, was printed as a warning and exited 0, and without <code>--output</code> it was skipped with a notice.)</em></p><p><strong>A metric you leave out scores as a neutral OK, and with no <code>--evidence</code> at all the whole report is OK</strong>: every row reads &quot;no evidence supplied; score is neutral default&quot;, <code>Overall: OK</code>, exit 0. That holds for <code>--benchmark muse</code> and <code>wmdp</code> as well. An all-green report without evidence means nothing was measured.</p><h2 id=\"soup-edit-set-rome-memit-alphaedit\"><code>soup edit set</code> — ROME / MEMIT / AlphaEdit</h2><p>Surgically patch facts without retraining:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup edit set --base meta-llama/Llama-3.1-8B-Instruct \\\n  --method rome \\\n  --subject \"The capital of France is\" \\\n  --target \"Lyon\" \\\n  --plan-only"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><strong>ROME</strong> — Rank-One Model Editing, targets MLP layers (Meng 2022).</li><li><strong>MEMIT</strong> — Mass-Edit Memory in a Transformer (Meng 2023).</li><li><strong>AlphaEdit</strong> — gradient-based fact patching.</li></ul><p>v0.61.0 shipped the plan / validation surface; <strong>live application landed in v0.71.9</strong> — covariance-free rank-1 ROME/MEMIT/AlphaEdit kernels apply the edit (on a tiny model a ROME edit moved P(&quot;Lyon&quot; | &quot;The capital of France is&quot;) from 0.0016 → 0.96), guarded by a persistent SQLite EditGovernor. GRACE is the fourth method value, <code>--method grace</code> (the <code>--help</code> text still lists only the other three); see the GRACE section on <a href=\"__DOCS_BASE__/rag-and-steering\">RAG &amp; steering</a>.</p><p><code>--registry-id &lt;id&gt;</code> records the saved result on a Registry entry (an id, id prefix or <code>name:tag</code>) and needs <code>--output</code>; without it the command exits 2 before the model loads (<code>--registry-id needs --output (nothing saved to attach).</code>). The Registry stores one hashed file per artifact and never a directory, so the weight files <code>save_pretrained</code> wrote (<code>model.safetensors</code>, its numbered shards, or <code>pytorch_model*.bin</code>) are attached as <code>edited_model</code> artifacts, and <code>grace_codebook.json</code> as a <code>grace_codebook</code> artifact for <code>--method grace</code>. A requested attach is part of the command&#x27;s success (#1686): if it fails (unknown or ambiguous entry, unreadable registry, no weight file), the command prints <code>Error: could not attach to registry: ...</code> and exits 1, with the edited model left on disk.</p><p><em>(Since closed in v0.76.0: through v0.75.2 the command handed the Registry the output directory, which the Registry refuses, so every run printed <code>Could not attach to Registry: artifact not found: &lt;dir&gt;</code> as a warning, exited 0 and recorded nothing.)</em></p><h2 id=\"soup-edit-diff-which-probe-answers-changed\"><code>soup edit diff</code> — which probe answers changed</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup edit diff before-run after-run \\\n  --before-model ./model_before --after-model ./model_after \\\n  --probes ./probes.jsonl --top-k 10"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Runs each probe prompt (JSONL rows with a <code>prompt</code> field, up to 1,000) through both models with greedy decoding and lists the prompts whose completion changed, changed rows first, up to <code>--top-k</code> (1 to 100). <code>before-run</code> and <code>after-run</code> are labels recorded in the report; they are <strong>not Registry lookups</strong> (the <code>--help</code> text now calls them &quot;Label or run id ... (metadata)&quot;). <strong>The command refuses every partial combination, exiting 2 and naming the missing flag</strong>: <code>--probes</code> needs both <code>--before-model</code> and <code>--after-model</code>; one model flag needs the other; and both models need <code>--probes</code> (<code>Cannot build diff: --probes is required when both --before-model and --after-model are given; ...</code>). A probe file with no rows, or none carrying a <code>prompt</code>, is refused too. With neither model nor probes it prints a single <code>no probes supplied</code> row and <code>Total probes: 0; 0 changed.</code> and exits 0. There is no citation visualizer. <code>-o</code> writes the report as JSON.</p><p><em>(Since closed in v0.76.0 (#818): through v0.75.2 these combinations printed a placeholder table, or wrote a report with <code>total_probes: 0</code>, and exited 0, which read as &quot;the edit changed nothing&quot; when nothing had been measured.)</em></p><h2 id=\"sequential-edit-governor\">Sequential Edit Governor</h2><p>Consulted by <code>soup edit set</code> (on by default; <code>--no-governor</code> opts out) and by the GRACE codebook edit. Nothing in <code>soup train</code> calls it. The state is a SQLite store per base model (<code>SOUP_EDIT_GOVERNOR_DB</code> moves it), and it fails open only for a store path that is refused or cannot be created: then the edit goes ahead with the governor disabled and a dim &quot;Governor disabled&quot; note. A corrupt database is not caught: <code>soup edit set</code> stops with <code>DatabaseError: file is not a database</code> and exit 1.</p><ul><li><strong>Edit count overflow</strong> — refuses further edits on a base model once 50 have been recorded (<code>max_sequential_edits</code>, exit 2). A separate <code>auto_switch_at</code> of 10 exists in the library as a ROME to AlphaEdit recommendation, but no command acts on it.</li><li><strong>Norm blowup</strong> — each edit&#x27;s measured Frobenius delta is classed OK, WARN (at 1.0 or more) or BLOWUP (at 5.0 or more). After a BLOWUP the governor refuses further edits on that base. It cannot stop the edit that caused the blowup, because the delta is only known after the edit has run.</li></ul><h2 id=\"numbers\">Numbers</h2><p>+193 new tests in v0.61.0 (9446 → 9571). Security: 5 HIGH, 11 MEDIUM, 11 LOW fixes.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/diagnose\">Diagnose</a> — pair unlearning with the 7-probe report card to verify the forget actually happened.</li><li><a href=\"__DOCS_BASE__/rag-and-steering\">RAG &amp; steering</a> — v0.62 control-vector steering, a soft alternative to surgical edits.</li><li><a href=\"__DOCS_BASE__/post-train-xrays\">Post-train x-rays (v0.66)</a> — <code>soup probe sae-diff</code> looks at Sparse Autoencoder feature movement, and <code>soup probe sleeper</code> applies a linear defection probe (its bundled weights are synthetic placeholders, so bring your own with <code>--weights</code>), a mechanistic view beyond Forget Quality / Model Utility / PrivLeak benchmark scores.</li></ul><nav><a href=\"__DOCS_BASE__/agent-forge\"><span>Previous</span><span>Agent Forge</span></a><a href=\"__DOCS_BASE__/rag-and-steering\"><span>Next</span><span>RAG &amp; Steering</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

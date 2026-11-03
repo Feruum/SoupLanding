@@ -1,0 +1,50 @@
+{
+  "slug": "quant-menu",
+  "title": "Quant Menu — 9 Quantization Formats (v0.38.0)",
+  "description": "Nine quantization formats in Soup CLI v0.38.0. 4bit, 8bit, none, GPTQ, AWQ, HQQ:Nbit, AQLM, EETQ, MXFP4, FP8. Train LoRA on top of any pre-quantized checkpoint. See also Quant Menu II (v0.53) for UD GGUF, NVFP4, BitNet 1.58 export, KV cache, TorchAO PTQ.",
+  "source": "https://trysoup.dev/docs/quant-menu",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "a163afc54cbe3f6cf4e49f970822bcb2b6cfd6d8e163bcb9f8beca7cc210170c",
+  "headings": [
+    {
+      "level": 2,
+      "id": "what-v0-74-0-changed-for-a-4-bit-load",
+      "title": "What v0.74.0 changed for a 4-bit load"
+    },
+    {
+      "level": 2,
+      "id": "format-matrix",
+      "title": "Format matrix"
+    },
+    {
+      "level": 2,
+      "id": "compatibility-matrix",
+      "title": "Compatibility matrix"
+    },
+    {
+      "level": 2,
+      "id": "pre-quantized-qat",
+      "title": "Pre-quantized + QAT"
+    },
+    {
+      "level": 2,
+      "id": "scope",
+      "title": "Scope"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Quant Menu — 9 Quantization Formats (v0.38.0)</h1><p>Pick the right quantization format for your base model and hardware. Soup loads the appropriate <code>quantization_config</code> and trains LoRA on top.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# Train LoRA on top of a pre-quantized GPTQ checkpoint:\nbase: TheBloke/Llama-2-7B-Chat-GPTQ\ntraining:\n  quantization: gptq        # or: awq, hqq:4bit, aqlm, eetq, mxfp4, fp8"
+    },
+    {
+      "kind": "html",
+      "html": "<p>For FSDP with QLoRA there is nothing to set: when you launch with <code>--fsdp</code> and <code>quantization: 4bit</code>, Soup sets <code>training.bnb_4bit_quant_storage</code> itself to the compute dtype, and overrides a different value you wrote, printing <code>FSDP QLoRA: selected</code> or <code>overrode</code>. The key is otherwise an ordinary BNB setting, accepted only with <code>quantization: 4bit</code> (since v0.76.0 <code>mxfp4</code> with <code>bnb_4bit_quant_storage</code> is refused, because the MXFP4 load is dequantized and not a bitsandbytes load).</p><h2 id=\"what-v0-74-0-changed-for-a-4-bit-load\">What v0.74.0 changed for a 4-bit load</h2><p>The fp32 finding is usually described in terms of a frozen base, which is a full-precision story. It reaches a <strong>quantized</strong> load too. A <code>quantization: 4bit</code> or <code>8bit</code> model still holds real modules outside the quantized linears, the embeddings, the norms and the LM head, and those were being materialised in fp32 for the same reason: no dtype was passed. They now follow the load dtype (<code>auto</code>, or an explicit fp16 on a pre-Ampere card), matching <code>bnb_4bit_compute_dtype</code> instead of sitting a precision above it. <strong>Do not attach the release&#x27;s 2.59x figure to this</strong>: that number was measured on an unquantized frozen base with LoRA, and a 4-bit run was never paying the same bill.</p><h2 id=\"format-matrix\">Format matrix</h2><div><table><thead><tr><th>Format</th><th>Bits</th><th>Use case</th><th>Optional dep</th></tr></thead><tbody><tr><td><code>4bit</code></td><td>4</td><td>Default. Best general LoRA training.</td><td>bitsandbytes</td></tr><tr><td><code>8bit</code></td><td>8</td><td>Larger memory budget, more accurate gradients.</td><td>bitsandbytes</td></tr><tr><td><code>none</code></td><td>16/32</td><td>Full fine-tuning or DPO/PPO without quant.</td><td>—</td></tr><tr><td><code>gptq</code></td><td>2/3/4/8</td><td>Train LoRA on top of an existing GPTQ checkpoint.</td><td>gptqmodel</td></tr><tr><td><code>awq</code></td><td>4</td><td>Train LoRA on top of an existing AWQ checkpoint.</td><td>autoawq</td></tr><tr><td><code>hqq:Nbit</code></td><td>1, 2, 3, 4, 5, 6, 8</td><td>Wide bit range; compose with LoRA.</td><td>hqq</td></tr><tr><td><code>aqlm</code></td><td>2</td><td>Extreme compression.</td><td>aqlm</td></tr><tr><td><code>eetq</code></td><td>8</td><td>Fast 8-bit kernel for SM75+.</td><td>eetq</td></tr><tr><td><code>mxfp4</code></td><td>4 (stored)</td><td>Train LoRA on top of an MXFP4 pre-quantized checkpoint (for example GPT-OSS). Loaded with <code>Mxfp4Config(dequantize=True)</code>, so it <strong>trains in bf16</strong>: budget memory for the bf16 model, an estimated 2 bytes per parameter (roughly 42 GB for a 20B base). A local base must declare <code>quant_method: mxfp4</code> in its <code>config.json</code>, or the config is refused at setup</td><td>—</td></tr><tr><td><code>fp8</code></td><td>—</td><td>Train LoRA on top of an FP8-released checkpoint. Loaded with <code>FineGrainedFP8Config(dequantize=True)</code>, so it also <strong>trains in bf16</strong>: budget for the bf16 model, 2 bytes per parameter, not for the FP8 file</td><td>transformers ≥ 5.17.0</td></tr></tbody></table></div><p><strong><code>8bit</code> is refused on <code>backend: unsloth</code> (v0.77.0).</strong> Soup&#x27;s Unsloth loader passes <code>load_in_4bit</code> only, so <code>quantization: 8bit</code> used to load the model in 16-bit with no word; it now stops the load, naming <code>quantization: 4bit</code> or <code>none</code> with Unsloth, or <code>backend: transformers</code> for 8-bit (#1946).</p><p><strong>VRAM pre-flight.</strong> On a CUDA card (not under <code>stream_layers</code>, which has its own check, and not on <code>backend: mlx</code>), <code>soup train</code> prices the weights of the chosen format before the model loads and refuses a run that does not fit; <code>--allow-oom-attempt</code> launches it anyway. It does nothing on CPU or when the card&#x27;s memory is unknown. The figures are estimates, in bytes per parameter: <code>4bit</code> 0.5, <code>8bit</code> 1.0, <code>none</code> 2.0, <code>gptq</code> and <code>awq</code> 0.55, <code>aqlm</code> 0.5, <code>eetq</code> 1.0, and 2.0 for <code>mxfp4</code> and <code>fp8</code>, which are dequantized on load. <code>hqq:*</code> has no figure, so the run starts and the pre-flight prints <code>Pre-flight skipped: no memory model for quantization: hqq:4bit</code> (with the format you set). No refusal there does not mean the run fits.</p><h2 id=\"compatibility-matrix\">Compatibility matrix</h2><p><code>soup train</code> runs <code>check_quant_distributed_compat()</code> at startup. HQQ / EETQ / AQLM hard-fail with FSDP and ZeRO-3; BNB 4-bit + FSDP is <strong>resolved rather than warned about</strong> since #350: <code>bnb_4bit_quant_storage</code> is set to the effective compute dtype before the model loads, and the adapter parameters are aligned to it before FSDP wraps them, which closes both halves of the old failure. Nothing is left for you to set by hand. The remaining combinations emit a yellow warning.</p><h2 id=\"pre-quantized-qat\">Pre-quantized + QAT</h2><p><code>gptq</code> / <code>awq</code> / <code>hqq:*</code> / <code>aqlm</code> / <code>eetq</code> / <code>mxfp4</code> / <code>fp8</code> all carry their own scale; combining with <code>quantization_aware: fp8</code> or <code>quest</code> is rejected at config-load. <code>quantization_aware: true</code> (int8 QAT) is refused on its own, whatever the format (v0.76.0, #1222): see <a href=\"__DOCS_BASE__/backends#quantization-aware-training-qat\">Backends</a>.</p><p><strong>Training on AWQ and GPTQ checkpoints is separate from exporting to them.</strong> The Quant Menu path above, a LoRA on top of an existing <code>awq</code> or <code>gptq</code> checkpoint, is unchanged in v0.77.0. The export commands are gone: <code>soup export --format awq|gptq</code> and <code>soup quantize --to awq|gptq</code> were removed in v0.77.0, together with the <code>[awq]</code> and <code>[gptq]</code> extras. AWQ and GPTQ export need v0.76.x and its <code>[awq]</code> or <code>[gptq]</code> extra, for example <code>pip install &quot;soup-cli[awq]&lt;0.77&quot;</code>; upstream notes that both projects are archived and incompatible with <code>[train]</code>. No Soup extra installs the <code>autoawq</code> or <code>gptqmodel</code> package the training path needs, so you install it yourself; given that note, check that installing <code>autoawq</code> leaves your torch and transformers versions in place. See <a href=\"__DOCS_BASE__/export#awq-and-gptq-export-removed-in-v0-77-0\">Export</a>.</p><h2 id=\"scope\">Scope</h2><p>Wired into the SFT trainer + transformers backend in v0.38.0. Multi-trainer expansion landed in v0.40.5. MLX backend gets a distinct error message naming the actual reason.</p><nav><a href=\"__DOCS_BASE__/soup-draft\"><span>Previous</span><span>Draft &amp; Spec Decoding</span></a><a href=\"__DOCS_BASE__/quant-menu-ii\"><span>Next</span><span>Quant Menu II</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

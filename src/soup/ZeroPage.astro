@@ -1,0 +1,19 @@
+---
+import SoupLayout from './SoupLayout.astro'
+import { SoupHeader } from './SoupHeader'
+import { SoupFooter } from './SoupFooter'
+import { SoupZero } from './zero/SoupZero'
+import zeroEnglish from './zero/content.en.json'
+import { getMessages } from './catalogue'
+import { getFooterGroups } from './locales'
+const { language = 'en' } = Astro.props
+const m = await getMessages(language)
+const content = Object.fromEntries(Object.keys(zeroEnglish).map(key => [key, m[('zeroPage' + key[0].toUpperCase() + key.slice(1)) as keyof typeof m]])) as typeof zeroEnglish
+---
+<SoupLayout language={language} path="zero/" title={`Soup Zero — ${m.zeroTitle}`} description={m.zeroDescription}>
+  <div class="soup-site">
+    <SoupHeader language={language} m={m} path="zero/" client:load />
+    <main id="main"><SoupZero m={m} language={language} content={content} client:load /></main>
+    <SoupFooter language={language} m={m} path="zero/" groups={getFooterGroups(language)} client:visible />
+  </div>
+</SoupLayout>

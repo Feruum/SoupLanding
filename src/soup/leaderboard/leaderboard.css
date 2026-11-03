@@ -1,0 +1,733 @@
+.soup-leaderboard {
+  --lb-line: var(--line, #292522);
+  --lb-soft: var(--muted, #96928f);
+  --lb-panel: color-mix(in srgb, var(--bg) 95%, var(--fg));
+  overflow: clip;
+  padding-bottom: 80px;
+}
+.soup-leaderboard .lb-container {
+  width: min(1320px, calc(100% - 96px));
+  margin-inline: auto;
+}
+.soup-leaderboard .lb-hero {
+  padding: 72px 0 40px;
+}
+.soup-leaderboard .lb-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 11px/1.6 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--accent-light);
+  flex: none;
+}
+.soup-leaderboard h1 {
+  margin: 22px 0 18px;
+  font-size: clamp(40px, 5vw, 72px);
+  font-weight: 540;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+.soup-leaderboard .lb-lede {
+  max-width: 760px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-disclaimer {
+  max-width: 760px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-inline-start: 2px solid var(--accent);
+  background: var(--lb-panel);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.soup-leaderboard .lb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 22px;
+  font: 11px/1.6 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-meta a:hover,
+.soup-leaderboard .lb-back:hover {
+  color: var(--accent-light);
+}
+
+.soup-leaderboard .lb-group + .lb-group {
+  margin-top: 56px;
+}
+.soup-leaderboard .lb-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 32px;
+  margin-bottom: 18px;
+}
+.soup-leaderboard .lb-group-head h2 span,
+.soup-leaderboard .lb-templates summary span {
+  margin-inline-start: 6px;
+  font: 12px/1 var(--font-mono);
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-group-head p {
+  max-width: 620px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.soup-leaderboard .lb-sub em {
+  font-style: normal;
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-templates {
+  border: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-templates summary {
+  padding: 16px 18px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.soup-leaderboard .lb-templates summary:hover {
+  background: var(--lb-panel);
+}
+.soup-leaderboard .lb-templates ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 6px 24px;
+  margin: 0;
+  padding: 4px 18px 18px;
+  list-style: none;
+  font: 12px/1.7 var(--font-mono);
+}
+.soup-leaderboard .lb-templates a {
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-templates a:hover {
+  color: var(--accent-light);
+}
+
+/* Table */
+.soup-leaderboard .lb-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.soup-leaderboard .lb-table th,
+.soup-leaderboard .lb-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--lb-line);
+  text-align: start;
+  vertical-align: middle;
+}
+.soup-leaderboard .lb-table thead th {
+  font: 10px/1.5 var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lb-soft);
+  background: var(--lb-panel);
+}
+.soup-leaderboard .lb-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.soup-leaderboard .lb-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+}
+.soup-leaderboard .lb-num {
+  text-align: end !important;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+.soup-leaderboard .lb-rank {
+  width: 48px;
+  font: 12px/1 var(--font-mono);
+  color: var(--accent-light);
+}
+.soup-leaderboard tbody tr:nth-child(-n + 3) .lb-rank {
+  font-weight: 700;
+}
+.soup-leaderboard .lb-table tbody th {
+  font-weight: 500;
+}
+.soup-leaderboard .lb-repo {
+  display: inline-flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 15px;
+}
+.soup-leaderboard .lb-repo > span {
+  color: var(--accent-light);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.soup-leaderboard tr:hover .lb-repo > span,
+.soup-leaderboard .lb-repo:focus-visible > span {
+  opacity: 1;
+}
+.soup-leaderboard .lb-repo:hover {
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-sub {
+  display: block;
+  margin-top: 4px;
+  font: 10px/1.5 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-status {
+  display: inline-block;
+  margin-inline-start: 10px;
+  padding: 2px 7px;
+  border: 1px solid var(--lb-line);
+  font: 9px/1.5 var(--font-mono);
+  color: var(--lb-soft);
+  vertical-align: middle;
+}
+.soup-leaderboard .lb-status.is-in {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-status.is-out {
+  text-decoration: line-through;
+}
+.soup-leaderboard .lb-none {
+  font: 10px/1.5 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-total strong {
+  font-size: 18px;
+  color: var(--fg);
+}
+.soup-leaderboard .lb-total span {
+  display: block;
+  font-size: 9px;
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-rules {
+  margin-top: 56px;
+  max-width: 900px;
+  margin-inline-start: max(48px, calc((100% - 1320px) / 2));
+}
+.soup-leaderboard h2 {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.soup-leaderboard .lb-rules ol {
+  margin-top: 18px;
+  padding-inline-start: 20px;
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--lb-soft);
+}
+
+.soup-leaderboard .lb-flag {
+  margin-inline-start: 6px;
+  font-size: 11px;
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-flags ul {
+  margin: 8px 0 0;
+  padding-inline-start: 18px;
+  list-style: square;
+}
+
+/* Repository page */
+.soup-leaderboard .lb-owner {
+  margin-top: -6px;
+  font: 13px/1.6 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-owner a:hover {
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  font: 11px/1.6 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+}
+.soup-leaderboard .lb-primary,
+.soup-leaderboard .lb-secondary {
+  padding: 12px 18px;
+  font: 12px/1.4 var(--font-mono);
+  border: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.soup-leaderboard .lb-primary:hover {
+  background: var(--accent-light);
+}
+.soup-leaderboard .lb-secondary:hover {
+  border-color: var(--accent-light);
+}
+.soup-leaderboard .lb-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--lb-line);
+  border: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-card {
+  padding: 24px;
+  background: var(--bg);
+  min-width: 0;
+}
+.soup-leaderboard .lb-card h2 {
+  font: 10px/1.5 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-card dl {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+.soup-leaderboard .lb-card dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.soup-leaderboard .lb-card dt {
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-card dd {
+  font-family: var(--font-mono);
+  text-align: end;
+}
+.soup-leaderboard .lb-big {
+  margin-top: 12px;
+  font: 600 48px/1 var(--font-mono);
+  letter-spacing: -0.04em;
+}
+.soup-leaderboard .lb-big span {
+  margin-inline-start: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--lb-soft);
+  letter-spacing: 0;
+}
+.soup-leaderboard blockquote {
+  margin-top: 16px;
+  padding: 10px 12px;
+  background: var(--lb-panel);
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.soup-leaderboard .lb-checks {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+  font-size: 13px;
+}
+.soup-leaderboard .lb-checks li {
+  display: flex;
+  gap: 10px;
+}
+.soup-leaderboard .lb-checks span {
+  width: 14px;
+  flex: none;
+  font-family: var(--font-mono);
+}
+.soup-leaderboard .lb-checks .is-yes span {
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-checks .is-no {
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-commit,
+.soup-leaderboard .lb-people {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--lb-soft);
+  overflow-wrap: anywhere;
+}
+.soup-leaderboard .lb-commit a:hover,
+.soup-leaderboard .lb-people a:hover,
+.soup-leaderboard .lb-tree a:hover {
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-files {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 48px;
+}
+.soup-leaderboard .lb-files .lb-warn {
+  grid-column: 1 / -1;
+}
+.soup-leaderboard .lb-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.soup-leaderboard .lb-tags code {
+  padding: 4px 8px;
+  border: 1px solid var(--lb-line);
+  font-size: 12px;
+}
+.soup-leaderboard .lb-tree {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--lb-line);
+  font: 12px/1.6 var(--font-mono);
+}
+.soup-leaderboard .lb-tree li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-tree li span {
+  color: var(--lb-soft);
+  white-space: nowrap;
+}
+.soup-leaderboard .lb-tree a {
+  overflow-wrap: anywhere;
+}
+.soup-leaderboard .lb-warn,
+.soup-leaderboard .lb-notes {
+  padding: 10px 14px;
+  border-inline-start: 2px solid var(--accent);
+  background: var(--lb-panel);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.soup-leaderboard .lb-notes {
+  margin-top: 32px;
+}
+.soup-leaderboard .lb-doc {
+  margin-top: 56px;
+}
+.soup-leaderboard .lb-doc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-doc-head span {
+  font: 10px/1.5 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-doc .lb-warn {
+  margin-bottom: 20px;
+}
+
+/* Team README, rendered from Markdown. */
+.soup-leaderboard .lb-markdown {
+  max-width: 900px;
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.soup-leaderboard .lb-markdown > * + * {
+  margin-top: 16px;
+}
+.soup-leaderboard .lb-markdown :is(h2, h3, h4, h5, h6) {
+  margin-top: 36px;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+.soup-leaderboard .lb-markdown h2 {
+  font-size: 26px;
+}
+.soup-leaderboard .lb-markdown h3 {
+  font-size: 20px;
+}
+.soup-leaderboard .lb-markdown h4,
+.soup-leaderboard .lb-markdown h5,
+.soup-leaderboard .lb-markdown h6 {
+  font-size: 16px;
+}
+.soup-leaderboard .lb-markdown a {
+  color: var(--accent-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.soup-leaderboard .lb-markdown :is(ul, ol) {
+  padding-inline-start: 22px;
+}
+.soup-leaderboard .lb-markdown li + li {
+  margin-top: 6px;
+}
+.soup-leaderboard .lb-markdown ul {
+  list-style: square;
+}
+.soup-leaderboard .lb-markdown ol {
+  list-style: decimal;
+}
+.soup-leaderboard .lb-markdown code {
+  padding: 1px 5px;
+  background: var(--lb-panel);
+  font-size: 0.88em;
+}
+.soup-leaderboard .lb-markdown pre {
+  padding: 16px;
+  background: var(--lb-panel);
+  border: 1px solid var(--lb-line);
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.soup-leaderboard .lb-markdown pre code {
+  padding: 0;
+  background: none;
+}
+.soup-leaderboard .lb-markdown blockquote {
+  border-inline-start: 2px solid var(--lb-line);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.soup-leaderboard .lb-markdown :is(th, td) {
+  padding: 8px 12px;
+  border: 1px solid var(--lb-line);
+  text-align: start;
+}
+.soup-leaderboard .lb-markdown th {
+  background: var(--lb-panel);
+  font-weight: 550;
+}
+.soup-leaderboard .lb-markdown img {
+  max-width: 100%;
+  height: auto;
+}
+.soup-leaderboard .lb-markdown hr {
+  border: 0;
+  border-top: 1px solid var(--lb-line);
+}
+
+@media (max-width: 1100px) {
+  .soup-leaderboard .lb-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .soup-leaderboard .lb-container {
+    width: calc(100% - 32px);
+  }
+  .soup-leaderboard .lb-rules {
+    margin-inline-start: 16px;
+  }
+  .soup-leaderboard .lb-hero {
+    padding: 44px 0 28px;
+  }
+  .soup-leaderboard .lb-cards,
+  .soup-leaderboard .lb-files {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .soup-leaderboard .lb-table th,
+  .soup-leaderboard .lb-table td {
+    padding: 12px;
+  }
+}
+
+/* Unofficial marking and the Kaggle table. */
+.soup-leaderboard .lb-unofficial {
+  max-width: 760px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.soup-leaderboard .lb-unofficial strong,
+.soup-leaderboard .lb-tag {
+  margin-inline-end: 8px;
+  font: 600 11px/1.6 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-tag {
+  margin-inline-start: 10px;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  font-style: normal;
+  vertical-align: middle;
+}
+.soup-leaderboard .lb-group-head.lb-stack {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.soup-leaderboard .lb-group-head.lb-stack p {
+  max-width: 820px;
+}
+.soup-leaderboard .lb-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.soup-leaderboard .lb-mark {
+  margin-inline-start: 4px;
+  font: 12px/1 var(--font-mono);
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-team {
+  font: 13px/1.5 var(--font-mono);
+}
+.soup-leaderboard .lb-note {
+  max-width: 820px;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-section-title {
+  margin-top: 72px;
+  padding-top: 32px;
+  border-top: 1px solid var(--lb-line);
+}
+.soup-leaderboard .lb-section-title + .lb-group {
+  margin-top: 24px;
+}
+
+/* Filters over the Kaggle table. */
+.soup-leaderboard .lb-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 12px;
+}
+.soup-leaderboard .lb-filters input[type='search'],
+.soup-leaderboard .lb-filters select,
+.soup-leaderboard .lb-reset {
+  font: 13px/1.4 var(--font-mono);
+  color: var(--fg);
+  background: var(--lb-panel);
+  border: 1px solid var(--lb-line);
+  border-radius: 0;
+}
+.soup-leaderboard .lb-search {
+  flex: 1 1 260px;
+}
+.soup-leaderboard .lb-search input {
+  width: 100%;
+  padding: 10px 12px;
+}
+.soup-leaderboard .lb-filters :is(input, select, button):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.soup-leaderboard .lb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.soup-leaderboard .lb-chips label {
+  position: relative;
+  cursor: pointer;
+}
+.soup-leaderboard .lb-chips input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.soup-leaderboard .lb-chips span {
+  display: block;
+  padding: 8px 12px;
+  border: 1px solid var(--lb-line);
+  font: 12px/1.4 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-chips input:checked + span {
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+.soup-leaderboard .lb-chips input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.soup-leaderboard .lb-check,
+.soup-leaderboard .lb-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 12px/1.4 var(--font-mono);
+  color: var(--lb-soft);
+  cursor: pointer;
+}
+.soup-leaderboard .lb-check input {
+  accent-color: var(--accent);
+}
+.soup-leaderboard .lb-sort select {
+  padding: 8px 10px;
+}
+.soup-leaderboard .lb-reset {
+  padding: 8px 12px;
+  color: var(--lb-soft);
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .soup-leaderboard .lb-reset:hover,
+  .soup-leaderboard .lb-chips label:hover span {
+    color: var(--accent-light);
+  }
+}
+.soup-leaderboard .lb-count {
+  margin-bottom: 10px;
+  font: 11px/1.6 var(--font-mono);
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-empty {
+  padding: 24px 0;
+  color: var(--lb-soft);
+}
+.soup-leaderboard .lb-table tr[hidden] {
+  display: none;
+}

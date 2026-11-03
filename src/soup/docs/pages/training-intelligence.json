@@ -1,0 +1,102 @@
+{
+  "slug": "training-intelligence",
+  "title": "Training Intelligence",
+  "description": "The forgetting-detection and checkpoint-intelligence config keys, accepted by the schema but not enforced during training at v0.77.0 (soup train prints a note saying so), while ten of the related tunables are refused at load since v0.77.0 when set away from their defaults. The same mini benchmarks do run: after training as leg 2 of soup ship, and at epoch boundaries during training when a soup train --gate suite includes a type: benchmark task.",
+  "source": "https://trysoup.dev/docs/training-intelligence",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "702edd5569fa83f1ce37b20e8742e473ca81b28a2144ce12d84b6a2b00f54bbc",
+  "headings": [
+    {
+      "level": 2,
+      "id": "what-is-wired-and-what-is-not",
+      "title": "What is wired and what is not"
+    },
+    {
+      "level": 2,
+      "id": "catastrophic-forgetting-detection-accepted-not-enforced",
+      "title": "Catastrophic forgetting detection (accepted, not enforced)"
+    },
+    {
+      "level": 3,
+      "id": "forgetting-detection-config-the-switch-is-not-enforced-the-tunables-are-refused",
+      "title": "Forgetting-detection config (the switch is not enforced; the tunables are refused)"
+    },
+    {
+      "level": 3,
+      "id": "built-in-benchmarks",
+      "title": "Built-in benchmarks"
+    },
+    {
+      "level": 2,
+      "id": "checkpoint-intelligence-accepted-not-enforced",
+      "title": "Checkpoint intelligence (accepted, not enforced)"
+    },
+    {
+      "level": 3,
+      "id": "checkpoint-intelligence-config-the-switches-are-not-enforced-the-tunables-are-refused",
+      "title": "Checkpoint-intelligence config (the switches are not enforced; the tunables are refused)"
+    },
+    {
+      "level": 3,
+      "id": "dashboard-and-best-quality-link-design-target-not-produced-at-v0-77-0",
+      "title": "Dashboard and best_quality link (design target, not produced at v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "storage-tables-exist-nothing-writes-to-them",
+      "title": "Storage (tables exist, nothing writes to them)"
+    },
+    {
+      "level": 2,
+      "id": "safety",
+      "title": "Safety"
+    },
+    {
+      "level": 2,
+      "id": "defaults",
+      "title": "Defaults"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Training Intelligence</h1><p>v0.25.0 added config options for two training-time subsystems: <strong>catastrophic forgetting detection</strong> and <strong>checkpoint intelligence</strong>. The forgetting signal later became leg 2 of <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship</code></a>&#x27;s SHIP / DON&#x27;T-SHIP verdict.</p><blockquote><p><strong>Status at v0.77.0: these options are accepted by the schema, but nothing in v0.77.0 reads them during training.</strong> Setting <code>forgetting_detection</code>, <code>checkpoint_intelligence</code>, <code>early_stop_on_regression</code> or <code>convergence_detection</code> does not start a forgetting probe, a checkpoint-quality eval or an early stop. <code>soup train</code> prints a yellow note saying they are &quot;set but not enforced during training in this build&quot;, and the note points at <code>--gate &lt;suite.yaml&gt;</code> for a live eval gate (<a href=\"__DOCS_BASE__/eval-gate\">eval-gated training</a>) or at <code>soup eval</code> / <code>soup diagnose</code> after training; <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship</code></a> is the other live alternative. The sections below describe what the options are meant to do, so you can read an existing config; they are not a description of what a run does today.</p></blockquote><p><strong>Since v0.77.0 ten of the tunables are refused at load</strong> (they warned in v0.76). Set one to a value other than its schema default and <code>soup train</code> stops with <code>Config validation error:</code> and one line per field, <code>training.&lt;name&gt; is accepted but read by nothing; refused as of v0.77. Delete the line.</code> (exit 1; <code>soup doctor --config</code> exits 2). A field left at its default still loads. The four parent switches and <code>forgetting_threshold</code> are not among the ten: they still load, with the note above. The list is in the table below, and the full set of staged fields is on <a href=\"__DOCS_BASE__/config-refusals\">Settings refused at load</a>.</p><h2 id=\"what-is-wired-and-what-is-not\">What is wired and what is not</h2><div><table><thead><tr><th>Option</th><th>At v0.77.0</th></tr></thead><tbody><tr><td><code>forgetting_detection</code>, <code>checkpoint_intelligence</code>, <code>early_stop_on_regression</code>, <code>convergence_detection</code></td><td>Accepted by the schema and not refused at load. <code>soup train</code> reads them only to print the &quot;not enforced&quot; note above (for each one set to <code>true</code>). Upstream names no release for refusing them. <code>soup autopilot</code> stopped writing the first three in v0.76.0 (it wrote them as <code>true</code> until v0.75.2), so a config it generated earlier still carries them.</td></tr><tr><td><code>forgetting_threshold</code></td><td>Accepted by the schema, but nothing in v0.77.0 reads it. A non-default value is named in the same <code>soup train</code> note and is not refused at load; upstream names no release for refusing it. It is <code>training.forgetting_threshold</code>, not the <code>eval.ship.forgetting_threshold</code> that <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship</code></a> reads, which is live.</td></tr><tr><td><code>forgetting_eval_steps</code>, <code>forgetting_benchmark</code>, <code>forgetting_stop</code></td><td>Read by nothing. A non-default value is refused at load since v0.77.0 (it warned in v0.76).</td></tr><tr><td><code>checkpoint_eval_steps</code>, <code>checkpoint_eval_metric</code>, <code>checkpoint_eval_tasks</code>, <code>checkpoint_keep_top</code>, <code>early_stop_patience</code></td><td>Read by nothing. A non-default value is refused at load since v0.77.0 (it warned in v0.76).</td></tr><tr><td><code>convergence_window</code>, <code>convergence_rel_tol</code></td><td>Read by nothing. A non-default value is refused at load since v0.77.0 (it warned in v0.76).</td></tr><tr><td>The mini benchmarks (<code>mini_mmlu</code>, <code>mini_common_sense</code>, <code>mini_instruction</code>)</td><td>Live, but not as a training-time probe: they score leg 2 of <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship</code></a> after training, and the <code>type: benchmark</code> tasks of an <a href=\"__DOCS_BASE__/eval-gate\">eval gate</a> at epoch boundaries.</td></tr><tr><td><code>training.eval_gate</code> / <code>soup train --gate</code></td><td>Live during training: runs the gate suite at epoch boundaries and can stop the run.</td></tr></tbody></table></div><h2 id=\"catastrophic-forgetting-detection-accepted-not-enforced\">Catastrophic forgetting detection (accepted, not enforced)</h2><p>The design: run a mini benchmark on the base model before training, repeat it every N steps on the current checkpoint, and warn, or stop, when general-knowledge accuracy drops more than a threshold. <strong>None of that happens during <code>soup train</code> at v0.77.0.</strong> The same measurement does run as a gate: against a finished model in <code>soup ship</code> and <code>soup eval gate</code>, and at epoch boundaries when your <code>--gate</code> suite includes a <code>type: benchmark</code> task.</p><h3 id=\"forgetting-detection-config-the-switch-is-not-enforced-the-tunables-are-refused\">Forgetting-detection config (the switch is not enforced; the tunables are refused)</h3><p>This block loads at v0.77.0 only because each tunable is written at its schema default (<code>forgetting_eval_steps: 100</code>, <code>forgetting_benchmark: mini_mmlu</code>, <code>forgetting_stop: false</code>). Change any of those three and the load stops. <code>forgetting_detection: true</code> loads and <code>soup train</code> names it in its &quot;not enforced&quot; note; <code>forgetting_threshold: 0.10</code> is that key&#x27;s default, so the note leaves it out (a different value loads too, and is named).</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  forgetting_detection: true\n  forgetting_eval_steps: 100\n  forgetting_threshold: 0.10       # warn if accuracy drops >10%\n  forgetting_benchmark: mini_mmlu  # mini_mmlu | mini_common_sense | mini_instruction\n  forgetting_stop: false           # auto-stop on severe forgetting"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"built-in-benchmarks\">Built-in benchmarks</h3><p>Each is a hand-authored set embedded in the source, no external downloads: 40 items in <code>mini_mmlu</code> (26 before v0.77.0), 40 in <code>mini_common_sense</code> (24 before v0.76.0) and 24 in <code>mini_instruction</code>. <code>soup ship</code> and <code>soup eval gate</code> also bundle <code>mini_arithmetic</code> (40), <code>mini_tool_call</code>, <code>mini_format_json</code>, <code>mini_safety</code> and <code>mini_over_refusal</code> (40 each); they are not valid values of <code>forgetting_benchmark</code>. The sets are small on purpose: each has more than 20 items, so one flipped item moves a score by 0.025 to 0.042, which is visible instead of rounded away, but it takes more than one flipped item to reach the default 0.05 threshold. They are worth reading before you reason about what a delta means.</p><ul><li><code>mini_mmlu</code> — diverse MMLU coverage (STEM / humanities / social sciences)</li><li><code>mini_common_sense</code> — common-sense reasoning</li><li><code>mini_instruction</code> — instruction-following quality</li></ul><h2 id=\"checkpoint-intelligence-accepted-not-enforced\">Checkpoint intelligence (accepted, not enforced)</h2><p>HF Trainer&#x27;s &quot;best checkpoint&quot; is the one with lowest loss. But lower loss does not mean a better model: overfitted checkpoints hit low loss with bad real-world quality. Checkpoint intelligence is meant to run a quality eval during training and tag a <code>best_quality</code> checkpoint separately from <code>best_loss</code>. <strong>At v0.77.0 it does not.</strong> No code in <code>soup train</code> scores or ranks checkpoints, and the string <code>best_quality</code> appears nowhere in the source. To compare checkpoints by quality today, run <code>soup eval</code> or an <a href=\"__DOCS_BASE__/eval-gate\">eval gate</a> on each one.</p><h3 id=\"checkpoint-intelligence-config-the-switches-are-not-enforced-the-tunables-are-refused\">Checkpoint-intelligence config (the switches are not enforced; the tunables are refused)</h3><p>The block below loads at v0.77.0 because every tunable in it is at its schema default (<code>checkpoint_eval_steps: 200</code>, <code>checkpoint_eval_metric: composite</code>, <code>checkpoint_keep_top: 3</code>, <code>early_stop_patience: 2</code>; <code>checkpoint_eval_tasks</code> is unset by default, so it is left out). The two switches load and are named in the <code>soup train</code> note.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  checkpoint_intelligence: true\n  checkpoint_eval_steps: 200\n  checkpoint_eval_metric: composite   # judge | mmlu | custom | composite\n  checkpoint_keep_top: 3              # delete the rest\n  early_stop_on_regression: true\n  early_stop_patience: 2"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Older versions of this page also showed <code>checkpoint_eval_tasks: eval.jsonl</code> (an optional custom eval). Since v0.77.0 that line, like any other value away from a default, stops the load:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "Config validation error:\n\n  training.checkpoint_eval_tasks is accepted but read by nothing; refused as of v0.77. Delete the line."
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"dashboard-and-best-quality-link-design-target-not-produced-at-v0-77-0\">Dashboard and <code>best_quality</code> link (design target, not produced at v0.77.0)</h3><p>The design called for a dashboard block like the one below and, after training, a <code>best_quality</code> checkpoint linked at <code>./output/best_quality/</code>. The live dashboard prints neither, and no run creates that link.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "terminal",
+      "code": "Epoch 2/3 ████████ loss: 0.89  step 450/720\n  → Loss best:     step-450 (loss 0.89)\n  → Quality best:  step-300 (judge 8.2/10) ⭐\n  → Gen knowledge: 91.2% (baseline 95.0%, -3.8% ⚠)\n  → Last eval:     +0.4 judge points (improving)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"storage-tables-exist-nothing-writes-to-them\">Storage (tables exist, nothing writes to them)</h2><p>The experiment tracker (<code>~/.soup/experiments.db</code>) creates two tables for these subsystems:</p><ul><li><code>checkpoint_quality(run_id, step, metric, score, is_best, created_at)</code></li><li><code>forgetting_eval(run_id, step, benchmark, accuracy, baseline, delta, warning_level)</code></li></ul><p>At v0.77.0 no code inserts into either, so they stay empty.</p><h2 id=\"safety\">Safety</h2><ul><li>Benchmark data is embedded in code — no external file loading at runtime.</li><li>The schema bounds the eval intervals, and the two floors differ: <code>forgetting_eval_steps</code> is 10 to 10,000 (default 100), <code>checkpoint_eval_steps</code> is <strong>50</strong> to 10,000 (default 200). Through v0.76 a value of 20 was inside one range and refused by the other (checked at v0.76.0: <code>checkpoint_eval_steps: 20</code> failed with <code>Input should be greater than or equal to 50</code>). Since v0.77.0 any value other than the default is refused as a staged field first, so <code>checkpoint_eval_steps: 20</code> now prints <code>training.checkpoint_eval_steps is accepted but read by nothing; refused as of v0.77. Delete the line.</code></li></ul><h2 id=\"defaults\">Defaults</h2><p>Until v0.75.2 <code>soup autopilot</code> wrote <code>forgetting_detection: true</code>, <code>checkpoint_intelligence: true</code> and <code>early_stop_on_regression: true</code> into the config it generated, and <code>soup train</code> then reported them as not enforced. Since v0.76.0 it no longer writes or advertises them, because nothing enforces them (#927); a config it generated earlier keeps them, and keeps printing the note. All four parent switches default to <code>false</code>. For protection that runs during training, use <code>--gate</code> (see <a href=\"__DOCS_BASE__/eval-gate\">eval-gated training</a>).</p><nav><a href=\"__DOCS_BASE__/configuration\"><span>Previous</span><span>Configuration</span></a><a href=\"__DOCS_BASE__/advise\"><span>Next</span><span>soup advise: pre-flight decision engine</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.astro/
+.git/
+.agents/
+.codex/
+.impeccable/
+.env
+.env.*
+*.local
+**/*.log
+src/parked/
+/assets/
+docs/soup/qa/
+docs/soup/hero-concept*.png
+.venv-fonts/

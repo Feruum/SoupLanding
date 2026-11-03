@@ -1,0 +1,503 @@
+{
+  "version": 2,
+  "retrieved": "2026-10-30T23:09:08.286Z",
+  "grids": [
+    24,
+    32,
+    40
+  ],
+  "assets": [
+    {
+      "id": "huggingface",
+      "file": "sources/huggingface.svg",
+      "url": "https://trysoup.dev/logos/huggingface.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "61ed41824e6a1321382d488ea019783e6fce061b165d399d2dffba3f9528720b",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "ollama",
+      "file": "sources/ollama.svg",
+      "url": "https://trysoup.dev/logos/ollama.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "efcfe0feb8c5aeb177b3f138883e718236c82432dfd6804cb081a66777740c35",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "vllm",
+      "file": "sources/vllm.svg",
+      "url": "https://trysoup.dev/logos/vllm.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "4b3de4bebda384fa2b4983a75476ef86b1b39db420241a643ab11ffd55ecc8f4",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "deepspeed",
+      "file": "sources/deepspeed-official.svg",
+      "url": "https://www.deepspeed.ai/assets/images/deepspeed-logo-uppercase-bold-white-1.15.svg",
+      "kind": "DeepSpeed official website",
+      "sha256": "bbead71213d02ce012a3b24dcd33407d5b1a46a1b0e0f32a970e56d19da91486",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": true
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "unsloth",
+      "file": "sources/unsloth-original.png",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/images/unsloth%20logo%20only.png",
+      "kind": "Unsloth official repository",
+      "sha256": "368c8b50082367633865450ff53aa4ffa14a63c419230c915c7c22003e22b8ce",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "edge-white",
+        "crop": [
+          0,
+          0,
+          0.318,
+          1
+        ],
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "onnx",
+      "file": "sources/onnx.svg",
+      "url": "https://trysoup.dev/logos/onnx.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "2f7aeebef522c6465fded8ada45afe76dc4b1be46a2403f5363042fa559705c9",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 32
+    },
+    {
+      "id": "nvidia",
+      "file": "sources/nvidia.svg",
+      "url": "https://trysoup.dev/logos/nvidia.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "8582eec85d644fcaef2a80b482adda911583276d30609b6e311c4e197b918763",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "weightsandbiases",
+      "file": "sources/weightsandbiases.svg",
+      "url": "https://trysoup.dev/logos/weightsandbiases.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "a41da68b091cbb4fbc4fe0770ac35843cbd06078deb04d4c97559f173b83b8fe",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "flashattention",
+      "file": "sources/flashattention.svg",
+      "url": "https://trysoup.dev/logos/flashattention.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "5c473651258fd20690fcddd8cf7fe1277c0efa2ff87fe0e447142f248139d774",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "sglang",
+      "file": "sources/sglang-original.svg",
+      "url": "https://raw.githubusercontent.com/sgl-project/sglang/main/assets/logo_square.svg",
+      "kind": "SGLang official repository",
+      "sha256": "09ccea391ea4da9d896d6fae0f31e5a52a456bfe837f266a99a69c2242d95fe3",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 32
+    },
+    {
+      "id": "llamacpp",
+      "file": "sources/llamacpp.svg",
+      "url": "https://trysoup.dev/logos/llamacpp.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "9f4bae68f48b05fc1a872c2419c6dc7eb2082a0a9b2a4a6222c09dda49e47350",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "mlx",
+      "file": "sources/mlx.png",
+      "url": "https://trysoup.dev/logos/mlx.png",
+      "kind": "upstream Soup asset",
+      "sha256": "92dd4ff69f4eaab3f8e468d67b7cef2bf45b021e2ba45604c51beece69b04869",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "light",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "openai",
+      "file": "sources/openai.svg",
+      "url": "https://trysoup.dev/logos/openai.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "8196d7b183363b89145da2f4e36de4cd528e06e566e39b4f071acc759033815a",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 32
+    },
+    {
+      "id": "tensorboard",
+      "file": "sources/tensorflow.svg",
+      "url": "https://trysoup.dev/logos/tensorflow.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "014d8fa3355ade0410893383f7203956a8e0abe2db72668730b7e0ca2637ca8a",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "gguf",
+      "file": "sources/gguf.svg",
+      "url": "https://trysoup.dev/logos/gguf.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "01cefdd70839b9175e7685eaef36759fbbed0f5df00db4e958f770a8aa413c0f",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "hqq",
+      "file": "sources/loramerge.svg",
+      "url": "https://trysoup.dev/logos/loramerge.svg",
+      "kind": "upstream Soup asset",
+      "sha256": "93d4663e09fae2d4d2259fd09d6a9ff18ac2aa7c7cdb3504dce878b45d777c79",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "langfuse",
+      "file": "sources/langfuse-official.png",
+      "url": "https://langfuse.com/apple-touch-icon.png",
+      "kind": "Langfuse official website",
+      "sha256": "3716a74d937c060454c2fb6ab4e6a33d2af411eac65a87335182581dec2a781d",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "light",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "langsmith",
+      "file": "sources/langsmith-official.svg",
+      "url": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/6a1c6031b3db015796401c5b_4e8060f75e16b02daa59026cbae4bc8f_LangSmith%20Engine_Icon_light%201.svg",
+      "kind": "LangSmith official website",
+      "sha256": "cbe5465430823dea50eb375a44423793d79d8d30135b886d58e0937df7469ca4",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "light",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "helicone",
+      "file": "sources/helicone-official.svg",
+      "url": "https://www.helicone.ai/static/logo.svg",
+      "kind": "Helicone official website",
+      "sha256": "53323e1466ebc95ca2e8b9958a313b4944a49d1810645220afa704187f1e0a3f",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": true
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "openpipe",
+      "file": "sources/openpipe-svg.svg",
+      "url": "https://raw.githubusercontent.com/openpipe/openpipe/main/app/public/favicons/safari-pinned-tab.svg",
+      "kind": "OpenPipe official repository",
+      "sha256": "6b30a4d6658ebe2efc68bd1ee3de4a4fcac352cbdde0a8876c27895f34e76589",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "opentelemetry",
+      "file": "sources/opentelemetry-original.svg",
+      "url": "https://raw.githubusercontent.com/open-telemetry/opentelemetry.io/main/assets/icons/logo.svg",
+      "kind": "OpenTelemetry official repository",
+      "sha256": "6ad25aeeae798e84858cc135aa276f30669799a9df5b041cfe808f9498ef5998",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": [
+          0,
+          0,
+          0.28,
+          1
+        ],
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "mlflow",
+      "file": "sources/mlflow-github.svg",
+      "url": "https://raw.githubusercontent.com/mlflow/mlflow/master/assets/logo.svg",
+      "kind": "MLflow official repository",
+      "sha256": "8494648cf62130c8a3f28819c4f2e12e4328de70b64b35e0da205a09c367e6f7",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": true,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 40
+    },
+    {
+      "id": "swanlab",
+      "file": "sources/swanlab-official.png",
+      "url": "https://swanlab.cn/icon.png?e31c53cba54196fe",
+      "kind": "SwanLab official website",
+      "sha256": "e35128565e82d735b8a85fd6719f97f6bd8508380cdfc21eeb7aedf89ff44cbd",
+      "transform": {
+        "mono": true,
+        "adaptiveNeutral": false,
+        "mode": "light",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "trackio",
+      "file": "sources/trackio-official.png",
+      "url": "https://raw.githubusercontent.com/gradio-app/trackio/main/trackio/assets/trackio_logo_light.png",
+      "kind": "Trackio official repository",
+      "sha256": "a6eb72253c0128ce79b526a86b7943eed37beec186b5f57ff6c1701d0e9ff596",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "edge-white",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "meta",
+      "file": "sources/meta-official.svg",
+      "url": "https://static.xx.fbcdn.net/rsrc.php/yf/r/-7pQO6hUGK_.svg",
+      "kind": "Meta official brand website",
+      "sha256": "9c354dc7d40f7862df2dfb34df05ae08c3e956d55a450379803d6cac6878a63e",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 32
+    },
+    {
+      "id": "qwen",
+      "file": "sources/qwen-web.png",
+      "url": "https://img.alicdn.com/imgextra/i4/O1CN01OXv3EM1FN8t9W4P79_!!6000000000474-2-tps-80-80.png",
+      "kind": "Qwen official website icon",
+      "sha256": "cd9390bc4209c319121d111f3a1f535b3c7dd909b8f860d41acc9744138d58df",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "gemma",
+      "file": "sources/google-gemma-avatar.jpg",
+      "url": "https://avatars.githubusercontent.com/u/271369873?v=4",
+      "kind": "Logo of the official google-gemma GitHub organization",
+      "sha256": "9a09515b207e115bd644c7e2aa219687b3dc254d074f6586d77e1ea967a7f1a4",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "ink",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 32
+    },
+    {
+      "id": "mistral",
+      "file": "sources/mistral-mark.svg",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/mistral.svg",
+      "kind": "Mistral brand mark vendored in the official Unsloth repository",
+      "sha256": "7eb3fe4bc22d2a72c29b772278976475ab00bde3c11c7179093e878ff29b9b37",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "microsoft",
+      "file": "sources/microsoft-original.svg",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/microsoft.svg",
+      "kind": "Microsoft brand mark vendored in the official Unsloth repository",
+      "sha256": "3d41251f93127b4b42c2f69fa423d204946cf9c307d786ea36b8d9bef4179282",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "ink",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 24
+    },
+    {
+      "id": "deepseek",
+      "file": "sources/deepseek-mark.svg",
+      "url": "https://raw.githubusercontent.com/unslothai/unsloth/main/studio/frontend/public/hub/profile/logo/deepseek.svg",
+      "kind": "DeepSeek brand mark vendored in the official Unsloth repository",
+      "sha256": "e556373f3d403cec90c56b19240a57e27d506f2e7bd024fb1ad653543362b1b7",
+      "transform": {
+        "mono": false,
+        "adaptiveNeutral": false,
+        "mode": "alpha",
+        "crop": null,
+        "coloredCrop": false
+      },
+      "defaultResolution": 32
+    },
+    {
+      "id": "tensorrt",
+      "aliasOf": "nvidia"
+    },
+    {
+      "id": "wandb",
+      "aliasOf": "weightsandbiases"
+    },
+    {
+      "id": "aqlm",
+      "aliasOf": "hqq"
+    },
+    {
+      "id": "otel",
+      "aliasOf": "opentelemetry"
+    },
+    {
+      "id": "openai-stored",
+      "aliasOf": "openai"
+    },
+    {
+      "id": "llama",
+      "aliasOf": "meta"
+    },
+    {
+      "id": "phi",
+      "aliasOf": "microsoft"
+    },
+    {
+      "id": "whisper",
+      "aliasOf": "openai"
+    }
+  ]
+}

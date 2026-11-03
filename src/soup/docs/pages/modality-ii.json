@@ -1,0 +1,138 @@
+{
+  "slug": "modality-ii",
+  "title": "Modality II (v0.52.0)",
+  "description": "Modality II in Soup CLI v0.52.0 (live trainers v0.53.2 + PRM live v0.53.11). task: tts with 5 family names (Orpheus, Sesame-CSM, Llasa, Spark, Oute) + emotion vocab; at v0.77.0 all five are runnable: spark and oute only on pre-encoded chatml data, and sesame_csm on raw audio through a native trainer (refused at config load in v0.76.x). task: classifier/reranker/cross_encoder live. task: distill live with teacher_model + KL/JS divergence + temperature. task: prm live with per-step MSE. BitNet 1.58 quant (refused at config load since v0.76.0 because BitNet training is not implemented; GGUF export is live). EBFT + GDPO variants (refused at config load since v0.76.0). MoE expert quant. reasoning_effort dispatch.",
+  "source": "https://trysoup.dev/docs/modality-ii",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "54b047da150c132275db14584920bcece6edd18cb193e9ae4409a88df8e469c3",
+  "headings": [
+    {
+      "level": 2,
+      "id": "tts-task-tts",
+      "title": "TTS (task: tts)"
+    },
+    {
+      "level": 3,
+      "id": "native-sesame-csm-v0-77-0",
+      "title": "Native Sesame CSM (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "distillation-task-distill",
+      "title": "Distillation (task: distill)"
+    },
+    {
+      "level": 3,
+      "id": "memory-controls-v0-76-0",
+      "title": "Memory controls (v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "classifier-reranker-cross-encoder",
+      "title": "Classifier / Reranker / Cross-Encoder"
+    },
+    {
+      "level": 2,
+      "id": "bitnet-1-58-bit-schema-and-export-only",
+      "title": "BitNet 1.58-bit (schema and export only)"
+    },
+    {
+      "level": 2,
+      "id": "ebft-gdpo-variants-refused-since-v0-76-0",
+      "title": "EBFT + GDPO variants (refused since v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "moe-expert-quant",
+      "title": "MoE expert quant"
+    },
+    {
+      "level": 2,
+      "id": "reasoning-effort-dispatch",
+      "title": "Reasoning effort dispatch"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Modality II (v0.52.0)</h1><p>7 parts. New task families + BitNet + EBFT/GDPO + MoE quant. +237 tests (6968 → 7205).</p><blockquote><p><strong>Since v0.76.0:</strong> <code>quantization: bitnet_1.58</code>, <code>ebft_variant</code> and <code>gdpo_variant</code> are refused at config load, and <code>data.format: audio</code> is refused for the <code>spark</code> and <code>oute</code> families. <code>tts_family: sesame_csm</code> was refused through v0.76.x and trains through a native trainer since v0.77.0 (#1769). The sections below are kept as the record of what v0.52.0 shipped and now say what is true at v0.77.0.</p></blockquote><h2 id=\"tts-task-tts\">TTS (task: tts)</h2><p>Five <code>tts_family</code> values with per-family emotion vocabularies, all runnable at v0.77.0: <code>orpheus</code> and <code>llasa</code> on raw audio or pre-encoded data, <code>spark</code> and <code>oute</code> on pre-encoded data only (see below), and <code>sesame_csm</code> on raw audio through its own trainer (see <a href=\"#native-sesame-csm-v0-77-0\">Native Sesame CSM</a>). Through v0.76.x <code>sesame_csm</code> was refused at config load.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: tts\nmodality: audio_out\nbase: canopylabs/orpheus-3b-0.1-ft\ndata:\n  format: audio\n  train: ./data/tts.jsonl\ntraining:\n  tts_family: orpheus   # orpheus | llasa | spark | oute | sesame_csm (its own settings, below)\n  tts_emotion: happy    # a single string, not a list"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Cross-validator gates per family. <code>canopylabs/orpheus</code> requires <code>tts_family: orpheus</code>.</p><p><strong>Only two families take an emotion tag, and each has its own list.</strong> Orpheus accepts <code>neutral</code>, <code>happy</code>, <code>sad</code>, <code>angry</code>, <code>excited</code>, <code>calm</code>, <code>whisper</code> and <code>laugh</code>; Oute accepts <code>neutral</code>, <code>happy</code>, <code>sad</code>, <code>angry</code>, <code>calm</code> and <code>excited</code>. Llasa, Spark and Sesame-CSM refuse <code>tts_emotion</code> outright (<code>tts_family=&#x27;llasa&#x27; does not support emotion conditioning</code>), and a tag outside a family&#x27;s list is refused when the config loads (<code>laugh</code> on <code>oute</code>, for instance). For the two families that take one, the trainer prepends a family-specific control string to the first user turn of every row: <code>&lt;|emotion|&gt;happy&lt;|/emotion|&gt; </code> for Orpheus and <code>[emotion: happy] </code> for Oute.</p><p><strong><code>data.format: audio</code> encodes raw audio at train time, and what it needs depends on the family.</strong></p><ul><li><strong>Orpheus</strong> (<code>pip install snac</code>, 24 kHz) and <strong>Llasa</strong> (Soup&#x27;s <code>[audio]</code> extra: torchaudio and soundfile; torchaudio must match the installed Torch; audio is resampled to 16 kHz and encoded with <code>HKUSTAudio/xcodec2-hf</code>, the ids rendered as <code>&lt;|s_ID|&gt;</code>) are live on this path.</li><li><strong>Spark</strong> and <strong>Oute</strong> raw-audio configs are refused at config load, with the compatibility reason: Spark-TTS has no installable <code>sparktts</code> package and its official environment pins Torch and Transformers below Soup&#x27;s stack, and the current <code>outetts</code> pins Transformers 4.52.3 (Oute also needs transcript or word alignment). Through v0.75.2 these were described as raising a runtime error naming a missing package.</li><li><strong><code>sesame_csm</code></strong> takes raw audio only, through a native trainer rather than this codec-string path (since v0.77.0, see below). A pre-encoded <code>chatml</code> config is refused, because CSM trains text plus 32 Mimi codebooks as parallel frames, which is not a codec-token chat. Through v0.76.x it was refused whatever the data format. The <code>sesame-csm-tts</code> and <code>spark-tts</code> recipes removed in v0.76.0 have not come back.</li></ul><p>The path that runs everywhere is the <strong>pre-encoded</strong> one: encode your audio to codec tokens yourself (in the upstream codec&#x27;s own environment, for Spark and Oute), register them through <code>data.new_special_tokens</code>, and train with <code>data.format: chatml</code> (or <code>auto</code>) over the token text, as rows with a <code>messages</code> list. <code>data.new_special_tokens</code> is registered on <code>backend: transformers</code> only; <code>backend: unsloth</code> with it is refused at load (#1358). <code>chat</code> is not a value of <code>data.format</code>, even though Soup&#x27;s own error message for a missing codec package says it is. Three TTS recipes ship: <code>orpheus-tts-sft</code> and <code>llasa-tts</code> (raw audio, <code>data.format: audio</code>) and <code>oute-tts</code> (pre-encoded, <code>data.format: chatml</code>).</p><h3 id=\"native-sesame-csm-v0-77-0\">Native Sesame CSM (v0.77.0)</h3><p><code>tts_family: sesame_csm</code> trains with Transformers&#x27; own <code>CsmForConditionalGeneration</code> and <code>CsmProcessor</code> (#1769, by @Amix29). Upstream describes the objective this way: the processor builds the text conditioning and the audio-frame labels, the model encodes each clip with its frozen Mimi codec, and the loss is the sum of the backbone&#x27;s loss on the first codebook and the depth decoder&#x27;s on the other 31. Install the audio extra beside training:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train,audio]\""
+    },
+    {
+      "kind": "html",
+      "html": "<p>Each JSONL row is one local clip and its exact transcript, with <code>role</code> set to the speaker id, <code>&quot;0&quot;</code> or <code>&quot;1&quot;</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"audio\": \"hello.wav\", \"messages\": [{\"role\": \"0\", \"content\": \"Hello, how are you?\"}]}"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: sesame/csm-1b\nbackend: transformers\ntask: tts\nmodality: audio_out\ndata:\n  train: ./data/speech.jsonl\n  format: audio\n  audio_dir: ./data/audio\n  max_length: 2048\ntraining:\n  tts_family: sesame_csm\n  quantization: none      # required: the schema default, 4bit, is refused\n  epochs: 3\n  batch_size: 1\n  gradient_accumulation_steps: 4\n  lr: 0.00002\n  lora:\n    r: 16\n    alpha: 32"
+    },
+    {
+      "kind": "html",
+      "html": "<p>LoRA goes on the backbone and the depth decoder, never on Mimi; <code>lora.r: 0</code> is full fine-tuning, with Mimi still frozen. What it refuses, at config load unless noted:</p><ul><li>A <code>data.format</code> other than <code>audio</code>, a backend other than <code>transformers</code>, and any <code>training.quantization</code> but <code>none</code>. Leaving <code>quantization</code> out is refused too, because its default is <code>4bit</code>: <code>Sesame CSM requires training.quantization=&#x27;none&#x27;</code>.</li><li>Every <code>training</code> setting outside this list when it differs from its default: <code>epochs</code>, <code>lr</code>, <code>batch_size</code>, <code>gradient_accumulation_steps</code>, <code>seed</code>, <code>data_seed</code>, <code>warmup_ratio</code>, <code>weight_decay</code>, <code>max_grad_norm</code>, <code>optimizer</code>, <code>scheduler</code>, <code>save_steps</code>, <code>logging_steps</code>, <code>eval_steps</code> and a boolean <code>gradient_checkpointing</code>; under <code>lora</code> everything but <code>r</code>, <code>alpha</code> and <code>dropout</code>; under <code>data</code> everything but <code>train</code>, <code>format</code>, <code>val_split</code>, <code>max_length</code> and <code>audio_dir</code>. The message names the setting, for example <code>Sesame CSM does not support training.packing</code>. <code>tts_emotion</code> is one of them.</li><li>A row that is not one clip with exactly one transcript message, or whose role is not <code>&quot;0&quot;</code> or <code>&quot;1&quot;</code>: checked after the data loads and before the model does, naming the split and the row. <code>soup train --dry-run</code> runs this check too.</li><li>More than one device, a distributed launch, DeepSpeed or FSDP, when the trainer is set up (on a multi-GPU box, select one card with <code>CUDA_VISIBLE_DEVICES</code>).</li><li>A sequence longer than <code>data.max_length</code>, when its batch is built: it is refused rather than truncated, because cutting the audio markers would break the codec alignment.</li></ul><p><code>batch_size: auto</code> uses 1. Validation loss, seeds, resume and saving the processor are supported. Audio is read through Soup&#x27;s local-file checks and resampled to mono 24 kHz. <code>sesame/csm-1b</code> may need Hugging Face access; a local Transformers-format CSM checkpoint works too.</p><p><strong>What was checked, and what was not.</strong> Upstream&#x27;s offline tests build a tiny CSM model with all 32 Mimi codebooks and exercise forward and backward, training, evaluation, save and reload, and resume, and one LoRA step on a tiny random CSM model also ran on Apple Silicon (MPS). Upstream says that validates the integration and does not establish speech quality, and no full training run on the pretrained <code>sesame/csm-1b</code> checkpoint is recorded. No quality or speed figure is published here. Raw-audio Spark and Oute are unchanged: still pre-encoded only.</p><h2 id=\"distillation-task-distill\">Distillation (task: distill)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: distill\nbase: meta-llama/Llama-3.2-3B\ntraining:\n  teacher_model: meta-llama/Llama-3.1-70B-Instruct\n  distill_divergence: kl         # kl | forward_kl | reverse_kl | js\n  distill_temperature: 2.0       # [0.05, 100]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>kl</code> is an alias for <code>forward_kl</code>, which is also what an unset <code>distill_divergence</code> resolves to; an unset <code>distill_temperature</code> resolves to 2.0. Distillation runs on <code>backend: transformers</code> only (<code>mlx</code> and <code>unsloth</code> are refused at config load), and on <code>modality: text</code> only: since v0.77.0 <code>vision</code> and <code>audio</code> are refused at load, because the trainer loads a text-only student and teacher (#2014; through v0.76.1 they were accepted and ignored). It loads the student unquantized: an unset <code>quantization</code> resolves to <code>none</code>, and since v0.77.0 an explicit <code>quantization: 4bit</code> or <code>8bit</code> (or <code>load_in_8bit: true</code>) stops the load with <code>has no effect on task=&#x27;distill&#x27;</code> (see <a href=\"__DOCS_BASE__/configuration#keys-a-task-ignores\">Keys a task ignores</a>). <code>training.gradient_checkpointing: true</code> reaches the distill trainer since v0.77.0; it used to train with checkpointing off whatever the key said. Every train and validation row must keep at least one causal-loss target after truncation at <code>data.max_length</code>, or the run is refused at setup naming the split and row. <code>distill_mode: sequence</code> (the teacher generates a completion per prompt and the student trains with plain cross-entropy on it, instead of matching logits) cannot be combined with <code>uld_strategy</code> or <code>minillm_enabled</code>: the schema accepts the pair, and the distill trainer refuses it at setup, before any model loads. In <code>sequence</code> mode a row with no prompt turn is skipped, with the count and first positions printed.</p><h3 id=\"memory-controls-v0-76-0\">Memory controls (v0.76.0)</h3><p>Distillation with a large vocabulary and long sequences can run out of GPU memory on the logit and probability tensors the divergence builds. Two keys bound it:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: distill\ntraining:\n  teacher_model: meta-llama/Llama-3.1-70B-Instruct\n  distill_chunk_size: 256     # evaluate the divergence over chunks of response tokens\n  distill_checkpoint: true    # recompute each chunk in backward instead of storing it"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>distill_chunk_size</code> (an integer of at least 1) evaluates the divergence over chunks of response tokens, which bounds the transient peak. <code>distill_checkpoint</code> wraps each chunk in non-reentrant activation checkpointing, which cuts the bytes held for backward at the cost of recomputation. <code>distill_checkpoint</code> without <code>distill_chunk_size</code> treats all response tokens as one chunk: it reduces what is retained and leaves the transient peak unbounded. Both are refused outside <code>task: distill</code>, and with <code>uld_strategy</code>, <code>minillm_enabled</code> or <code>distill_mode: sequence</code>. No memory figure is published for them.</p><p>Two numerics changes ride with it. The three divergences are now evaluated in FP32 and the loss scalar is FP32, so values differ slightly from the old low-precision numbers. Gradient accumulation weights by the number of shifted, non-masked targets across the whole optimizer window, so splitting the same rows into unequal-length microbatches keeps the full-batch token mean. Cross-tokenizer <code>uld_strategy: wasserstein_aligned</code> now leaves out a student token with no teacher counterpart (#1426); re-run a distillation whose tokenizers differ in byte-fallback or special tokens.</p><h2 id=\"classifier-reranker-cross-encoder\">Classifier / Reranker / Cross-Encoder</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: classifier   # | reranker | cross_encoder\ntraining:\n  num_labels: 5\n  label_names: [\"very_bad\", \"bad\", \"neutral\", \"good\", \"very_good\"]\n  classifier_kind: single_label   # or multi_label (v0.52.0)\n  classifier_lora: false          # true wraps the head with LoRA (v0.71.12)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Row shapes: <code>classifier</code> takes <code>{&quot;text&quot;: &quot;...&quot;, &quot;label&quot;: 1}</code> or a label name, and for <code>multi_label</code> a list of active indices or names (<code>{&quot;text&quot;: &quot;...&quot;, &quot;label&quot;: [0, 2]}</code>); <code>reranker</code> takes <code>{&quot;text&quot;: &quot;query doc&quot;, &quot;label&quot;: ...}</code>; <code>cross_encoder</code> takes <code>{&quot;text_a&quot;: &quot;query&quot;, &quot;text_b&quot;: &quot;doc&quot;, &quot;label&quot;: 1}</code> or <code>{&quot;question&quot;: &quot;query&quot;, &quot;answer&quot;: &quot;doc&quot;, &quot;label&quot;: 1}</code> and, for <code>task: cross_encoder</code>, <code>data.format: auto</code> (the default) reads that pair shape; the explicit value <code>data.format: cross_encoder</code> (v0.76.0) is accepted only on that task and is refused on any other. These three tasks load the base unquantized, and since v0.77.0 an explicit <code>quantization: 4bit</code> or <code>8bit</code> stops the load. <code>training.gradient_checkpointing: true</code> reaches them since v0.77.0 (their default stays off).</p><p><code>classifier_kind</code> picks the head: <code>single_label</code> is the default for <code>task: classifier</code>, <code>multi_label</code> trains one independent decision per label rather than a choice between them. <code>classifier_lora</code> is opt-in: it wraps the sequence-classification head as a PEFT <code>SEQ_CLS</code> adapter instead of full fine-tuning, and the ordinary <code>training.lora</code> block still supplies <code>r</code> / <code>alpha</code> / <code>dropout</code> when you turn it on.</p><h2 id=\"bitnet-1-58-bit-schema-and-export-only\">BitNet 1.58-bit (schema and export only)</h2><p><code>training.quantization: bitnet_1.58</code> is <strong>refused at config load on every task and backend</strong> (v0.76.0): <code>BitNet 1.58 training is not implemented yet; the export path soup export --format tq1_0 works on an existing BitNet checkpoint.</code> Through v0.75.2 the schema accepted the value and the quantization loader then rejected it after the config had validated; the <code>BitNetTrainerWrapper</code> that was meant to take over had no caller in <code>soup train</code>. The <code>falcon-e-bitnet-sft</code> recipe set this key and was removed from the catalog in v0.76.0.</p><p>The export side is separate and is wired: <code>soup export --format bitnet</code> or <code>tq1_0</code> runs llama.cpp&#x27;s converter and then <code>llama-quantize</code> with the TQ1_0 type (it needs a built llama.cpp). <code>is_bitnet_model</code> is a name heuristic that matches a few prefixes (<code>bitnet</code>, <code>falcon-e</code>, <code>falcone</code>, <code>1bitllm</code>, <code>onebit</code>), not a check of the weights.</p><h2 id=\"ebft-gdpo-variants-refused-since-v0-76-0\">EBFT + GDPO variants (refused since v0.76.0)</h2><p>Both fields are refused at config load, in every value.</p><ul><li><strong><code>training.gdpo_variant</code></strong> (<code>standard</code>, <code>length_normalized</code>, <code>margin</code>) is refused (#1309): supported TRL versions (0.29 and later) no longer expose the DPO loss hook it depended on, so on those versions it was accepted and silently trained plain DPO. Remove it. Plain <code>task: dpo</code> is what <code>standard</code> ran; <code>task: simpo</code> is the nearest, not identical, length-normalised objective for <code>length_normalized</code>; <code>margin</code> has no equivalent.</li><li><strong><code>training.ebft_variant</code></strong> (<code>structured</code>, <code>strided</code>) and <strong><code>training.ebft_temperature</code></strong> are refused (#1230): the term scored each position&#x27;s logits against that position&#x27;s own input token with no causal shift, so it rewarded copying the input; shifted onto the next token it duplicates the model&#x27;s cross-entropy. <code>ebft_temperature</code> on its own is refused too.</li></ul><p>No shipped recipe, template or example sets either field. The kernels this page described as live from v0.53.2 are not reachable from a config.</p><h2 id=\"moe-expert-quant\">MoE expert quant</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  moe_lora: true                 # required: moe_expert_quant is refused without it\n  moe_expert_quant: nf4          # nf4 | int8_rowwise\n  train_router_only: true        # freeze experts, train router only"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>moe_expert_quant</code> and <code>train_router_only</code> are read by <code>task: sft</code> and <code>tts</code> only and are refused at load on any other task. <code>moe_expert_quant</code> quantizes experts that are one <code>nn.Linear</code> each, and it needs CUDA and bitsandbytes. On a transformers 5 fused-expert MoE (Qwen3-30B-A3B is one) the experts are fused 3-D tensors with no <code>nn.Linear</code> to quantize, so the setup refuses with the architecture and the fused parameters named; through v0.75.2 it printed <code>applied to 0 expert Linear block(s)</code> and trained in full precision. <code>moe_lora</code> still adapts those experts, with <code>lora.dropout: 0.0</code>; see <a href=\"__DOCS_BASE__/backends\">Backends</a>.</p><h2 id=\"reasoning-effort-dispatch\">Reasoning effort dispatch</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  reasoning_effort: medium       # low | medium | high  (gpt-oss family)\n  train_on_eot: true             # also train on the end-of-turn token"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both keys are applied by the SFT formatter, so since v0.77.0 (#806, #1587) they load only on <code>sft</code>, <code>tts</code> (which trains through the SFT trainer) and <code>distill</code>: on any other task the config fails with <code>training.reasoning_effort=&#x27;high&#x27; requires task in [&#x27;distill&#x27;, &#x27;sft&#x27;, &#x27;tts&#x27;]; got task=&#x27;pretrain&#x27;.</code> Through v0.76.1 they were refused on <code>tts</code>, where they apply, and accepted on <code>pretrain</code>, <code>classifier</code>, <code>reranker</code> and <code>cross_encoder</code>, which never read them; removing them from such a config changes nothing about what trains. On <code>pretrain</code>, <code>train_on_eot</code> changed only the <code>soup data preprocess</code> cache key, so a pretrain cache built with the flag has to be rebuilt without it. <code>reasoning_effort</code> prepends <code>&lt;|reasoning_effort|&gt;medium&lt;|/reasoning_effort|&gt;</code> to the first system message of every row, and inserts a system message at the top when the row has none. <code>train_on_eot</code> extends the assistant-only loss mask to include the end-of-turn token that follows each assistant reply, so the model is trained to emit the terminator; it acts through the assistant-only masking path, which is on by default (<code>data.train_on_responses_only: true</code>), and with that turned off it has nothing to extend.</p><p>v0.52.0 shipped the schema; v0.53.2 lit up the trainers — <code>task: distill</code> (DistillTrainerWrapper with KL/forward_kl/reverse_kl/js), <code>task: classifier | reranker | cross_encoder</code> (single-label / multi-label / cross-encoder heads), EBFT + GDPO loss kernels, and <code>reasoning_effort</code> dispatch. (Since closed in v0.76.0: the EBFT and GDPO fields are refused at config load, as above.) See <a href=\"__DOCS_BASE__/v0532-modality-live\">v0.53.2 — Modality II live</a>.</p><nav><a href=\"__DOCS_BASE__/grpo-plus\"><span>Previous</span><span>GRPO Plus</span></a><a href=\"__DOCS_BASE__/agent-forge\"><span>Next</span><span>Agent Forge</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

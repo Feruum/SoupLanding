@@ -1,0 +1,240 @@
+{
+  "slug": "data-formats",
+  "title": "Data Formats",
+  "description": "20 data formats (the count includes auto): alpaca, sharegpt, chatml, dpo, kto, llava, sharegpt4v, plaintext, embedding, audio, tool-calling, auto, prm, pre_tokenized, input_output, video, multimodal, raft (v0.62 Retrieval-Augmented Fine-Tuning), asr (v0.71.32 Whisper fine-tuning), cross_encoder (v0.76.0, only with task: cross_encoder). Remote URIs (s3/gs/az/abfs/oci) supported as of v0.42.",
+  "source": "https://trysoup.dev/docs/data-formats",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "96c6c643f456c3e96b3fa472bd4bae5bcea1c27c232c2dddd689b4c04c46e175",
+  "headings": [
+    {
+      "level": 2,
+      "id": "alpaca",
+      "title": "Alpaca"
+    },
+    {
+      "level": 2,
+      "id": "sharegpt",
+      "title": "ShareGPT"
+    },
+    {
+      "level": 2,
+      "id": "chatml",
+      "title": "ChatML"
+    },
+    {
+      "level": 2,
+      "id": "dpo-orpo-simpo-ipo-preference-pairs",
+      "title": "DPO / ORPO / SimPO / IPO (preference pairs)"
+    },
+    {
+      "level": 3,
+      "id": "one-layout-per-preference-row-v0-76-1",
+      "title": "One layout per preference row (v0.76.1)"
+    },
+    {
+      "level": 2,
+      "id": "kto-unpaired-preferences",
+      "title": "KTO (unpaired preferences)"
+    },
+    {
+      "level": 2,
+      "id": "llava-vision",
+      "title": "LLaVA (vision)"
+    },
+    {
+      "level": 2,
+      "id": "sharegpt4v-vision",
+      "title": "ShareGPT4V (vision)"
+    },
+    {
+      "level": 2,
+      "id": "plaintext-pre-training",
+      "title": "Plaintext (pre-training)"
+    },
+    {
+      "level": 2,
+      "id": "embedding",
+      "title": "Embedding"
+    },
+    {
+      "level": 2,
+      "id": "audio",
+      "title": "Audio"
+    },
+    {
+      "level": 2,
+      "id": "asr-new-in-v0-71-32",
+      "title": "ASR (new in v0.71.32)"
+    },
+    {
+      "level": 2,
+      "id": "tool-calling-new-in-v0-25-0",
+      "title": "Tool-calling (new in v0.25.0)"
+    },
+    {
+      "level": 2,
+      "id": "the-seven-the-page-above-does-not-show-a-row-for",
+      "title": "The seven the page above does not show a row for"
+    },
+    {
+      "level": 2,
+      "id": "rows-that-do-not-convert",
+      "title": "Rows that do not convert"
+    },
+    {
+      "level": 2,
+      "id": "image-and-audio-paths",
+      "title": "Image and audio paths"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Formats</h1><p>Soup supports 20 data formats (raft added for Retrieval-Augmented Fine-Tuning in v0.62, asr added for Whisper fine-tuning in v0.71.32, cross_encoder added for paired-text classification in v0.76.0). Files can be JSONL, JSON, CSV, Parquet, or TXT — local paths or remote URIs (<code>s3</code> / <code>gs</code> / <code>gcs</code> / <code>az</code> / <code>abfs</code> / <code>abfss</code> / <code>oci</code>). Format is auto-detected from up to the first 100 rows for the twelve formats with a distinctive set of keys; the seven at the end of this page cannot be detected from their keys and must be named in <code>data.format</code>.</p><p>Note on the count: 20 is the number of values <code>data.format</code> accepts, and one of them is <code>auto</code>, which asks Soup to detect the shape rather than naming one. Nineteen name a row shape, and those nineteen plus <code>auto</code> are the values <code>soup data validate --format</code> accepts.</p><p><strong>A byte-order mark is fine (v0.77.0).</strong> Local JSONL, JSON, CSV and TXT files load as UTF-8 with or without a leading byte-order mark, so a CSV saved by Excel as &quot;CSV UTF-8&quot; works; through v0.76.1 only JSONL accepted one (#1954). Only the initial signature is removed: a U+FEFF inside a value stays. The same holds since v0.77.0 for many other files Soup reads from you, among them tokenizer corpora, <code>soup bench</code> prompts, <code>soup draft</code> inputs, <code>soup shrink</code> calibration prompts, <code>soup diagnose</code> evidence and generation context documents (#2155); what Soup writes is still plain UTF-8.</p><h2 id=\"alpaca\">Alpaca</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"instruction\": \"Explain gravity\", \"input\": \"\", \"output\": \"Gravity is...\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"sharegpt\">ShareGPT</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"conversations\": [{\"from\": \"human\", \"value\": \"Hi\"}, {\"from\": \"gpt\", \"value\": \"Hello!\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"chatml\">ChatML</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"messages\": [{\"role\": \"user\", \"content\": \"Hi\"}, {\"role\": \"assistant\", \"content\": \"Hello!\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"dpo-orpo-simpo-ipo-preference-pairs\">DPO / ORPO / SimPO / IPO (preference pairs)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"prompt\": \"Explain gravity\", \"chosen\": \"Gravity is a force...\", \"rejected\": \"I don't know\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The three fields can also be message lists. This row is conversational, with the prompt turn in <code>prompt</code> only:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"prompt\": [{\"role\": \"user\", \"content\": \"What is 2+2?\"}], \"chosen\": [{\"role\": \"assistant\", \"content\": \"4\"}], \"rejected\": [{\"role\": \"assistant\", \"content\": \"5\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The bundled <code>examples/data/dpo_sample.jsonl</code> and <code>examples/data/chat_preferences.jsonl</code> are written a third way, a string <code>prompt</code> beside answers that repeat the user turn:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"prompt\": \"What is 2+2?\", \"chosen\": [{\"role\": \"user\", \"content\": \"What is 2+2?\"}, {\"role\": \"assistant\", \"content\": \"4\"}], \"rejected\": [{\"role\": \"user\", \"content\": \"What is 2+2?\"}, {\"role\": \"assistant\", \"content\": \"5\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"one-layout-per-preference-row-v0-76-1\">One layout per preference row (v0.76.1)</h3><p>Since v0.76.1 the <code>dpo</code> and <code>kto</code> converters hand the trainer every preference row in one layout: all strings, or all message lists with the prompt turns in <code>prompt</code> only.</p><ul><li><strong>All strings</strong> are used as written.</li><li><strong>A string <code>prompt</code> beside message-list answers</strong> is read as a conversation. When the two answers share leading turns, those turns are the prompt and are taken out of the answers, and the string <code>prompt</code> is not read, as <code>orpo</code> and <code>simpo</code> already read such a row. A question written only in that string therefore has to be in the conversations as well. With no shared turn, the string becomes the user turn.</li><li><strong>A message-list <code>prompt</code></strong> stays the prompt. A string answer beside it becomes one assistant turn, and a prompt that both answers repeat and continue is taken out of them; when only one answer repeats it, nothing is taken out.</li><li><strong>No <code>prompt</code> at all:</strong> with <code>data.format: dpo</code> named, the turns the two answers share are the prompt, or, when they share none, the row&#x27;s <code>messages</code> list (through v0.76.0 such a row was dropped). Since v0.77.0 a training run on <code>dpo</code>, <code>ipo</code>, <code>simpo</code>, <code>orpo</code>, <code>bco</code>, <code>preference</code> or <code>reward_model</code> resolves an omitted <code>data.format</code> or <code>format: auto</code> to <code>dpo</code>, live and under <code>--dry-run</code>, so such a file loads without naming the format, and a split with no pair columns is refused before a trainer is built, naming the format it loaded and suggesting <code>data.format: dpo</code> (#2093). <code>soup data validate</code> has no task, so on its own it still needs <code>--format dpo</code> for these layouts. KTO&#x27;s unpaired layout and SFT detection are unchanged.</li></ul><p><strong>A row that cannot be written in one layout is dropped at load</strong>, with a reason that names the field:</p><ul><li>one answer a string and the other a message list: <code>dpo.chosen is a string and dpo.rejected is a message list: give both as strings or both as message lists</code>;</li><li>a malformed message, such as a message without a <code>role</code> (<code>dpo.chosen[0].role must be a non-empty string</code>) or a <code>content</code> that is a JSON object (write a JSON tool result as a JSON string);</li><li>no prompt to be found: no <code>prompt</code>, no leading turn the two answers share and no <code>messages</code> list.</li></ul><p>So a dataset can shrink at load, with a warning, never silently. <code>soup train</code>, <code>--dry-run</code> included, prints <code>Warning: N of M rows dropped: they do not convert as &#x27;dpo&#x27;. First: row I: &lt;reason&gt;.</code> and, for a local file, the <code>soup data validate</code> command to run (see <a href=\"#rows-that-do-not-convert\">Rows that do not convert</a>). <code>soup data validate data.jsonl --format dpo</code> counts every row that fails to convert, prints the reasons for the first three and then <code>... and N more</code>, and exits 0 while at least one row is valid; add <code>--min-valid-fraction 1.0</code> to make it exit 2 instead.</p><p><strong>A dataset that mixes text rows with conversational ones</strong> loads as conversations. Each text row is rewritten as one user turn and one assistant turn per answer, and <code>soup train</code> prints a note that counts them: <code>Note: 2 of 7 train rows are plain-text preference rows in a dataset whose other rows are conversations. Each was rewritten as one user turn and one assistant turn per answer, so the whole split goes through the chat template.</code> The train and validation splits are checked separately.</p><p><strong>What this fixed.</strong> Through v0.76.0 the rows went to trl as written. On v0.76.0, on a string <code>prompt</code> beside <code>chosen</code> / <code>rejected</code> message lists that repeat the user turn, <code>task: dpo</code>, <code>ipo</code>, <code>bco</code> and <code>preference</code> failed inside trl after the model had loaded, with an error that changed with <code>PYTHONHASHSEED</code> (<code>&#x27;list&#x27; object has no attribute &#x27;endswith&#x27;</code>, or a <code>TypeError</code>), while <code>soup train --dry-run</code> passed, because a dry run does not reach the trainer. That is the shape of both bundled examples, and on v0.76.1 they train again (#1849, #1866). <code>orpo</code> and <code>simpo</code> prepare the same tokens as before. <code>task: reward_model</code> no longer trains on a text with the question in it twice. A reward model trained on rows of that shape (the bundled <code>examples/configs/rlhf_step2_reward.yaml</code> trains on one such file) finished on such a text. This was verified on v0.76.0, and the code that produced it is unchanged at every earlier tag this site&#x27;s audit read, back to v0.40.0, so re-train such a reward model if it matters to you: see <a href=\"__DOCS_BASE__/dpo-examples-train-again#re-run-this\">Re-run this</a>.</p><p>Since v0.77.0 upstream&#x27;s <code>docs/data.md</code> documents the accepted and refused DPO and KTO layouts as tables that its test suite reads back (#2120); this section follows the converter at the tag.</p><p><strong>Vision row formats are refused on preference tasks (v0.77.0).</strong> <code>data.format: llava</code> or <code>sharegpt4v</code> on <code>dpo</code>, <code>ipo</code>, <code>simpo</code>, <code>orpo</code>, <code>bco</code> or <code>preference</code> stops the load with <code>task=&#x27;dpo&#x27; with data.format=&#x27;llava&#x27; has no vision-preference row path; use a text preference format instead.</code> (with your task and format); through v0.76.1 such a run failed after the model had loaded. The <code>pixtral-dpo</code> recipe that used that shape was removed (#2064).</p><h2 id=\"kto-unpaired-preferences\">KTO (unpaired preferences)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"prompt\": \"Explain gravity\", \"completion\": \"Gravity is a force...\", \"label\": true}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>KTO rows follow the same one-layout rule over <code>prompt</code> and <code>completion</code>: both strings, used as written, or both message lists. A string <code>prompt</code> beside a message-list <code>completion</code> becomes the user turn, unless the completion starts with turns of its own before its first assistant turn; then those turns are the prompt and the string is not read. Beside a string <code>prompt</code>, a message-list completion with no assistant turn is dropped, with a reason that says so.</p><p><strong><code>label</code> values (v0.77.0).</strong> <code>label</code> accepts a boolean; the strings <code>true</code>, <code>1</code>, <code>yes</code>, <code>false</code>, <code>0</code> and <code>no</code> (case and surrounding spaces ignored); and the integers <code>1</code>, <code>0</code> and <code>-1</code> (<code>1</code> desirable, <code>0</code> and <code>-1</code> undesirable). Since v0.77.0 any other value, a null, a float (<code>1.0</code> included), a list or another integer, is not coerced: the row is dropped at load with <code>KTO label must be a bool, true/false string or -1/0/1 integer, got: ...</code> (a string outside the list gives <code>KTO label must be true/false, got string: ...</code>), and training goes on with the valid rows, or exits 1 when none is left (#2126). This is a data-load drop, not a config refusal. <code>soup data validate data.jsonl --format kto</code> names the first three such rows (then <code>... and N more</code>), counts every one of them, and still exits 0 while some row is valid; add <code>--min-valid-fraction 1.0</code> to make it exit 2. Through v0.76.1 a <code>null</code> label trained as undesirable and <code>0.3</code>, <code>[0]</code> and <code>2</code> as desirable, so re-train a KTO model whose labels were outside that list (see <a href=\"__DOCS_BASE__/warnings-now-refused\">the v0.77.0 page</a>).</p><h2 id=\"llava-vision\">LLaVA (vision)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"image\": \"photo.jpg\", \"conversations\": [{\"from\": \"human\", \"value\": \"<image>\\nDescribe this.\"}, {\"from\": \"gpt\", \"value\": \"A cat.\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"sharegpt4v-vision\">ShareGPT4V (vision)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"image\": \"chart.png\", \"conversations\": [{\"from\": \"human\", \"value\": \"<image>\\nExplain this chart.\"}, {\"from\": \"gpt\", \"value\": \"Revenue growth.\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"plaintext-pre-training\">Plaintext (pre-training)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"text\": \"Raw text document for continued pre-training...\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Or use <code>.txt</code> files directly (one document per line).</p><h2 id=\"embedding\">Embedding</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"anchor\": \"What is Python?\", \"positive\": \"Python is a programming language.\"}\n{\"anchor\": \"What is Python?\", \"positive\": \"A programming language.\", \"negative\": \"A type of snake.\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>With <code>embedding_loss: contrastive</code> (the default), each row&#x27;s negatives are the other rows&#x27; positives in the same batch, so a batch needs at least two rows. <code>batch_size: 1</code> is refused at config load, <code>batch_size: auto</code> resolves to at least 2, and the last partial batch of each epoch is dropped. The same applies when <code>triplet</code> falls back to contrastive because the rows have no <code>negative</code>. Use <code>triplet</code> with a <code>negative</code> on every row, or <code>cosine</code>, to train at batch size 1 (v0.76.0).</p><h2 id=\"audio\">Audio</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"audio\": \"recording.wav\", \"messages\": [{\"role\": \"user\", \"content\": \"Transcribe.\"}, {\"role\": \"assistant\", \"content\": \"Hello world.\"}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"asr-new-in-v0-71-32\">ASR (new in v0.71.32)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"audio\": \"clip.wav\", \"text\": \"the transcript\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>For <a href=\"__DOCS_BASE__/asr-fine-tuning\">Whisper fine-tuning</a> (<code>task: asr</code>): the clip becomes 16 kHz log-mel input features, the text becomes the decoder labels. Paths resolve against <code>data.audio_dir</code> (containment-checked).</p><h2 id=\"tool-calling-new-in-v0-25-0\">Tool-calling (new in v0.25.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"messages\": [{\"role\": \"user\", \"content\": \"Weather in Tokyo?\"}], \"tools\": [{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}], \"tool_calls\": [{\"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Tokyo\\\"}\"}}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Tool definitions are embedded in a leading system message during normalization. The converter reads calls where agent data puts them: an assistant turn keeps its own <code>tool_calls</code> and a <code>tool</code> turn its <code>tool_call_id</code>, in source order (the OpenAI fine-tuning shape, and what <code>soup agent synth</code> writes). A top-level <code>tool_calls</code> list, as in the row above, still works as the single-call form: it becomes one assistant turn appended after <code>messages</code>, and only when no assistant turn already carries calls. <code>tools</code> is optional for conversion, but <code>format: auto</code> recognises a row by <code>messages</code> plus <code>tools</code>. A call&#x27;s <code>arguments</code> must be a JSON string that parses. See the <a href=\"__DOCS_BASE__/tool-calling\">Tool-calling guide</a> for the full pipeline.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"messages\": [{\"role\": \"user\", \"content\": \"Weather in Tokyo?\"}, {\"role\": \"assistant\", \"content\": \"\", \"tool_calls\": [{\"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Tokyo\\\"}\"}}]}, {\"role\": \"tool\", \"tool_call_id\": \"call_1\", \"content\": \"18C, clear\"}, {\"role\": \"assistant\", \"content\": \"It is 18C and clear in Tokyo.\"}], \"tools\": [{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}]}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Through v0.75.2 the detector wanted a top-level <code>tool_calls</code> as well, so every row <code>soup agent synth</code> wrote was dropped. A dry run of <code>soup train</code> then still said it was ready to train, on zero rows (#1217; see &quot;Rows that do not convert&quot; below).</p><h2 id=\"the-seven-the-page-above-does-not-show-a-row-for\">The seven the page above does not show a row for</h2><p>Twenty values are declared for <code>data.format</code> (<code>auto</code> is one of them), and the twelve above are the ones you will meet first. These are the rest, one row each.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "// prm — process reward, stepwise supervision\n{\"prompt\": \"Solve 2+2\", \"completions\": [\"First, add\", \"Result is 4\"], \"labels\": [true, true]}\n\n// pre_tokenized — skip the tokenize stage entirely\n{\"input_ids\": [1, 2, 3], \"labels\": [-100, 2, 3], \"attention_mask\": [1, 1, 1]}\n\n// input_output — template-free, per-segment loss control\n{\"segments\": [{\"text\": \"Q: hi\", \"label\": false}, {\"text\": \"A: hello\", \"label\": true}]}\n\n// video — the path string is kept as written; data.video_dir is not applied\n{\"video\": \"clip.mp4\", \"messages\": [{\"role\": \"user\", \"content\": \"Describe this clip.\"}]}\n\n// multimodal — typed content parts, text / image / audio / video in one message\n{\"messages\": [{\"role\": \"user\", \"content\": [{\"type\": \"text\", \"text\": \"What's in this?\"}, {\"type\": \"image\", \"url\": \"x.png\"}]}]}\n\n// raft — Retrieval-Augmented Fine-Tuning, v0.62\n{\"query\": \"...\", \"golden_doc\": \"...\", \"distractor_docs\": [\"...\", \"...\"], \"answer\": \"...\"}\n\n// cross_encoder — paired text classification, v0.76.0\n{\"text_a\": \"how do I reset my password\", \"text_b\": \"Open Settings, then Security.\", \"label\": 1}"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>pre_tokenized</code> pairs with <code>data.tokenized_path</code> after <code>soup data preprocess</code>; see <a href=\"__DOCS_BASE__/data-pipeline-pro#aot-tokenize-cache-rebuilt-in-v0-76-0\">Data pipeline pro</a> for the cache key, the <code>labels</code> column and what is refused. For <code>raft</code>, <code>query</code>, <code>golden_doc</code> and <code>answer</code> are required and <code>distractor_docs</code> is optional; a row with other key names is dropped.</p><p><code>cross_encoder</code> rows are two strings and a label. <code>{&quot;question&quot;: &quot;...&quot;, &quot;answer&quot;: &quot;...&quot;, &quot;label&quot;: 1}</code> is accepted in place of <code>text_a</code> and <code>text_b</code>, and <code>label</code> is kept when present. The format is valid only with <code>task: cross_encoder</code>: <code>data.format: cross_encoder</code> on any other task is refused at config load, and with that task <code>format: auto</code> resolves to it, since <code>{question, answer}</code> is also the shape of plain Q&amp;A data. It is not detected from the keys of an arbitrary file; <code>soup data validate</code> on a <code>text_a</code>/<code>text_b</code> file needs <code>--format cross_encoder</code>.</p><p>And <code>auto</code>, the default, is the twentieth value. It reads up to the first 100 rows, not only the first, and only for the twelve formats with a section of their own higher up this page. The seven in the block above must be named in <code>data.format</code>. <code>prm</code>, <code>pre_tokenized</code>, <code>input_output</code> and <code>raft</code> rows fail auto-detection with &quot;Cannot detect format&quot;. <code>video</code> and <code>multimodal</code> rows carry <code>messages</code>, so auto-detection reads them as <code>chatml</code>: for <code>video</code> that drops the <code>video</code> path, and for <code>multimodal</code> it skips the content-part validation. One more pair to know: a <code>sharegpt4v</code> row has exactly the keys of a <code>llava</code> row, so auto-detection reads it as <code>llava</code>; name <code>sharegpt4v</code> if you mean it.</p><p><strong>How a mixed file is read (v0.76.0).</strong> Each of the sampled rows resolves to the richest format its keys fit. If every row agrees, that format is used. A file that mixes a richer and a poorer shape of the same family (<code>llava</code> with <code>sharegpt</code>, <code>tool-calling</code> with <code>chatml</code>, <code>audio</code> with <code>chatml</code>, <code>asr</code> with <code>plaintext</code>) loads as the richer one only when that converter accepts the poorer rows and yields the same messages for them. Any other mix is refused naming both shapes and the row where each first appears, for example <code>Cannot detect format: this dataset mixes unrelated shapes &#x27;chatml&#x27; (row 0) and &#x27;llava&#x27; (row 1). ... Set data.format explicitly.</code> Set <code>data.format</code> to choose. Rows after the first 100 are not inspected, and <code>soup data validate</code> counts every row the chosen format drops and prints the reasons for the first three. Before v0.76.0 only the first row decided, so a first row that lacked an optional key (a text-only LLaVA row, say) picked the poorer converter for the whole file and silently dropped that key from every row that had it. Re-run a training that auto-detected a file like that.</p><h2 id=\"rows-that-do-not-convert\">Rows that do not convert</h2><p>A row the converter rejects is still dropped, so one bad line cannot abort a load. Since v0.76.0 it is no longer silent. A line that is not a JSON object, or not valid JSON, never reaches a converter: the loader skips it with a warning naming the line (the first three of each kind, then <code>... and N more</code>), and since v0.77.0 <code>soup data validate</code> counts it as an invalid row (see <a href=\"__DOCS_BASE__/data-tools#validate\">Data tools</a>). <code>soup train</code>, <code>--dry-run</code> included, prints <code>Warning: N of M rows dropped: they do not convert as &#x27;&lt;format&gt;&#x27;. First: row &lt;i&gt;: &lt;reason&gt;.</code> and, for a local file, the hint <code>List them all with: soup data validate &lt;file&gt; --format &lt;format&gt;</code>. That command counts every dropped row and prints the reasons for the first three, then <code>... and N more</code>. If the load ends with zero training rows, <code>soup train</code> exits 1 before loading the model, naming the format and the first drop reason; a dry run used to print &quot;Ready to train!&quot; on zero rows.</p><p>Nested lists and dicts in a Parquet file (a <code>messages</code> column, tool calls) load as Python values. Before v0.76.0 they were turned into NumPy arrays and the rows were dropped by validation, so check a Parquet dataset that trained on fewer rows than it held.</p><h2 id=\"image-and-audio-paths\">Image and audio paths</h2><p>A relative path in a <code>llava</code>, <code>sharegpt4v</code>, <code>audio</code> or <code>asr</code> row resolves against <code>data.image_dir</code> or <code>data.audio_dir</code> when it is set, and otherwise against the directory of the local file the row came from. Since v0.76.0 that holds on every load path: a local file, a local or streaming interleave, a remote URI, a Hub dataset and the <code>data.replay</code> file. A row whose file lies outside that directory is skipped with a warning. A remote URI or a Hub dataset has no local directory, so when its rows hold file paths <code>data.image_dir</code> or <code>data.audio_dir</code> is required, and the load stops naming it; <code>data.image_dir: .</code> resolves them under the working directory. A path that names a network share, a device or an extended-length path (<code>\\\\host\\share\\...</code>, <code>//host/share/...</code>, <code>\\\\?\\...</code>, <code>\\\\.\\...</code>), or that holds a NUL byte, is skipped without being looked up. Write such rows relative to the media directory instead. Through v0.75.2 the streaming, remote and Hub paths kept a relative path as written, so <code>data.image_dir</code> did nothing there. See <a href=\"__DOCS_BASE__/multimodal\">Vision and audio</a> for the training side.</p><p>All data normalizes internally to <code>{&quot;messages&quot;: [...]}</code> structure (+ <code>&quot;image&quot;</code> for vision, <code>&quot;audio&quot;</code> for audio, + <code>&quot;tools&quot;</code> for tool-calling).</p><nav><a href=\"__DOCS_BASE__/measurement-records\"><span>Previous</span><span>Measurement records</span></a><a href=\"__DOCS_BASE__/data-tools\"><span>Next</span><span>Data Tools</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "slug": "hf-hub-integration",
+  "title": "HuggingFace Hub Deep Integration",
+  "description": "HuggingFace Hub deep integration in Soup CLI v0.29.0. Auto-push checkpoints as HF branches, --hf-resume, Collections, self-hosted HF_ENDPOINT, soup deploy hf-space, model card v2.",
+  "source": "https://trysoup.dev/docs/hf-hub-integration",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "1b0e9c9ca3e2ec8a752738a48b760d24b51608c82e31662f1712ddd506df79ad",
+  "headings": [
+    {
+      "level": 2,
+      "id": "auto-push-every-checkpoint",
+      "title": "Auto-push every checkpoint"
+    },
+    {
+      "level": 2,
+      "id": "resume-from-the-hub",
+      "title": "Resume from the Hub"
+    },
+    {
+      "level": 2,
+      "id": "hf-collections",
+      "title": "HF Collections"
+    },
+    {
+      "level": 2,
+      "id": "self-hosted-hub-hf-endpoint",
+      "title": "Self-hosted Hub (HF_ENDPOINT)"
+    },
+    {
+      "level": 2,
+      "id": "publish-datasets",
+      "title": "Publish datasets"
+    },
+    {
+      "level": 2,
+      "id": "deploy-to-hf-spaces",
+      "title": "Deploy to HF Spaces"
+    },
+    {
+      "level": 2,
+      "id": "model-card-v2",
+      "title": "Model card v2"
+    },
+    {
+      "level": 2,
+      "id": "token-resolution",
+      "title": "Token resolution"
+    },
+    {
+      "level": 2,
+      "id": "repo-id-validation",
+      "title": "repo_id validation"
+    },
+    {
+      "level": 2,
+      "id": "which-downloads-get-the-namespace-pin",
+      "title": "Which downloads get the namespace pin"
+    },
+    {
+      "level": 2,
+      "id": "license-migration",
+      "title": "License migration"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">HuggingFace Hub Deep Integration</h1><p>Soup v0.29.0 closes the loop between training and the Hub. Every checkpoint can auto-push as a branch, training can resume from the Hub after a crash, models deploy to a Gradio or Streamlit Space in one command, and self-hosted Hubs are supported via <code>HF_ENDPOINT</code>.</p><h2 id=\"auto-push-every-checkpoint\">Auto-push every checkpoint</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --push-as alpamys/chat-llama"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Every <code>save_steps</code> checkpoint is uploaded to HuggingFace Hub as a <code>checkpoint-&lt;N&gt;</code> branch. The <code>main</code> branch is updated only at training completion. A sticky <code>_repo_failed</code> flag means push failures (bad token, rate limit) short-circuit subsequent saves — no log spam, no training crash.</p><p>The upload uses an explicit <code>allow_patterns</code> allowlist (<code>*.safetensors</code>, <code>*.bin</code>, <code>*.pt</code>, <code>*.json</code>, <code>tokenizer*</code>, <code>trainer_state.json</code>, <code>training_args.bin</code>, <code>README.md</code>) — an <code>output_dir</code> that overlaps with your project root cannot accidentally publish <code>.env</code> or source files.</p><h2 id=\"resume-from-the-hub\">Resume from the Hub</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --push-as alpamys/chat-llama --hf-resume"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--hf-resume</code> pulls the latest <code>checkpoint-&lt;N&gt;</code> branch via <code>snapshot_download</code>, places it in <code>output_dir</code> (containment-checked against cwd), and resumes. <code>local_dir_use_symlinks=False</code> defeats symlink-based filesystem escapes on older <code>huggingface_hub</code> versions.</p><p>Use this when a spot GPU dies, a preemption kicks you off, or you want to migrate training between machines.</p><h2 id=\"hf-collections\">HF Collections</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup push --model ./output \\\n  --repo alpamys/chat-llama \\\n  --collection alpamys/kazakh-llms-abc123"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Adds the pushed repo to an existing HuggingFace Collection. The slug follows the <code>owner/slug-hash</code> regex; null bytes, whitespace, and <code>..</code> are rejected. Max 256 chars.</p><h2 id=\"self-hosted-hub-hf-endpoint\">Self-hosted Hub (<code>HF_ENDPOINT</code>)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "HF_ENDPOINT=https://hf.internal.example.com soup train --push-as team/my-model"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Every HF operation routes to your internal Hub. SSRF hardening:</p><ul><li>Scheme allowlist (http/https only)</li><li>Plain HTTP permitted only for loopback (<code>localhost</code> / <code>127.0.0.1</code> / <code>::1</code>)</li><li><code>0.0.0.0</code> explicitly rejected</li><li>Plain HTTP to any non-loopback host is rejected (a private, link-local or cloud-metadata address such as RFC1918, 169.254.x or <code>100.64.0.0/10</code> gets the message that says to use HTTPS; since v0.75.2 that message also covers <code>100.64.0.0/10</code>). <strong>Over HTTPS the address is not checked</strong>: an <code>https://</code> endpoint naming a private IP is accepted, and the private-address refusal added in v0.75.2 does not cover this variable. Hostnames are never resolved</li><li>Null bytes rejected</li></ul><h2 id=\"publish-datasets\">Publish datasets</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data push --input data.jsonl --hf-dataset alpamys/kazakh-chat"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Uploads a local JSONL as a HuggingFace dataset repo. Input path must stay under cwd, <code>repo_id</code> is validated, and a token is resolved via the unified <code>utils/hf.resolve_token</code> chain. Commit messages are stripped to the first line and capped at 200 chars to prevent multi-line injection into public HF commit history.</p><h2 id=\"deploy-to-hf-spaces\">Deploy to HF Spaces</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup deploy hf-space \\\n  --model alpamys/chat-llama \\\n  --space alpamys/chat-llama-demo \\\n  --template gradio-chat   # or: streamlit-chat"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Creates a Space wrapping your fine-tuned model. <code>render_space_template</code> validates <code>model_repo</code> via <code>validate_repo_id</code> before substituting into <code>app.py</code> / <code>README.md</code> — a crafted repo id cannot inject Python code into the deployed Space.</p><p>To use your own template, pass <code>--template-dir &lt;dir&gt;</code> instead of <code>--template</code>. The directory must contain <code>app.py</code> and <code>README.md</code> and may contain <code>requirements.txt</code>; every <code>{MODEL_REPO}</code> in those files is replaced with the validated <code>--model</code> value. The directory has to sit under the working directory, a template file that is a symlink is refused, and each file is capped at 256 KB. The Space SDK is picked from the <code>requirements.txt</code>: the first line naming <code>streamlit</code> or <code>gradio</code> decides it, and a template with neither, or with no <code>requirements.txt</code>, is a Gradio Space. There is no <code>--sdk</code> flag. <code>--private</code> creates the Space as private and <code>--yes</code> skips the confirmation prompt. The command needs a Hugging Face token (<code>HF_TOKEN</code> or a cached login) and exits 1 without one.</p><h2 id=\"model-card-v2\">Model card v2</h2><p>Generated READMEs now include:</p><ul><li>Training config: task, base model, learning rate, optimizer</li><li>Optional eval scorecard from an <code>eval_results.json</code></li><li>HTML-escaped <code>data_lineage</code> parameter</li><li>Markdown-active chars neutralized in task names and non-numeric score values (<code>|</code>, <code>[</code>, <code>]</code>, <code>(</code>, <code>)</code>, <code>!</code>, <code>&lt;</code>, <code>&gt;</code>, newlines, tabs) — no table-row / link / image / raw-HTML injection in the rendered README</li></ul><h2 id=\"token-resolution\">Token resolution</h2><p><code>utils/hf.resolve_token</code> is the single source of truth:</p><ol><li>Env: <code>HF_TOKEN</code> or <code>HUGGINGFACE_HUB_TOKEN</code></li><li><code>~/.cache/huggingface/token</code></li><li><code>~/.huggingface/token</code></li></ol><p>Non-printable tokens are rejected. The legacy <code>soup push --token</code> flag now warns deprecated and delegates to this chain.</p><h2 id=\"repo-id-validation\"><code>repo_id</code> validation</h2><p>Applied to <code>soup push --repo</code>, <code>soup train --push-as</code>, <code>soup data push --hf-dataset</code>, <code>soup deploy hf-space --model/--space</code>:</p><ul><li>Alphanumeric + <code>._-</code> only</li><li>Per-component ≤ 96 chars</li><li>Total ≤ 200 chars</li><li>Null-byte / whitespace / <code>..</code> / leading-<code>/</code> rejection</li></ul><h2 id=\"which-downloads-get-the-namespace-pin\">Which downloads get the namespace pin</h2><p>Soup keeps a local trust-on-first-use pin of a Hugging Face model repo&#x27;s author and creation time (see <a href=\"__DOCS_BASE__/supply-chain-security#namespace-pin-tofu-anti-ai-jacking\">Supply chain security</a>). The check runs inside Soup&#x27;s own hub download wrapper, <code>utils/hubs.snapshot_download</code>, and five paths reach it at v0.77.0:</p><ul><li><code>soup spectrum scan &lt;hf-id&gt;</code></li><li><code>soup probe sae-diff --auto-download</code></li><li>the base model of a <code>stream_layers: true</code> training run</li><li>a Hub id given as <code>training.prm_reward</code> (<code>org/name</code>, optionally <code>@revision</code>), which v0.76.0 now downloads before training starts instead of failing at the first reward call (#1466); any other value that is not an existing directory under the working directory is refused</li><li>since v0.77.0, <code>soup merge --low-memory</code> when <code>--base</code> (or the base recorded in the adapter) is a Hub id: it downloads the base&#x27;s <code>.safetensors</code> and <code>.json</code> files through the wrapper (#2006)</li></ul><p>Everything else on this page does not go through it. <code>--hf-resume</code> calls <code>huggingface_hub.snapshot_download</code> directly, and an ordinary <code>from_pretrained</code> load (<code>soup train</code> without streaming, <code>chat</code>, <code>serve</code>, <code>merge</code> without <code>--low-memory</code>, <code>export</code>) is not pinned either. The pin fails open when the Hub metadata is missing or the pin store cannot be read.</p><p><strong>Pinned to a commit is a different thing (v0.77.0).</strong> On the transformers backend, a resident, layer-streamed or multi-GPU <code>soup train</code> on a Hub base resolves the base&#x27;s current commit once before its first load, loads every part of the base at that commit and records it; Unsloth and MLX loads, the non-Hugging-Face hubs, and local or cached-path bases are not bound (#1902). See <a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a> for what it prints and records. That is reproducibility, not the namespace pin: the pin checks who owns the repo, the revision records which commit was loaded.</p><h2 id=\"license-migration\">License migration</h2><p>As of v0.29.0, Soup is <strong>Apache-2.0</strong> (previously MIT). If you redistribute Soup or a modified copy, sections 4 and 6 of the licence apply: keep <code>LICENSE</code> and <code>NOTICE</code> with every copy, mark the files you changed, and do not use the Soup name beyond saying where the work comes from. Since v0.77.0 <code>NOTICE</code> reads <code>Copyright 2026 Makazhan Alpamys and the Soup contributors</code>, and <code>pyproject.toml</code> names both files as <code>license-files</code> instead of relying on the build tool&#x27;s defaults.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/registry\">Registry</a> — track every pushed run locally</li><li><a href=\"__DOCS_BASE__/eval-gate\">Eval-gated training</a> — catch regressions before pushing to the Hub</li><li><a href=\"__DOCS_BASE__/cli-reference\">CLI reference</a></li></ul><nav><a href=\"__DOCS_BASE__/registry\"><span>Previous</span><span>Model Registry</span></a><a href=\"__DOCS_BASE__/speculative-decoding\"><span>Next</span><span>Smart Inference Server</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

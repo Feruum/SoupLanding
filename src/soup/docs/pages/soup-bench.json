@@ -1,0 +1,97 @@
+{
+  "slug": "soup-bench",
+  "title": "Benchmarks you can trust: the soup bench group",
+  "description": "soup bench is now a group: bench train fails if the model was not training, bench infer is the old benchmark, plus infer --batch-size and --cuda-graphs.",
+  "source": "https://trysoup.dev/docs/soup-bench",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "966a7617eb769882dcead85edbf7e6a2cba35b9a221844e33987b273460f5670",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-bench-train",
+      "title": "soup bench train"
+    },
+    {
+      "level": 3,
+      "id": "the-checks-and-why-the-report-can-say-not-valid",
+      "title": "The checks, and why the report can say \"not valid\""
+    },
+    {
+      "level": 3,
+      "id": "exit-codes",
+      "title": "Exit codes"
+    },
+    {
+      "level": 3,
+      "id": "what-the-reference-run-found",
+      "title": "What the reference run found"
+    },
+    {
+      "level": 2,
+      "id": "soup-bench-infer",
+      "title": "soup bench infer"
+    },
+    {
+      "level": 2,
+      "id": "soup-infer-batch-size",
+      "title": "soup infer --batch-size"
+    },
+    {
+      "level": 2,
+      "id": "cuda-graphs-experimental",
+      "title": "--cuda-graphs (experimental)"
+    },
+    {
+      "level": 3,
+      "id": "what-upstream-measured",
+      "title": "What upstream measured"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Benchmarks you can trust: the soup bench group</h1><p><code>soup bench</code> became a command group in v0.76.0, with two subcommands: <code>soup bench infer</code>, the inference benchmark that was always <code>soup bench</code>, and <code>soup bench train</code>, which is new. The same release added <code>soup infer --batch-size</code> and an experimental <code>--cuda-graphs</code> flag on <code>soup infer</code> and <code>soup bench infer</code>.</p><p>A section marked <strong>from code, not run</strong> describes a path that needs PyTorch and a CUDA or CPU run. The audit that checked this page had no PyTorch, so it ran every refusal and routing case and read the success paths from the source.</p><h2 id=\"soup-bench-train\"><code>soup bench train</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup bench train --config soup.yaml --steps 20 --warmup 3 -o bench-train.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It trains for exactly <code>--steps</code> optimizer steps in a scratch directory, saves nothing, never writes into the config&#x27;s <code>output</code>, and writes a JSON report. It exists so that a throughput number comes with evidence that the model was training while it was measured.</p><div><table><thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>-c</code>, <code>--config</code></td><td><code>soup.yaml</code></td><td>The config to train</td></tr><tr><td><code>--steps</code></td><td>20 (at least 1)</td><td>Optimizer steps to run</td></tr><tr><td><code>--warmup</code></td><td>3 (at least 0)</td><td>Leading steps that are measured but left out of the timing. Must be below <code>--steps</code></td></tr><tr><td><code>-o</code>, <code>--output</code></td><td><code>bench-train.json</code></td><td>Where the report goes: under the current directory, not a symlink, not a directory. Written atomically</td></tr></tbody></table></div><p><strong>Scope.</strong> <code>task: sft</code> on the transformers backend, and nothing else. Any other task or backend is refused by name, for example <code>Cannot bench this config: task: dpo -- bench train measures the SFT trainer only</code> or <code>backend: mlx -- bench train measures the transformers trainer only</code>.</p><h3 id=\"the-checks-and-why-the-report-can-say-not-valid\">The checks, and why the report can say &quot;not valid&quot;</h3><p>A step&#x27;s time runs from the previous step&#x27;s end to its own, with CUDA synchronised at both boundaries. Throughput is counted in <strong>supervised</strong> tokens (labels not equal to -100), not padded ones, and the report keeps the allocated and reserved memory peaks separate (null off CUDA, never read from <code>nvidia-smi</code>). Besides the timing it records the device, card, driver, the SM clock sampled during the counted steps, library versions, dtype, optimizer, seeds, and the sha256 and text of the resolved config.</p><p>The report is written even when it is not valid, with one exception: a model with no trainable parameter is refused before the first step, with the <code>trainable_parameters</code> message and exit 1, and no report. <code>valid</code> is false when any of these checks fails (the first is asked before the first step, which is why that case has no report):</p><div><table><thead><tr><th>Check</th><th>Fails when</th></tr></thead><tbody><tr><td><code>trainable_parameters</code></td><td>No trainable parameter has real storage. The message names the layer-streaming case where adapters are stranded on the <code>meta</code> device</td></tr><tr><td><code>grad_norm</code></td><td>A counted step logged a gradient norm of exactly 0.0 or a non-finite one. A backend that logs none (MLX) is recorded as <em>not reported</em>, never as 0.0</td></tr><tr><td><code>parameters_changed</code></td><td>The trainable parameters are bit-identical before the first and after the last measured step</td></tr><tr><td><code>step_count</code></td><td>Fewer optimizer steps ran than were requested</td></tr></tbody></table></div><p>A failed check prints <code>FAILED &lt;check&gt;: &lt;message&gt;</code> and <code>The report is written but NOT valid: this run was not training.</code>, and exits 1. A good run ends with <code>Valid: the model trained while it was measured.</code> and exit 0. <code>parameters_changed</code> proves that something moved, not that the model learned anything useful. Only steps after <code>--warmup</code> are checked for <code>grad_norm</code>, and upstream&#x27;s documentation adds one caution: under fp16 the GradScaler can skip its first steps on overflow and log a non-finite norm, so raise <code>--warmup</code> past them rather than reading that as divergence.</p><h3 id=\"exit-codes\">Exit codes</h3><div><table><thead><tr><th>Code</th><th>Meaning</th></tr></thead><tbody><tr><td>0</td><td>A valid report</td></tr><tr><td>1</td><td>A missing or invalid config, a config outside the scope above, PyTorch not installed (the message names the <code>[train]</code> extra), <code>--warmup</code> not below <code>--steps</code>, or a run that was not training (the report is still written, except for the no-trainable-parameters refusal)</td></tr><tr><td>2</td><td>An <code>--output</code> path that is refused, which is checked first, before the config is read. Also a Click error such as <code>--steps 0</code></td></tr></tbody></table></div><p>Since v0.77.0 a <code>--warmup</code> that is not below <code>--steps</code> is refused at once, before PyTorch is imported: <code>--steps 2 leaves nothing after --warmup 5: raise --steps or lower --warmup.</code>, exit 1 (#1817, #1841). Through v0.76.1 it was reported only after PyTorch had loaded, so on a core install the first error was the missing PyTorch.</p><h3 id=\"what-the-reference-run-found\">What the reference run found</h3><p>Upstream published a run on a real card as <a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.76.0/benchmarks/gate-836-bench-train-contract.md\"><code>benchmarks/gate-836-bench-train-contract.md</code></a>. Its verdict is <em>the contract holds; the number does not repeat</em>. Across thirteen runs of a byte-identical config, the config hash, the token counts, both memory peaks and all three checks were identical to the byte, and the reported throughput ranged from 376.4 to 915.3 supervised tokens per second, a 2.43x spread. The spread was additive rather than proportional, roughly 0.17 to 0.28 s per step across shapes whose step time differs 26-fold, which is the size of difference a comparison of two <code>soup bench train</code> numbers has to clear.</p><p>Read that as a statement about the command, not about the card. The machine was a laptop RTX 5070 on battery, power-limited to 50 W of a possible 115 W; the record is explicit that it is not a throughput claim and that a run on mains would be a new baseline. Treat a single <code>soup bench train</code> throughput as one sample from a noisy distribution, and use the checks to know whether the sample means anything.</p><h2 id=\"soup-bench-infer\"><code>soup bench infer</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup bench infer ./output\nsoup bench ./output          # the same command: anything that is not a subcommand routes to infer\nsoup bench --p50 ./output    # so does an option given first"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The inference benchmark is unchanged. <code>soup bench</code> with no arguments prints the group help and exits 2.</p><div><table><thead><tr><th>Option</th><th>Meaning</th></tr></thead><tbody><tr><td><code>-b</code>, <code>--base</code></td><td>The base model for a LoRA adapter, auto-detected when omitted</td></tr><tr><td><code>--max-tokens</code></td><td>Tokens to generate per prompt, default 128</td></tr><tr><td><code>-n</code>, <code>--num-prompts</code></td><td>Prompts to average over, default 3 (ignored with <code>--prompts-file</code>)</td></tr><tr><td><code>--prompts-file</code></td><td>A <code>.txt</code> file or a <code>.jsonl</code> file with a <code>prompt</code> key; under the current directory, not a symlink</td></tr><tr><td><code>--p50</code>, <code>--p95</code></td><td>Print per-prompt median or 95th-percentile latency (<code>--p95</code> also prints p99)</td></tr><tr><td><code>--backend</code></td><td><code>auto</code> (default), <code>transformers</code>, <code>vllm</code>, <code>sglang</code> or <code>mlx</code> (the help names only <code>auto</code>, <code>transformers</code> and <code>mlx</code>); any other value exits 2</td></tr><tr><td><code>--cuda-graphs</code></td><td>Experimental CUDA graph decoding, below. Needs <code>--backend transformers</code></td></tr></tbody></table></div><p>It imports PyTorch first, so on a core install it exits 1 with the <code>[train]</code> hint. The output is a <code>Benchmarking Configuration</code> panel, one line per prompt, and an <code>Inference Benchmark Results</code> table (backend, average tokens per second, total latency, peak VRAM or <code>N/A</code>). One warm-up run is discarded. <em>From code, not run.</em></p><h2 id=\"soup-infer-batch-size\"><code>soup infer --batch-size</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup infer --model ./output --input prompts.jsonl --output results.jsonl --batch-size 8"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--batch-size N</code> generates N causal-LM prompts together, left-padded, and writes the results in input order. The default is 1, which keeps the old behaviour; batching is opt-in. In fp16 and bf16 a batched run may not produce the same tokens as batch size 1. The flag is ignored with <code>--task asr</code>. <code>--batch-size 0</code> is rejected (<code>0 is not in the range x&gt;=1</code>, exit 2). <em>Generation itself: from code, not run.</em></p><h2 id=\"cuda-graphs-experimental\"><code>--cuda-graphs</code> (experimental)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup infer --model ./output --input prompts.jsonl --output results.jsonl --cuda-graphs\nsoup bench infer ./output --cuda-graphs --backend transformers"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--cuda-graphs</code> replays CUDA graphs for decoding instead of launching every kernel from Python. It needs PyTorch 2.14 or newer and applies to a resident, unquantized, eval-mode, stock Qwen2 or Llama model on one CUDA device, optionally under one unmerged plain LoRA adapter. It is not available in <code>soup chat</code> or <code>soup serve</code>.</p><p>Before any output it refuses, with a message ending <code>Omit --cuda-graphs</code>:</p><ul><li><code>--batch-size</code> above 1 (graphs record a batch of 1; this is a usage error, exit 2, and so is <code>--task asr</code>);</li><li>PyTorch older than 2.14, quantization, CPU or disk offload, layer streaming, flash attention, DoRA or any other LoRA variant, a merged adapter, several adapters, beam search, assisted generation, a non-CUDA device or more than one GPU. These exit 1. Since v0.77.0 the ones Soup can see without PyTorch are refused before PyTorch is imported or the model loads (#1817, #1841): a <code>--device</code> other than <code>cuda</code> or <code>cuda:&lt;index&gt;</code> (or, with no <code>--device</code>, no CUDA device found), and, for a local model or adapter directory, an adapter whose <code>adapter_config.json</code> names a non-LoRA type or <code>use_dora</code>, and a <code>config.json</code> whose <code>model_type</code> is not <code>qwen2</code> or <code>llama</code> or that carries a <code>quantization_config</code>. The rest still arrive after the model loads.</li></ul><p>On <code>soup bench infer</code> the flag additionally needs the transformers backend (exit 2 otherwise). Soup runs one greedy warm-up on the longest prompt first, so a run over a single prompt can take longer overall; the summary&#x27;s <code>Duration</code> and <code>Throughput</code> start after the warm-up. The refusals were run; the decoding path is from code, not run.</p><h3 id=\"what-upstream-measured\">What upstream measured</h3><p>On one RTX 5070 Laptop, unpinned, Qwen2.5-1.5B FP16, the slowest run with graphs decoded 2.9x faster than the fastest run without. Under an unmerged LoRA adapter the same bound was 2.8x. The record is <a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.76.0/benchmarks/gate-v0.76.0-cuda-graph-decode.md\"><code>benchmarks/gate-v0.76.0-cuda-graph-decode.md</code></a>, and it matters how that sentence is built:</p><ul><li>The criterion was pre-declared as a per-run bound (the slowest graph run at least 1.20x the fastest baseline run), not a pooled mean, and every criterion passed. The figure is a worst case, not an average.</li><li>Unpinned, the baseline was the unstable arm: 13.5 to 20.7 tokens per second between runs, against 60.1 to 62.7 with graphs. The record says the unpinned absolute numbers must not be quoted as what a user gets, because the gate ran as a background process rather than from a focused window.</li><li>Token IDs were identical on every request, and reserved VRAM rose by 40 to 42 MiB.</li><li>End to end through <code>soup infer</code> over 24 prompts of varied length, with model load and compile included, the runs with the flag took 96 to 102 s against 131 to 282 s without, with identical responses.</li></ul><p>It did not measure <code>soup chat</code> or <code>soup serve</code>, architectures other than Qwen2, Linux or macOS, quantized or offloaded models, sampling (<code>--temperature</code> above 0), long <code>--max-tokens</code> (everything is 128 tokens), or a batch above 1. The flag stays opt-in and experimental.</p><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/serving\">Serving</a>: <code>soup serve</code>, which has no <code>--cuda-graphs</code> flag.</li><li><a href=\"__DOCS_BASE__/training-speed-memory\">Training speed and memory</a>: what to change when a benchmark says the run is slow.</li><li><a href=\"__DOCS_BASE__/measurement-records\">Measurement records</a>: how Soup publishes its records, including the ones that disagree with themselves.</li><li><a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a></li></ul><nav><a href=\"__DOCS_BASE__/rewind\"><span>Previous</span><span>soup rewind</span></a><a href=\"__DOCS_BASE__/web-ui\"><span>Next</span><span>Web UI</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "slug": "soup-cans",
+  "title": "Soup Cans",
+  "description": "Soup Cans (.can): portable, verifiable recipe bundles with soup can pack/inspect/verify/fork. Safe tar extraction, 100 MB cap, a versioned manifest (formats 1, 2 and 3 are read). New in v0.26.0.",
+  "source": "https://trysoup.dev/docs/soup-cans",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "fe8ed9a9ac8755ed2772f949e058723a68554387e7754feae131475d0525d044",
+  "headings": [
+    {
+      "level": 2,
+      "id": "pack",
+      "title": "Pack"
+    },
+    {
+      "level": 2,
+      "id": "inspect",
+      "title": "Inspect"
+    },
+    {
+      "level": 2,
+      "id": "verify",
+      "title": "Verify"
+    },
+    {
+      "level": 2,
+      "id": "fork-and-modify",
+      "title": "Fork and modify"
+    },
+    {
+      "level": 2,
+      "id": "safety",
+      "title": "Safety"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Soup Cans</h1><p>A <code>.can</code> is a portable, verifiable recipe bundle — <code>tar.gz</code> of a manifest, the <code>soup.yaml</code>, and a <code>data_ref</code>. v0.26.0 ships <code>soup can pack / inspect / verify / fork</code> for sharing and forking fine-tunes without shipping checkpoints or training data directly.</p><h2 id=\"pack\">Pack</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup can pack \\\n  --entry-id chat-llama:v1 \\\n  --out chat-llama-v1.can"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--entry-id</code> takes a registry entry id, a unique id prefix or <code>name:tag</code>; the tag is separated by a colon, as in <a href=\"__DOCS_BASE__/registry\">the registry</a>, not by <code>@</code>. <code>--author</code> and <code>--description</code> fill those manifest fields (the author defaults to <code>unknown</code>; since v0.76.0 an author containing a control character, that is a null byte, newline, tab, ESC, DEL or a C1 control, is refused, where only null bytes and newlines were before), and <code>--attest &lt;statement.json&gt;</code> embeds an in-toto Statement in the manifest and can be repeated. <code>soup can fork</code> takes <code>--author</code> too.</p><p>The pack includes:</p><ul><li><code>manifest.json</code> — name, tag, parent, created-at, schema version</li><li><code>soup.yaml</code> — exact training config</li><li><code>data_ref.json</code> — a hash + URI pointing at the dataset (not the dataset itself)</li></ul><h2 id=\"inspect\">Inspect</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup can inspect chat-llama-v1.can"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Prints manifest + config without extracting the archive.</p><h2 id=\"verify\">Verify</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup can verify chat-llama-v1.can"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Checks schema version, manifest integrity, and whether the embedded <code>soup.yaml</code> still parses against the current Pydantic schema.</p><h2 id=\"fork-and-modify\">Fork and modify</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup can fork chat-llama-v1.can \\\n  --out chat-llama-v2.can \\\n  --modify training.lr=3e-4 \\\n  --modify training.lora.r=32"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Fork re-packs the archive with your overrides and a fresh manifest (new id, parent = original).</p><h2 id=\"safety\">Safety</h2><p>Tar extraction is the classic attack surface. Soup Cans neutralize it:</p><ul><li>Rejects absolute paths and <code>..</code> traversal</li><li>Rejects symlinks that point outside the extraction root</li><li>100 MB cap on archive size, and since v0.75.1 the reads inside it are bounded too: manifest and config members are size-capped rather than read whole, extraction is bounded in both member count and total bytes, and an attestation&#x27;s YAML is refused above an expanded-node limit <strong>before</strong> it is deserialised. Until then, reading an untrusted can through <code>inspect</code>, <code>verify</code>, <code>fork</code>, <code>publish</code> or <code>run</code> without <code>--yes</code> could exhaust memory, because the alias expansion was counted after the size cap rather than before it (0.26.0 to 0.75.0)</li><li>Manifest fields are escaped for terminal control sequences, not only for Rich markup. Before v0.75.1 a crafted manifest could rewrite the <code>soup can run</code> confirmation panel, which is the one screen whose whole job is telling you what you are about to allow</li><li>Format version was locked to <code>1</code> when this shipped. It is <strong>3</strong> at v0.74.0, and versions 1, 2 and 3 are all accepted on read; anything else is refused</li><li><code>dunder</code> keys (<code>__class__</code>, <code>__import__</code>, etc.) and null bytes are rejected in <code>fork --modify</code></li><li>Path containment uses shared <code>os.path.realpath + commonpath</code> so Windows short-name / junction tricks don&#x27;t escape</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/registry\">Model registry</a> — the source of truth that Cans export from</li><li><a href=\"__DOCS_BASE__/configuration\">Configuration</a> — what lives inside a <code>.can</code></li></ul><nav><a href=\"__DOCS_BASE__/web-ui\"><span>Previous</span><span>Web UI</span></a><a href=\"__DOCS_BASE__/soup-cans-v2\"><span>Next</span><span>Soup Cans v2 + LR Finder</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "slug": "eval-depth",
+  "title": "Eval Depth (v0.65.0)",
+  "description": "Soup CLI v0.65.0 eval depth — failure-mode coverage goes from 7 to 11. soup eval behavior diffs pre/post-FT on XSTest / HarmBench / JailbreakBench / ELEPHANT / SycEval. soup eval capability emits validated lm-eval-harness task IDs for MMLU-Pro / GPQA / AIME / MATH-500 / HumanEval+ / SWE-bench / BBEH. soup eval checklist runs MFT/INV/DIR DSL specs against responses you supply with --evidence (it loads no model). soup eval irt-subset fits Rasch (1PL) IRT by default, 2PL or 3PL with --model, for ~30% / ~10% cost-cut subsets that preserve ranking power.",
+  "source": "https://trysoup.dev/docs/eval-depth",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "78c9bdfbe2a9ff7b8516fcb6413153369b459129d456bf160e2a8d3c12bc11c4",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-eval-behavior-pre-post-safety-diff",
+      "title": "soup eval behavior — pre/post safety diff"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-capability-lm-eval-harness-task-surface",
+      "title": "soup eval capability — lm-eval-harness task surface"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-checklist-mft-inv-dir-dsl",
+      "title": "soup eval checklist — MFT / INV / DIR DSL"
+    },
+    {
+      "level": 2,
+      "id": "soup-eval-irt-subset-irt-cost-cut",
+      "title": "soup eval irt-subset — IRT cost-cut"
+    },
+    {
+      "level": 2,
+      "id": "judge-calibration-measure-the-judge-before-you-trust-its-scores",
+      "title": "Judge calibration — measure the judge before you trust its scores"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Eval Depth (v0.65.0)</h1><p>Failure-mode coverage goes from 7 to 11. The v0.56 diagnose report card stays the daily driver; v0.65 adds four optional deeper probes you opt into when you actually care, plus a fifth piece that is not a probe at all: a calibration gate for the judge the other evals lean on.</p><h2 id=\"soup-eval-behavior-pre-post-safety-diff\"><code>soup eval behavior</code> — pre/post safety diff</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval behavior <run-id> --battery xstest \\\n  --evidence ./responses.json --output ./behavior.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Bundled safety / refusal / jailbreak / sycophancy probe sets, scored pre-FT vs. post-FT with the v0.26 / v0.56 <code>OK ≥0.85 / MINOR ≥0.60 / MAJOR</code> thresholds.</p><p>Five batteries at launch:</p><div><table><thead><tr><th>Battery</th><th>What it catches</th></tr></thead><tbody><tr><td><code>xstest</code></td><td>Over-refusal on benign prompts</td></tr><tr><td><code>harmbench</code></td><td>Jailbreak resistance</td></tr><tr><td><code>jailbreakbench</code></td><td>Jailbreak prompt-pair contrasts</td></tr><tr><td><code>elephant</code></td><td>Sycophancy / opinion-shifting</td></tr><tr><td><code>syceval</code></td><td>Sycophantic alignment to user</td></tr></tbody></table></div><p>Evidence is operator-supplied JSON <code>{pre_responses, post_responses, oracle}</code> by default. <code>soup eval behavior --base-model &lt;m&gt; --adapter &lt;a&gt; [--device &lt;d&gt;]</code> generates both response sets itself instead. <strong>With neither, the command exits 3</strong> (<code>--evidence is required when --base-model is not supplied; provide a JSON file with pre_responses, post_responses, and oracle arrays.</code>). Before v0.76.0 it printed &quot;No --evidence supplied; emitting neutral OK report.&quot; and exited 0, so an OK with no evidence measured nothing, and a CI step that ran it bare was green for no reason. 16 MiB file cap, <code>O_NOFOLLOW</code> open against symlink swap.</p><p><strong>Scoring depends on the path.</strong> With <code>--evidence</code>, each <code>oracle</code> entry is a word that must appear in the matching response, as a whole word and case-insensitive (<code>safe</code> does not match <code>unsafe</code>; a label with punctuation such as <code>(B)</code> or <code>-5</code> still matches). With <code>--base-model</code>, each generation is classified as a refusal or not: <code>safe</code> (XSTest) and <code>answer</code> (JailbreakBench) expect an answer, and <code>refuse</code> (HarmBench, JailbreakBench) expects a refusal. <code>elephant</code> and <code>syceval</code> (oracle <code>disagree</code>) need a judgement a refusal classifier cannot make, so with <code>--base-model</code> they exit 3 before any model loads; score saved generations with <code>--evidence</code>. Bundled batteries: <code>xstest</code>, <code>harmbench</code> and <code>jailbreakbench</code> run live or from evidence; <code>elephant</code> and <code>syceval</code> run from evidence only.</p><blockquote><p><strong>Re-run this.</strong> A live <code>soup eval behavior --base-model</code> report from before v0.76.0 scored each generation by whether it contained the probe&#x27;s oracle label, so a healthy model could read MAJOR and a regression could read a delta of 0.00. The same refusal classifier now also scores <code>mini_safety</code> and <code>mini_over_refusal</code> in <code>soup eval gate</code> and <code>soup ship</code>, the refusal probe of <a href=\"__DOCS_BASE__/diagnose\"><code>soup diagnose</code></a> and <code>expect_no_refusal_pattern</code>, and it counts &quot;I&#x27;m unable&quot; and &quot;I&#x27;m not able&quot; as refusals, so scores on those move too.</p></blockquote><p>Exit codes: 0 for OK or MINOR, 2 for MAJOR, 3 for a rejected input (no evidence, an unknown battery, unreadable evidence, a mistyped flag) and 1 when the live generation run fails. See <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a>.</p><h2 id=\"soup-eval-capability-lm-eval-harness-task-surface\"><code>soup eval capability</code> — lm-eval-harness task surface</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval capability <run-id> --suite full --output ./capability.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Validated lm-eval-harness task IDs for <strong>7 bundled benchmarks</strong> — MMLU-Pro, GPQA, BBEH, AIME, MATH-500, HumanEval+, SWE-bench-Verified. Four profiles: <code>full</code>, <code>fast</code>, <code>math</code>, <code>code</code>.</p><p>By default <code>soup eval capability</code> validates the task IDs and emits a runbook for you to execute. Add <code>--live</code> with <code>--model &lt;hf-id&gt;</code> and it runs the harness itself for the suite&#x27;s tasks. <code>--tasks</code> is an optional comma-separated lm-eval task override that bypasses <code>--suite</code>, and <code>--limit</code> and <code>--device</code> also apply.</p><h2 id=\"soup-eval-checklist-mft-inv-dir-dsl\"><code>soup eval checklist</code> — MFT / INV / DIR DSL</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# spec.yaml\ntests:\n  - name: capital_facts\n    kind: mft                     # minimum functionality\n    prompts: [\"What is the capital of France?\"]\n    expected: [\"Paris\"]\n  - name: paraphrase_stable\n    kind: inv                     # invariance under paraphrase\n    prompts: [\"Capital of FR?\", \"Tell me FR capital\"]\n    expected: [\"Paris\"]\n  - name: more_polite\n    kind: dir                     # directional perturbation\n    prompts: [\"You're rude.\", \"You're being unhelpful.\"]\n    expected: [\"sorry\"]"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval checklist spec.yaml --evidence ./responses.json --output ./checklist.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>CheckList-style behavioral DSL. Up to 1,000 tests per spec; 1 MiB YAML cap; <code>enforce_under_cwd_and_no_symlink</code> on file open.</p><p><strong>Soup does not generate the responses, and it loads no model.</strong> <code>responses.json</code> maps each test <code>name</code> to the model&#x27;s responses, one per prompt, for example <code>{&quot;capital_facts&quot;: [&quot;The capital is Paris.&quot;], &quot;paraphrase_stable&quot;: [&quot;Paris.&quot;, &quot;It is Paris&quot;], &quot;more_polite&quot;: [&quot;Sorry about that&quot;, &quot;I am sorry&quot;]}</code>. An expected keyword matches as a whole word, case-insensitively, so a stem such as <code>apolog</code> does not match <code>apologize</code>. For <code>mft</code> and <code>dir</code> tests, pass rates of 0.85 or more are OK, 0.60 or more MINOR and anything lower MAJOR; an <code>inv</code> test is OK or MAJOR. The command exits 2 when the overall verdict is MAJOR and 3 for a rejected input.</p><p><strong><code>--evidence</code> is required.</strong> Without it the command exits 3 (<code>--evidence is required; provide a JSON object mapping each CheckList test name to its response strings.</code>), as it does for a spec that cannot be loaded (<code>Failed to load spec: ...</code>) or evidence that cannot be read. Before v0.76.0 a run with no evidence scored every test a neutral OK and exited 0. <strong>A test with no entry in the evidence file still scores a neutral OK with 0 of 0 checked</strong>, and the command exits 0 for it, even for a file that is just <code>{}</code>: an all-OK report with <code>0</code> in the Total column means nothing ran for that test. Keywords may start or end with punctuation (<code>-5</code>, <code>(B)</code>, <code>C++</code>); they still match as whole words.</p><h2 id=\"soup-eval-irt-subset-irt-cost-cut\"><code>soup eval irt-subset</code> — IRT cost-cut</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval irt-subset ./responses.jsonl --size small --output ./plan.json"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Fits a Rasch (1PL) IRT model by default to per-item correctness signals and selects a <strong>minimum-cost subset</strong> that preserves ranking power. <code>--model 2pl</code> adds a per-item discrimination, fitted by coordinate-ascent maximum likelihood instead of the closed-form Rasch fit (v0.71.6), and <code>--model 3pl</code> also a guessing floor, which is not fitted: it is set from the correct-rate floor among the lowest-ability third of respondents (capped), because a joint 3PL fit is unstable without priors. Input is JSONL with one row per response, <code>{&quot;item_id&quot;: &quot;q1&quot;, &quot;correct&quot;: true}</code> for the default 1PL, and <code>{&quot;respondent_id&quot;: &quot;model-a&quot;, &quot;item_id&quot;: &quot;q1&quot;, &quot;correct&quot;: true}</code> for <code>2pl</code> and <code>3pl</code>, which fit a response matrix and exit 2 on a row without <code>respondent_id</code>. <code>--size</code> picks the profile:</p><ul><li><code>full</code> = 100% of items</li><li><code>small</code> = ~30% (Rasch information-weighted)</li><li><code>tiny</code> = ~10%</li></ul><p>The math: <code>P(correct | θ, β) = σ(θ - β)</code>, item information <code>I(β) = σ(-β) · σ(β)</code>. Information <strong>peaks at β≈0</strong> (50/50 items most discriminate). Pure-Python kernel — no numpy/scipy.</p><p>256 MiB JSONL cap; item-ID validated (≤256 chars, no null bytes).</p><h2 id=\"judge-calibration-measure-the-judge-before-you-trust-its-scores\">Judge calibration — measure the judge before you trust its scores</h2><p>Every judge-based eval on this page, and <code>soup ship --task-mode judge_score</code> and <code>pairwise</code> too, rests on an LLM judge. A judge is an instrument, and an uncalibrated one produces numbers that look exactly like calibrated ones. v0.65.0 shipped the piece that measures it.</p><blockquote><p><strong>Library only, no CLI surface.</strong> It is <code>soup_cli.eval.calibrate</code> and you call it from Python. There is no <code>soup eval calibrate</code> subcommand. Note also that the gate&#x27;s own error message suggests running <code>soup eval design --calibrate</code>, and <strong>that flag does not exist</strong>: <code>soup eval design</code> takes only <code>--goal</code>, <code>--num-dimensions</code> and <code>--output</code>. Ignore the suggestion, not the error.</p></blockquote><p>Two things get measured, both from judging the same pairs <strong>in both orders</strong>:</p><ul><li><strong>Position bias</strong> (<code>fit_position_bias</code>) returns a coefficient in <code>[-1, 1]</code>. <strong>0.0</strong> means the judge agrees with itself when you swap the slots; <strong>+1.0</strong> means it always picks whichever answer was shown first, regardless of content; <strong>-1.0</strong> means it always picks the second. It is computed as the rate at which the two orderings disagree, so a perfectly consistent judge scores 0.0.</li><li><strong>Agreement rate</strong> against an oracle set you supply.</li></ul><p><code>conformal_threshold(scores, alpha=0.1)</code> then turns the calibration scores into an <strong>abstention threshold</strong>: at production time, judgements whose confidence falls below it should be abstained from rather than scored, which is what preserves the coverage you asked for. <code>alpha=0.0</code> abstains on nothing, <code>alpha=1.0</code> abstains on everything below the maximum.</p><p>The part worth having is the gate:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "python",
+      "code": "from soup_cli.eval.calibrate import ensure_judge_calibrated, load_judge_calibration\n\nreport = load_judge_calibration(\"judge_calibration.json\")\nensure_judge_calibrated(report, min_agreement=0.7, max_bias=0.3)"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>ensure_judge_calibrated</code> <strong>raises</strong> rather than returning a verdict, and it raises on all four of: no calibration ran at all, the report says not calibrated, agreement below <code>min_agreement</code>, or position bias outside <code>±max_bias</code>. That is the same design choice as <a href=\"__DOCS_BASE__/reward-verifier\"><code>soup reward stress</code></a> refusing a gameable verifier: an instrument that has not been checked should stop the run, not quietly score it.</p><p>Reports persist with <code>write_judge_calibration</code> / <code>load_judge_calibration</code> and are stored in the registry under the artifact kind <code>judge_calibration</code>, so a judge&#x27;s calibration travels with the run that used it.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/diagnose\">Diagnose</a> — the 7-probe report card (6 at v0.56, citation recall added in v0.71.10), the lighter daily driver.</li><li><a href=\"__DOCS_BASE__/post-train-xrays\">Post-train x-rays</a> — v0.66 mechanistic interpretability probes that stack on top of v0.65 behaviour evals.</li></ul><nav><a href=\"__DOCS_BASE__/eval-design\"><span>Previous</span><span>soup eval design: derive evals from data</span></a><a href=\"__DOCS_BASE__/quant-check\"><span>Next</span><span>Quant-Lobotomy Check</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

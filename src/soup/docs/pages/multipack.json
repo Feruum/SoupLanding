@@ -1,0 +1,50 @@
+{
+  "slug": "multipack",
+  "title": "Multipack — FFD Bin-Packing Sampler (v0.37.0)",
+  "description": "FFD bin-packing sampler eliminates padding waste on uneven-length data. 38-architecture allowlist. SFT/Pretrain only on transformers backend. New in v0.37.0.",
+  "source": "https://trysoup.dev/docs/multipack",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "0b87050f6094cf7ca5e5c6a213f9995ab58b6dfdbb1ad1a3cea87ea3ec1ab3a8",
+  "headings": [
+    {
+      "level": 2,
+      "id": "how-it-composes",
+      "title": "How it composes"
+    },
+    {
+      "level": 2,
+      "id": "architecture-allowlist",
+      "title": "Architecture allowlist"
+    },
+    {
+      "level": 2,
+      "id": "scope",
+      "title": "Scope"
+    },
+    {
+      "level": 2,
+      "id": "dos-hardening",
+      "title": "DoS hardening"
+    },
+    {
+      "level": 2,
+      "id": "jinja-template-analyzer",
+      "title": "Jinja template analyzer"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Multipack — FFD Bin-Packing Sampler (v0.37.0)</h1><p>Soup&#x27;s largest single throughput win on chat fine-tuning over uneven-length data. Instead of padding every sample to <code>max_length</code>, Multipack uses <strong>First-Fit-Decreasing bin packing</strong> to group variable-length samples into bins approaching <code>batch_size × max_length</code> — eliminating padding waste.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  multipack: true\n  packing: false   # mutually exclusive with multipack"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"how-it-composes\">How it composes</h2><ul><li><strong>Multipack</strong> picks WHICH samples go together (FFD packing).</li><li>Multipack is a batch sampler: it only chooses which samples share a batch. It adds no attention-mask logic of its own. A helper that would pick a FlashAttention varlen path or a 4D mask exists in the source (<code>utils/neat_packing.py</code>), but nothing calls it (checked at v0.76.0 and again at v0.77.0), so no such path is auto-selected.</li><li><strong>Do not reach for <code>packing_cross_doc_attn_mask</code>.</strong> It is <a href=\"__DOCS_BASE__/training-speed-memory\">refused at config load since v0.75.0</a> and never built a mask on any release. Document isolation under <code>packing: true</code> comes from TRL&#x27;s default <code>bfd</code> strategy instead.</li></ul><h2 id=\"architecture-allowlist\">Architecture allowlist</h2><p><strong>38 architectures as of v0.51</strong>, up from the 18 this release shipped with: Llama, Mistral, Mixtral, Qwen / Qwen2 / Qwen3 / Qwen2-MoE, Gemma 1/2/3, Phi / Phi-3 / Phi-4, DeepSeek V2/V3, Falcon, StableLM, SmolLM2, Granite and Granite-MoE, GLM-4 and GLM-5, Kimi, MiniMax, QwQ, QVQ, GPT-OSS, Magistral, Devstral, Ministral, MedGemma, LFM2, Cogito, Hunyuan, Ernie, Yi, Baichuan and ChatGLM. See <a href=\"__DOCS_BASE__/model-catalog-v051\">the v0.51 model catalog</a> for what that expansion covered.</p><p>Unknown architectures <strong>fail loudly at config-load</strong> instead of silently no-opping (critical fix vs Axolotl&#x27;s silent-miss footgun).</p><h2 id=\"scope\">Scope</h2><p>Multipack is <strong>sft / pretrain only</strong> on the <code>transformers</code> backend. (An SFT run with <code>multipack</code> or <code>packing</code> writes no <code>rewind.jsonl</code> for <code>soup rewind</code>: the recorder turns itself off with one warning.) Preference / RLHF trainers and MLX backend get distinct error messages naming the actual reason. The sampler is wired into HF Trainer&#x27;s <code>_get_train_sampler</code> and has been live since v0.40.4.</p><p><strong>Under more than one process</strong> (FSDP, DeepSpeed ZeRO or DDP, that is <code>num_processes &gt; 1</code>) the multipack DataLoader is routed through <code>accelerator.prepare</code>, so accelerate hands whole packed bins to each rank in turn and the packing survives. The bin seed is the same on every rank, so all ranks agree on the global bin order before it is sharded. A single-GPU run takes the plain DataLoader. Upstream describes that multi-GPU routing as covered by tests that mock the accelerator, with a real run on two or more GPUs still outstanding, so treat it as unvalidated on real hardware. The sampler reads each row&#x27;s token count from <code>input_ids</code>, or from a <code>length</code> column when there is none; a dataset with neither logs an all-zeros warning, because packing then has nothing to work from.</p><h2 id=\"dos-hardening\">DoS hardening</h2><ul><li>FFD packer caps at 1M items, a bound on retained memory rather than on runtime: since v0.75.0 placement descends a segment tree of per-bin remaining capacity, so it is <strong>O(N log N)</strong> rather than the O(N²) scan it used to be. Measured on one box, 5.5x faster at 1,000 rows, 37x at 10,000 and 96x at 30,000, with the packing itself verified unchanged against the old function over 6,000 randomized cases. Which item lands in which bin is the property that had to hold: changing it would silently change every multipack run</li><li>4D mask builder caps allocations at 2³¹ cells</li><li>Chat-template Jinja analyzer caps at 128 KB</li><li>Every numeric input rejects <code>bool</code> explicitly</li></ul><h2 id=\"jinja-template-analyzer\">Jinja template analyzer</h2><p>The <code>JinjaTemplateAnalyzer</code> (also v0.37.0) walks chat-template ASTs to discover non-standard <code>message.&lt;field&gt;</code> references (<code>tool_calls</code>, <code>name</code>, <code>weight</code>, <code>train</code>) — used by the v0.36.0 <code>train_on_messages_with_train_field</code> path so per-message training masks are aware of fields beyond <code>role</code> / <code>content</code>. The analyzer <strong>parses</strong> templates without rendering them, so a crafted <code>soup.yaml</code> cannot trigger SSRF.</p><nav><a href=\"__DOCS_BASE__/multi-trainer-speed-memory\"><span>Previous</span><span>Trainer Speed &amp; Memory</span></a><a href=\"__DOCS_BASE__/lora-quality\"><span>Next</span><span>LoRA Quality</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "slug": "correctness-first",
+  "title": "Correctness First (v0.36.0)",
+  "description": "Default-deny --trust-remote-code with first-party allowlist, assistant-only loss masking, chat-template Jinja directive blocklist, OOM-probe auto batch size with on-disk cache. New in v0.36.0.",
+  "source": "https://trysoup.dev/docs/correctness-first",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "451f352203610a1733918da4e765ff3e3df4a514b63b772135eb105feca0113d",
+  "headings": [
+    {
+      "level": 2,
+      "id": "assistant-only-loss-masking",
+      "title": "Assistant-only loss masking"
+    },
+    {
+      "level": 2,
+      "id": "trust-remote-code-opt-in",
+      "title": "--trust-remote-code opt-in"
+    },
+    {
+      "level": 2,
+      "id": "chat-template-hardening",
+      "title": "Chat-template hardening"
+    },
+    {
+      "level": 2,
+      "id": "oom-probe-auto-batch-size",
+      "title": "OOM-probe auto batch size"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Correctness First (v0.36.0)</h1><p>Four silent-failure modes Soup had → loud failures.</p><h2 id=\"assistant-only-loss-masking\">Assistant-only loss masking</h2><p>By default, Soup masks every non-assistant token with <code>-100</code> so the SFT loss reflects only what the model should generate. Toggle via <code>data.train_on_responses_only</code> (default <code>true</code>):</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: data.jsonl\n  train_on_responses_only: true   # default\n  # OR per-message control:\n  # train_on_messages_with_train_field: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p>When the tokenizer ships a chat template with <code>{% generation %}</code> markers, the mask is exact. Without those markers, Soup falls back to an incremental tokenize-delta walk and documents the looseness.</p><p><strong>It does not apply to vision or audio SFT.</strong> The multimodal collators supervise every token. <code>soup doctor --config</code> does not flag it: the key defaults to <code>true</code>, and since v0.77.0 the doctor ignores settings written at their schema default (#1330), so the absence of a row does not mean assistant-only masking works for vision or audio. It still reports an explicit <code>data.mask_history: true</code> as ignored there. Through v0.76.1 it reported <code>train_on_responses_only</code> as <code>ignored</code> for <code>task: sft</code> with <code>modality: vision</code> (<code>multimodal vision collator supervises all tokens; assistant-only masking is not implemented for vision datasets (#1156)</code>) and for <code>modality: audio</code>.</p><blockquote><p><strong>If you trained SFT with <code>training.packing: true</code> while this key was on (the default), re-run it if the model should only learn the replies.</strong> With TRL 0.29.1, upstream reports, dataset packing drops the unpreserved <code>labels</code> column and falls back to training all input tokens except the first, so the prompt and system tokens were trained on as well, and the loss curve looked normal. Since v0.76.0 SFT datasets carry an <code>assistant_masks</code> column alongside <code>labels</code> (also under <code>use_liger: true</code>), and pre-tokenized caches that carry <code>labels</code> are augmented with it automatically (#1236, #1304).</p></blockquote><blockquote><p><strong>If you trained with this before v0.73.3, re-run it.</strong> A tokenizer returns a mapping object that is <strong>not</strong> a <code>dict</code>, and a type guard missed that, so the label mask was built from the mapping&#x27;s <strong>key strings</strong> rather than from its token ids. There was no exception and no warning: the loss curve looked entirely normal, and the run trained on <strong>zero tokens</strong>. Token ids are now read through <code>input_ids</code> and normalised to plain integers before they reach the collator, and a missing or non-integer id fails loudly instead of producing a garbage mask. Separately, a template that reports an all-zero assistant mask while assistant messages plainly exist now falls back to the incremental walk, rather than shipping an all-<code>-100</code> no-op. The same assumption was removed from <a href=\"__DOCS_BASE__/fine-tune-doctor\"><code>soup data doctor</code></a>, which had inherited it.</p></blockquote><h2 id=\"trust-remote-code-opt-in\"><code>--trust-remote-code</code> opt-in</h2><p><strong>Thirteen command modules</strong> require <code>--trust-remote-code</code> to load any HF model that ships custom Python (<code>auto_map</code> in <code>config.json</code>): <code>train</code>, <code>chat</code>, <code>serve</code>, <code>infer</code>, <code>diff</code>, <code>merge</code>, <code>export</code>, <code>shrink</code>, <code>draft</code>, <code>generate</code>, and the <code>data</code>, <code>data doctor</code> and <code>eval</code> groups. The default is deny, everywhere.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config soup.yaml --trust-remote-code"
+    },
+    {
+      "kind": "html",
+      "html": "<p>First-party orgs (Meta, Mistral, Qwen, Google, etc. — 15 in the allowlist) suppress the warning panel; everything else prints a <code>REMOTE CODE WARNING</code> panel before loading.</p><p>The count is still thirteen at v0.76.0 and at v0.77.0: the same modules declare the option (counted by searching <code>src/soup_cli/commands/</code> at both tags), and v0.76.0 made it reach commands that dropped it (#1449, #1478):</p><ul><li><code>soup eval auto</code> forwards the flag to both of its steps. <code>soup eval benchmark</code> and <code>soup eval custom</code> take their own <code>--trust-remote-code</code>, off by default, and the flag is appended to the lm-eval model arguments from the flag alone, never from an adapter&#x27;s <code>adapter_config.json</code>. Through v0.75.2 <code>soup eval auto</code> accepted the flag and nothing read the value (see <a href=\"__DOCS_BASE__/experiments\">Model Evaluation</a>).</li><li><code>soup train --find-lr</code> loads the model with the resolved flag (it used a hardcoded <code>False</code>), and <code>soup draft distill</code> and the heal step of <code>soup shrink</code> pass <code>--trust-remote-code</code> on to the child <code>soup train</code> instead of telling you to re-run with a flag you had already given.</li><li><code>soup data download --trust-remote-code</code> is <strong>refused</strong> (exit 1) when the installed <code>datasets</code> package is version 4 or newer, because those versions dropped remote dataset code and the flag would be silently ignored. Install <code>datasets&lt;4</code> if a dataset needs its loading script. Without the flag nothing changes.</li></ul><h2 id=\"chat-template-hardening\">Chat-template hardening</h2><p>Tokenizers without a chat template now raise a <code>ValueError</code> with a fix suggestion instead of silently building garbage <code>f&quot;{role}: {content}&quot;</code> strings.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: data.jsonl\n  chat_template: chatml   # or: llama3, qwen2.5, mistral, gemma3, phi4, deepseek-r1, or a raw Jinja string"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Raw Jinja strings are validated: null bytes, &gt;64 KB, and filesystem-touching directives (<code>{% include %}</code>, <code>{% import %}</code>, <code>{% from %}</code>, <code>{% macro %}</code>, <code>{% extends %}</code>) are rejected at config-load.</p><p><strong>Which trainers honour <code>data.chat_template</code>.</strong> Through v0.75.2 only the SFT path applied it: a DPO, ORPO, SimPO, KTO, BCO, IPO, PPO, reward-model, GRPO or online-DPO run with <code>data.chat_template: llama3</code> silently rendered its prompts with the tokenizer&#x27;s own template (#804, #919). Since v0.76.0 those ten trainers install the override before conversational data is rendered, as SFT does. <strong>If you set <code>data.chat_template</code> on one of them, the override was ignored; re-run if the rendering mattered.</strong> Since v0.77.0 <code>backend: mlx</code> refuses it at config load too, because the MLX trainers render the model&#x27;s shipped template only (#2051). Tasks that never render chat refuse the key at config load instead of ignoring it: <code>pretrain</code>, <code>embedding</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>prm</code>, <code>asr</code>, <code>moe_lora_routing</code> and <code>unlearn</code> (not applied under <code>stream_layers</code>, which has its own task-specific refusal). For example, <code>soup doctor --config</code> on a <code>task: pretrain</code> config that names a chat template prints <code>data.chat_template is not used by task=&#x27;pretrain&#x27;; remove it or choose a conversational training task</code> and exits 2 (run on the v0.76.0 CLI).</p><h2 id=\"oom-probe-auto-batch-size\">OOM-probe auto batch size</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  batch_size: auto                  # unchanged\n  auto_batch_size_strategy: probe   # NEW: 'static' | 'probe' | 'auto' (default)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Replaces the static memory formula with a real try-halve-then-double-to-ceiling loop.</p><blockquote><p><strong>The fit criterion changed in v0.74.0, and it matters most on Windows.</strong> Until then the probe&#x27;s only test was &quot;the synthetic step did not raise&quot;. Under the WDDM driver, which is native Windows and WSL2, the allocator does not raise on an over-commit: it spills into host memory. So a batch that ran an order of magnitude slower in shared memory was approved <strong>and cached</strong>. The probe now reads <code>max_memory_allocated</code> after the step and refuses anything above what the process can actually reach on the device, and the cache key carries a version tag so entries written by the old probe are ignored rather than trusted. If you used <code>batch_size: auto</code> on Windows or WSL2 before v0.74.0, the cached size may never have been a fit.</p></blockquote><p>Two floors arrived in v0.76.0, per upstream&#x27;s changelog: <code>batch_size: auto</code> never resolves below 2 for <code>task: kto</code>, which refuses a batch of 1 at config load for every KTO config, and for the default contrastive <code>embedding</code> loss, where a one-row batch gives a loss and gradient of exactly 0.</p><p>Picked size is cached at <code>~/.soup/batch_cache.json</code> keyed on <code>(model, max_length, quantization, lora_r, gpu_name, gpu_memory_gb)</code> so repeat runs short-circuit. Cache file gets best-effort <code>0o600</code> perms after atomic rename.</p><nav><a href=\"__DOCS_BASE__/mcp-server\"><span>Previous</span><span>MCP Server</span></a><a href=\"__DOCS_BASE__/governance\"><span>Next</span><span>Governance, BOM &amp; SLSA-3 attestations</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

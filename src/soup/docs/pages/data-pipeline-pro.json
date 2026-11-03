@@ -1,0 +1,152 @@
+{
+  "slug": "data-pipeline-pro",
+  "title": "Data Pipeline Pro (v0.42.0)",
+  "description": "Data Pipeline Pro in Soup CLI v0.42.0. 5 new data formats (prm, pre_tokenized, input_output, video, multimodal), remote URIs (s3/gs/az/abfs/oci), streaming + sharding, multi-dataset interleave (data.train as a list plus data.interleave, wired at training time since v0.74.0), vocab expansion, soup data ingest for PDF/DOCX/MD/TXT (PDF and DOCX through the [documents] extra since v0.77.0), AOT tokenize cache.",
+  "source": "https://trysoup.dev/docs/data-pipeline-pro",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "8a450eebcaa5859b419b4866b5c49811da8c6b64fa0fbbaf59b07368bf89c8eb",
+  "headings": [
+    {
+      "level": 2,
+      "id": "5-new-data-formats",
+      "title": "5 new data formats"
+    },
+    {
+      "level": 2,
+      "id": "remote-uris",
+      "title": "Remote URIs"
+    },
+    {
+      "level": 2,
+      "id": "data-prompt-strategy-your-own-row-transform",
+      "title": "data.prompt_strategy — your own row transform"
+    },
+    {
+      "level": 2,
+      "id": "multi-dataset-interleave",
+      "title": "Multi-dataset interleave"
+    },
+    {
+      "level": 3,
+      "id": "how-entries-are-classified",
+      "title": "How entries are classified"
+    },
+    {
+      "level": 2,
+      "id": "advanced-masking-vocab-expansion",
+      "title": "Advanced masking + vocab expansion"
+    },
+    {
+      "level": 3,
+      "id": "mask-history-train-only-the-last-assistant-turn",
+      "title": "mask_history: train only the last assistant turn"
+    },
+    {
+      "level": 3,
+      "id": "data-chat-template",
+      "title": "data.chat_template"
+    },
+    {
+      "level": 3,
+      "id": "keys-that-nothing-reads-refused-at-load-since-v0-77-0",
+      "title": "Keys that nothing reads (refused at load since v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-ingest",
+      "title": "soup data ingest"
+    },
+    {
+      "level": 2,
+      "id": "aot-tokenize-cache-rebuilt-in-v0-76-0",
+      "title": "AOT tokenize cache (rebuilt in v0.76.0)"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Data Pipeline Pro (v0.42.0)</h1><p>18 features across 6 parts. Axolotl + LLaMA-Factory data-layer parity.</p><h2 id=\"5-new-data-formats\">5 new data formats</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: ./data/train.jsonl\n  format: prm            # PRM stepwise-supervised\n  # | pre_tokenized      # LF tokenized_path / Axolotl empty\n  # | input_output       # Axolotl template-free segments+labels\n  # | video\n  # | multimodal         # axolotl content-parts schema"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"remote-uris\">Remote URIs</h2><p>7-entry allowlist for object stores. Bucket regex <code>^[a-zA-Z0-9][a-zA-Z0-9._\\-]{0,62}$</code>. Userinfo / fragment / query rejected.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: s3://my-bucket/train.jsonl    # s3 | gs | gcs | az | abfs | abfss | oci\n  streaming: true\n  buffer_size: 10000\n  shards: 16"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Live fsspec loaders shipped in v0.53.8 (schema-only in v0.42.0).</p><p><strong>A single Hugging Face Hub name streams too, since v0.75.0.</strong> <code>data.streaming: true</code> with <code>data.train: org/dataset</code> is forwarded to <code>datasets.load_dataset(..., streaming=True)</code>, <code>buffer_size</code> shuffles that stream, and Soup then materialises up to 1,000,000 rows, printing a warning if the source is larger. Before v0.75.0 the flag was ignored for a Hub name and the whole dataset was loaded. <code>buffer_size</code> shuffles the train split only; a validation split is taken in order.</p><h2 id=\"data-prompt-strategy-your-own-row-transform\"><code>data.prompt_strategy</code> — your own row transform</h2><p>An Axolotl-style <code>module.path:function_name</code> spec. The import is resolved once at setup, so a bad path fails fast rather than mid-epoch, and the function is applied to <strong>each row before template rendering</strong>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: ./data/train.jsonl\n  prompt_strategy: my_pkg.strategies:to_chat"
+    },
+    {
+      "kind": "html",
+      "html": "<p>It runs code you name, so it is operator-controlled by design: only point it at a module you trust. It must have the <code>module.path:function_name</code> shape, and <code>format: pre_tokenized</code> refuses it, because <code>soup data preprocess</code> never applies it and the cached ids would not contain its effect.</p><h2 id=\"multi-dataset-interleave\">Multi-dataset interleave</h2><p><code>data.interleave</code> selects the strategy, and it is validated at config load. It attaches to a <strong>list-valued</strong> <code>data.train</code> and is refused outright against a single path, so the sub-block never appears on its own:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# A FRAGMENT, not a config: this block goes under the data: key, beside\n# a list-valued data.train. On its own at the root it is refused as an\n# unknown key, because only a root-level lora: block is remapped.\ndata:\n  interleave:\n    strategy: probs      # concat | under | over | probs\n    probs: [0.7, 0.3]    # one entry per dataset, in data.train's order"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Probs are validated as 2–32 entries summing to 1.0 ± 1e-6, each in (0, 1], and the list must be exactly as long as <code>data.train</code>. The full config is below.</p><blockquote><p><strong>This was a known gap until v0.74.0, and the history is worth one paragraph, because the site published the gap while it stood.</strong> <code>data.interleave</code> had validated, documented and parsed since v0.42.0 while <strong>nothing read it at training time</strong>, so every multi-dataset mixture silently trained on <code>data.train</code>&#x27;s single path. <code>data.train</code> also declared a single string, so naming several datasets was rejected outright at config load. v0.73.3 repaired only the visible half, the recipe <code>soup data mix --optimize</code> writes, which had been emitting a list form its own loader rejected.</p></blockquote><p><strong>v0.74.0 wired it.</strong> <code>data.train</code> accepts <code>str | list[str]</code>; a list of two or more entries is combined by <code>data.interleave</code> into one row set, and a single path stays byte-identical to what it was.</p><p><strong>v0.75.0 then changed where <code>val_split</code> sits in that order, and the consequence is worth knowing before you trust a validation number.</strong> Under <code>over</code> or <code>probs</code> the same row could land in <strong>both</strong> <code>train</code> and <code>val</code>, because the split ran after the padding and a padded copy is the same row. On the eager local-file and all-Hub-name paths <code>val_split</code> now runs <strong>first, per source</strong>, so that cannot happen. Two things follow, both upstream&#x27;s own:</p><ul><li><strong>The requested fraction is no longer exact</strong> under <code>over</code> or <code>probs</code>, because it is taken from each source&#x27;s smaller, unpadded row count. Two sources of 1000 and 100 rows with <code>over</code> and <code>val_split: 0.1</code> give <strong>110 validation rows out of 1910, which is 5.8%</strong>, not 200 out of 2000.</li><li><strong>Train and validation end up with different source mixtures.</strong> If you oversampled specifically to correct a source imbalance, your validation set still reflects the original, un-rebalanced skew.</li></ul><p><code>concat</code> and <code>under</code> never pad, so neither applies to them. At v0.75.0 the streaming path was not fixed and could still place one row on both sides of the split under <code>over</code>. (Since closed in v0.76.0 for streaming <code>over</code>, #702: see below.)</p><p><strong>The streaming path reaches the same guarantee for <code>over</code> by a different route (v0.76.0).</strong> A stream cannot be counted ahead of time, so there is nothing to take a fraction of before interleaving starts. Once <code>over</code> has been materialised, the split is sized over the <em>distinct</em> rows and validation is taken from the end of the stream, preferring rows whose content occurs only once, so train keeps every row and all of its oversampling. Only if there are too few such rows is repeated content moved to validation; its other copies are then withheld from train and the number withheld is printed as a warning. A split that would leave train empty raises instead. <strong>Validation on this path is not balanced across sources</strong>: with 100 rows against 10 under <code>val_split: 0.1</code>, every validation row comes from the larger source, because the smaller one&#x27;s rows are all recycled. The eager path&#x27;s per-source carve-out is balanced; this one is not. <code>concat</code>, <code>under</code> and <code>probs</code> add no duplicates on the streaming path and keep the ordinary positional split. That is a statement about interleaving, not about your data: rows already duplicated inside a source can still land on both sides of the split under any strategy, on either path.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train:\n    - ./data/support.jsonl\n    - ./data/code.jsonl\n  interleave:\n    strategy: probs        # concat | under | over | probs\n    probs: [0.7, 0.3]"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Streaming and Hugging Face Hub names work too, and the strategies are deliberately mapped so a name means the same thing on both paths: <code>concat</code> concatenates, <code>under</code> and <code>over</code> stop at the first exhausted or the last, and <code>probs</code> passes the probabilities through. That equivalence was verified by running one <code>probs</code> config through both paths and comparing the resulting proportions, rather than by two tests that each pass alone.</p><p>Two shapes are still <strong>refused by name</strong>: an all-Hub list with <code>data.streaming: true</code>, and any list mixing Hub names with local or remote entries. <code>training.packing</code> and <code>training.multipack</code> are rejected with a list too, at config-parse time, with a message naming the reason.</p><h3 id=\"how-entries-are-classified\">How entries are classified</h3><p>Each entry of a <code>data.train</code> list is classified on its own. It is a <strong>local file</strong> if its suffix is <code>.jsonl</code>, <code>.json</code>, <code>.csv</code>, <code>.parquet</code> or <code>.txt</code>, a <strong>remote URI</strong> if it contains <code>://</code>, and otherwise a <strong>Hugging Face Hub name</strong>. So <code>teknium/OpenHermes-2.5</code> is a Hub name, not a file with a <code>.5</code> suffix. A list may mix local files and remote URIs, or hold only Hub names, but Hub names beside the others are refused at config load. Remote entries need <code>data.streaming: true</code>, and streaming picks the file type per entry from its suffix.</p><p><strong>A single-string <code>data.train</code> follows the same rule since v0.76.1</strong> (#1889): a supported file extension (<code>.jsonl</code>, <code>.json</code>, <code>.csv</code>, <code>.parquet</code>, <code>.txt</code>) means a local file, a string containing <code>://</code> a remote URI, and anything else a Hub id. So <code>data.train: teknium/OpenHermes-2.5</code> loads from the Hub. Through v0.76.0 a single string with any suffix was read as a file path, and that one failed with <code>Data file not found</code>, the dot read as a file extension. The single string has one addition: a name whose suffix is not on that list but which is an existing file stays local, so a real <code>data.tsv</code> still gets <code>Unsupported file format</code>. The other side of the change: a path with an unsupported suffix that names no file, such as the typo <code>data/train.jsnol</code>, now goes to the Hub lookup, as it already did inside a list, instead of failing with <code>Data file not found</code>; offline, upstream says, it reports a connection error. A missing <code>.jsonl</code>, <code>.json</code>, <code>.csv</code>, <code>.parquet</code> or <code>.txt</code> path still says <code>Data file not found</code>.</p><p>A <code>://</code> entry counts as remote whatever its scheme, and only the seven object-store schemes above load. An <code>https://</code> or <code>ftp://</code> entry passes config load and is refused by name when the data is loaded. Under streaming, <code>probs</code> samples from the sources, so the proportions are approached rather than met exactly.</p><p>When every entry is a Hub name, a Hub entry&#x27;s own <code>validation</code> split becomes the combined validation set only if <strong>every</strong> entry has one. If only some do, Soup prints a warning, ignores all of them, and <code>data.val_split</code> applies instead.</p><h2 id=\"advanced-masking-vocab-expansion\">Advanced masking + vocab expansion</h2><p><code>add_new_tokens</code> and <code>new_special_tokens</code> add tokens to the tokenizer and resize the embeddings whenever a token was actually added. They are applied on <code>backend: transformers</code> by these tasks: <code>sft</code> (text, vision and audio), <code>dpo</code>, <code>kto</code>, <code>orpo</code>, <code>ipo</code>, <code>simpo</code>, <code>bco</code>, <code>grpo</code>, <code>online_dpo</code>, <code>preference</code> (which hands off to the paired-loss trainers) and <code>tts</code>. <strong>Since v0.76.0 a config that sets either key anywhere else is refused at load</strong>, naming the reason: any other task (<code>pretrain</code>, <code>embedding</code>, <code>ppo</code>, <code>reward_model</code>, <code>prm</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>distill</code>, <code>asr</code>, <code>unlearn</code>, <code>moe_lora_routing</code>), <code>training.stream_layers: true</code>, <code>backend: mlx</code>, and <code>backend: unsloth</code> (SFT vision and audio are the exception, because they go through the transformers setup whatever the backend says). Through v0.75.2 those configs loaded and the tokens were silently dropped, so they never reached the tokenizer (#1358). <code>format: pre_tokenized</code> refuses both keys too, together with <code>data.prompt_strategy</code>, because the cache was built without them.</p><p><code>train_on_prompt</code> is mutually exclusive with <code>train_on_responses_only</code>, which defaults to true; on the transformers backend, putting prompt tokens in the loss means setting <code>train_on_responses_only: false</code>, since nothing else reads <code>train_on_prompt</code>.</p><h3 id=\"mask-history-train-only-the-last-assistant-turn\"><code>mask_history</code>: train only the last assistant turn</h3><p><code>mask_history: true</code> keeps only the <strong>last</strong> assistant turn in the loss. Every earlier assistant turn is masked, alongside the user and system turns that the assistant-only path already masks. It never adds tokens to the loss, and it only means something for multi-turn chat shapes. It was accepted and ignored through v0.75.2; it is read as of v0.76.0 (#761).</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train_on_responses_only: true    # the default, and required by mask_history\n  mask_history: true"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><strong>It requires <code>train_on_responses_only: true</code>.</strong> With <code>false</code> the config is refused at load, which also rules out <code>train_on_messages_with_train_field</code>, itself exclusive with <code>train_on_responses_only</code>.</li><li>It is read on the text label path that <code>task: sft</code> and <code>task: distill</code> use.</li><li><strong><code>backend: mlx</code> ignores it.</strong> MLX SFT supervises every assistant turn, so one config trains the last turn on transformers and every turn on MLX; <code>soup train</code> says so on its <code>MLX backend ignores:</code> line.</li><li>On <code>task: sft</code> with <code>modality: vision</code> or <code>audio</code> it is accepted but not applied: every text token trains, and <code>soup doctor --config</code> reports it as ignored.</li><li><code>soup data doctor --mask-history</code> previews the same mask. It is refused (exit 3) together with <code>--no-train-on-responses-only</code> or <code>--train-on-messages-with-train-field</code>. See <a href=\"__DOCS_BASE__/fine-tune-doctor\">Fine-tune Doctor</a>.</li></ul><h3 id=\"data-chat-template\"><code>data.chat_template</code></h3><p><code>data.chat_template</code> takes a registered name (<code>chatml</code>, <code>deepseek-r1</code>, <code>gemma-3</code>, <code>gemma3</code>, <code>llama-3</code>, <code>llama3</code>, <code>mistral</code>, <code>phi-4</code>, <code>phi4</code>, <code>qwen</code>, <code>qwen2.5</code>) or a raw Jinja string. A name that is not registered is refused immediately (exit 1, <code>Invalid data.chat_template</code>, listing the known names), including under <code>soup train --dry-run</code>. Through v0.75.2 only the SFT path applied the override. As of v0.76.0 the other conversational trainers apply it as well (DPO, ORPO, SimPO, KTO, BCO, IPO, PPO, reward-model, GRPO and online DPO), and a config that sets it on a task that never renders chat is refused at load: <code>pretrain</code>, <code>embedding</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>prm</code>, <code>asr</code>, <code>moe_lora_routing</code> and <code>unlearn</code>. Since v0.77.0 <code>backend: mlx</code> refuses it as well, with <code>data.chat_template is not applied by backend: mlx — the MLX trainer renders the model&#x27;s shipped template only.</code> (#2051; through v0.76.1 it was ignored there); remove the key or use <code>backend: transformers</code>.</p><h3 id=\"keys-that-nothing-reads-refused-at-load-since-v0-77-0\">Keys that nothing reads (refused at load since v0.77.0)</h3><p><strong>Read by nothing, and refused at load since v0.77.0 when set away from the default (#808; v0.76 only warned):</strong> <code>video_dir</code>, <code>video_fps</code>, <code>video_maxlen</code>, <code>image_min_pixels</code>, <code>image_max_pixels</code>, <code>image_resize_algorithm</code>, <code>split_thinking</code>, <code>eval_on_each_dataset</code>, <code>resize_vocab</code>, <code>extend_conversation</code> and <code>skip_prepare_dataset</code>. Setting one stops the load with <code>data.&lt;name&gt; is accepted but read by nothing; refused as of v0.77. Delete the line.</code> (<code>soup train</code> exits 1, <code>soup doctor --config</code> exits 2); the schema default still loads. Nothing ever read them, so deleting the line changes nothing about training. In particular, <code>split_thinking</code> never turned on any <code>&lt;think&gt;</code> masking. See <a href=\"__DOCS_BASE__/config-refusals\">Config refusals</a> for the full list across sections.</p><p><code>remove_unused_columns</code> is a separate case. It defaults to <code>false</code> since v0.76.0 (it declared <code>true</code> before, which misdescribed every run), because no trainer reads it: the SFT, pretrain, DPO, ORPO, SimPO, KTO, IPO, BCO, GRPO, reward-model, embedding, distill, PRM, ASR and MoLE-routing trainers all set <code>remove_unused_columns=False</code> themselves as a constant. Since v0.77.0 an explicit <code>true</code> stops the load with <code>data.remove_unused_columns: true never had an effect (no trainer reads it; the trainers that set it pass false). Delete the line. Refused as of Soup v0.77.</code> (v0.76 loaded it with a warning); delete the line. <code>soup autopilot</code> wrote <code>remove_unused_columns: true</code> into the configs it generated before v0.76.0.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  add_new_tokens: [\"<thought>\", \"</thought>\"]\n  new_special_tokens: [\"<|im_end|>\"]"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"soup-data-ingest\">soup data ingest</h2><p>Convert PDF / DOCX / MD / TXT into JSONL.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data ingest mybook.pdf --output mybook.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>PDF and DOCX need <code>pip install &quot;soup-cli[documents]&quot;</code>, new in v0.77.0: it brings <code>pypdf&gt;=6.21.2</code> and <code>python-docx&gt;=1.2.0</code> (#2096). Without it the command exits 1 with <code>pypdf not installed. Run: pip install &quot;soup-cli[documents]&quot;</code>, or the same line for <code>python-docx</code>. Through v0.76.1 neither reader was in a Soup extra. Markdown and plain text need nothing. A PDF becomes one row per page, a DOCX one row per non-empty paragraph, Markdown one row per heading (<code>{&quot;text&quot;, &quot;section&quot;, &quot;level&quot;, &quot;source&quot;}</code>) and a text file one row. Input and output must sit under the current directory, and the output defaults to <code>./ingested.jsonl</code>.</p><h2 id=\"aot-tokenize-cache-rebuilt-in-v0-76-0\">AOT tokenize cache (rebuilt in v0.76.0)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data preprocess soup.yaml --output ./cache"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup data preprocess</code> tokenizes the training split once. A later run with <code>data.format: pre_tokenized</code> and <code>data.tokenized_path</code> pointing at the cache loads those rows instead of tokenizing again. The config file and <code>--output</code> must both sit under the current directory (exit 1 otherwise), and the command prints the dataset, tokenizer, <code>max_length</code>, <code>Loss mask:</code>, <code>Cache key:</code> and <code>Target:</code> it resolved before it starts.</p><blockquote><p><strong>Through v0.75.2 this round trip did not work.</strong> The training gate hashed <code>pre_tokenized</code> while preprocess hashed the source format, so every cache that preprocess had written from a chat or Alpaca source was refused with <code>cache hash mismatch</code>. Those caches also held no <code>labels</code> column, so a cache loaded without its <code>metadata.json</code> (the path that prints a yellow &quot;assuming compatible&quot; advisory) trained on the prompt as well as the answer, with a normal-looking loss curve. v0.76.0 is the first release where the round trip works (#1038, #1054).</p></blockquote><p><strong>What the 16-character key covers.</strong> It is a SHA-256 over the cache schema version (<code>v7</code>) and these inputs, as <code>PREPROCESS_KEY_FIELDS</code> in <code>utils/data_pipeline.py</code> declares them:</p><div><table><thead><tr><th>Key input</th><th>Config fields</th></tr></thead><tbody><tr><td>dataset</td><td><code>data.train</code>, <code>data.interleave</code>, <code>data.val_split</code>, <code>data.replay</code>, <code>data.replay_ratio</code>, <code>data.replay_seed</code>, <code>data.streaming</code>, <code>data.buffer_size</code>, <code>data.image_dir</code>, <code>data.audio_dir</code></td></tr><tr><td>tokenizer</td><td><code>base</code></td></tr><tr><td>max_length</td><td><code>data.max_length</code></td></tr><tr><td>format</td><td><code>data.format</code>, the source format preprocess read</td></tr><tr><td>chat_template</td><td><code>data.chat_template</code>, resolved to the Jinja it renders</td></tr><tr><td>loss-mask mode</td><td><code>data.train_on_responses_only</code>, <code>data.train_on_messages_with_train_field</code>, <code>data.mask_history</code>, <code>training.train_on_eot</code></td></tr><tr><td>task</td><td><code>task</code></td></tr></tbody></table></div><p>Since v0.77.0 <code>training.train_on_eot</code> loads only on <code>sft</code>, <code>tts</code> and <code>distill</code>; on <code>pretrain</code> it is refused at load, and upstream notes that there it changed only the cache key, never the cached rows, so a pretrain cache built with the flag has to be rebuilt without it (#1587). A cache built under one value of any of these is refused when the <code>pre_tokenized</code> run uses another: <code>pre_tokenized cache hash mismatch</code>, naming the fields that changed when it can. That includes <code>data.chat_template</code> (preprocess now renders with it; before, it used the tokenizer&#x27;s shipped template) and the masking mode. A cache written by v0.75.2 or earlier is refused too, and the message says it predates the keying; re-run <code>soup data preprocess</code>. <code>Target already exists</code> (exit 0, nothing tokenized) appears only when the same key is already in the output directory; <code>--yes</code> tokenizes again and replaces it.</p><p><strong>Cached rows carry <code>labels</code>.</strong> They are built by the same helpers as the live training path, so a row masks what <code>train_on_responses_only</code> would mask. A leading BOS that the live path would not train on is dropped, and a truncated row no longer gains an EOS. With <code>task: sft</code>, a <code>pre_tokenized</code> dataset you built yourself must carry a <code>labels</code> column (<code>-100</code> on every token not to train on); one without is refused. <code>task: pretrain</code> has no such check, because training on every token is the pretraining objective.</p><p><strong>It stops on a row it cannot tokenize.</strong> A chat template that rejects the roles, an empty <code>messages</code>, a row that renders as empty text, or a tokenizer error ends the command with exit 1 and <code>Train row N cannot be tokenized</code>, where N counts from 1 among the rows that loaded, quoting the start of the row&#x27;s first message. Nothing is written. A tokenizer with no chat template is reported once, pointing at <code>data.chat_template</code>. Earlier releases dropped such rows and exited 0, so the cache silently held fewer rows than the training path would train on (#1180).</p><p><strong>Re-run this.</strong> A <code>pre_tokenized</code> run from a cache built before v0.76.0 either never started (the hash mismatch) or, when the cache had no <code>metadata.json</code>, optimised full-sequence loss instead of the assistant-only mask. Rebuild the cache and retrain. A cache built on a template that renders no end-of-sequence token may also have trained without a stop token; the v0.76.0 cache applies the same append-EOS rule as the live path (#938).</p><p><code>pre_tokenized</code> pairs with <code>data.tokenized_path</code>, and a <code>pre_tokenized</code> config with a non-text modality (<code>vision</code>, <code>audio</code>) is refused at load. The <code>pre_tokenized</code> training config must keep <code>data.val_split</code>, <code>data.replay</code>, <code>data.replay_ratio</code>, <code>data.replay_seed</code>, <code>data.streaming</code>, <code>data.buffer_size</code>, <code>data.image_dir</code> and <code>data.audio_dir</code> as they were when the cache was built, and must name the same chat template.</p><nav><a href=\"__DOCS_BASE__/trace-to-preference\"><span>Previous</span><span>Trace → Preference</span></a><a href=\"__DOCS_BASE__/data-forge\"><span>Next</span><span>Data Forge</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

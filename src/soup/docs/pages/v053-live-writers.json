@@ -1,0 +1,87 @@
+{
+  "slug": "v053-live-writers",
+  "title": "v0.53.1 — Live writers for Quant Menu II",
+  "description": "Soup CLI v0.53.1 live writers: 'soup export --format torchao' (Int4WeightOnly / Int8DynActInt4 / Float8DynActFloat8 / NVFP4), 'soup merge --save-format 4bit_forced' single-shot BNB merge, 'soup export --format gguf-ud' 3-stage llama.cpp imatrix pipeline, autopilot pre-quantized detection, deploy autopilot OK/MINOR/MAJOR scorecard.",
+  "source": "https://trysoup.dev/docs/v053-live-writers",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "cb374ef6f72a9d00d765c439ce155e2014ce33e135cc09dda7e899a03370f456",
+  "headings": [
+    {
+      "level": 2,
+      "id": "torchao-ptq-export",
+      "title": "TorchAO PTQ export"
+    },
+    {
+      "level": 2,
+      "id": "single-shot-bnb-4bit-merge",
+      "title": "Single-shot BNB-4bit merge"
+    },
+    {
+      "level": 2,
+      "id": "ud-iq-apple-arm-gguf-live",
+      "title": "UD / IQ / Apple-ARM GGUF live"
+    },
+    {
+      "level": 2,
+      "id": "autopilot-pre-quantized-detection",
+      "title": "Autopilot pre-quantized detection"
+    },
+    {
+      "level": 2,
+      "id": "deploy-autopilot-scorecard",
+      "title": "Deploy autopilot scorecard"
+    },
+    {
+      "level": 2,
+      "id": "tests",
+      "title": "Tests"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">v0.53.1 — Live writers for Quant Menu II</h1><p>v0.53.0 shipped the closed allowlists and validators. v0.53.1 lifts every stub to live wiring.</p><h2 id=\"torchao-ptq-export\">TorchAO PTQ export</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup export --model ./output --format torchao --quant-config quant.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Closed scheme allowlist with per-scheme kwarg validation:</p><ul><li><code>Int4WeightOnly</code></li><li><code>Int8DynActInt4</code></li><li><code>Float8DynActFloat8</code></li><li><code>NVFP4</code> (Blackwell, SM 10.0 or newer, runtime gate)</li></ul><p>(Updated in v0.76.0: three of these four schemes asked torchao for classes it does not export, so through v0.75.2 they could not build a config at all. The <code>[qat]</code> extra now requires <code>torchao&gt;=0.18.0</code>, <code>Int8DynActInt4</code> and <code>NVFP4</code> are resolved from torchao&#x27;s <code>prototype</code> namespace, and <code>inner_k_tiles</code> is no longer an accepted key. The current scheme rules are on <a href=\"__DOCS_BASE__/export#torchao-post-training-quantization\">Export</a>.)</p><h2 id=\"single-shot-bnb-4bit-merge\">Single-shot BNB-4bit merge</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup merge --adapter ./output --save-format 4bit          # standard\nsoup merge --adapter ./output --save-format 4bit_forced   # forced single-shot path"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Writes a BNB-4bit quantized merged checkpoint <strong>without</strong> the wasteful dequant → merge → requant cycle (Unsloth <code>merged_4bit</code> recipe).</p><p>(Updated in v0.76.0, #1606: <code>4bit_forced</code> now quantizes every linear module, <code>lm_head</code> included. Through v0.75.2 transformers&#x27; default skip list left <code>lm_head</code> in full precision, so the &quot;forced&quot; checkpoint was not forced. A model with <code>tie_word_embeddings=True</code> is refused by name once the fp16 merge has been staged and before the 4-bit reload (<code>Merge failed: ...</code>, exit 1); use <code>--save-format 4bit</code> for those.)</p><h2 id=\"ud-iq-apple-arm-gguf-live\">UD / IQ / Apple-ARM GGUF live</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup export --model ./output --format gguf-ud --gguf-flavour UD-Q4_K_XL --calibration-data calib.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p>3-stage pipeline: <code>convert_hf_to_gguf.py</code> → <code>imatrix</code> → <code>quantize</code>. Calibration JSONL is required for any UD / IQ rung.</p><h2 id=\"autopilot-pre-quantized-detection\">Autopilot pre-quantized detection</h2><p><code>detect_prequantized_format(model_id)</code> recognises <code>TheBloke/...-GPTQ</code>, <code>-AWQ</code>, <code>-MLX</code>, GGUF names. <code>soup autopilot</code> now recommends <code>gptq</code> instead of stacking <code>4bit</code> on top of a pre-quantized checkpoint.</p><h2 id=\"deploy-autopilot-scorecard\">Deploy autopilot scorecard</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup deploy autopilot --target rtx-4090-24gb --base ./output --measure --tasks tasks.jsonl --measure-candidates 4bit,awq"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Writes the recipe and deploy script for the chosen <code>--target</code> profile as usual, then measures each candidate quantization of <code>--base</code> against the unquantized base on your tasks file (one prompt and expected answer per line, under the working directory) and prints an OK / MINOR / MAJOR row per candidate, with the same thresholds as <code>soup eval quant-check</code>. The result is cached in <code>~/.soup/deploy_autopilot_cache.json</code>, keyed on the profile, the base, the tasks file and the candidate list. <code>--target</code> is required (<code>--list</code> shows the profiles), and <code>--measure-candidates</code> defaults to the profile&#x27;s own quantization. It loads the base and each quantized candidate through transformers, so expect it to take as long as that does. (Since v0.77.0 the <code>rtx-4090-24gb</code> profile plans 4-bit QLoRA with vLLM instead of writing <code>quantization: awq</code>, and the command&#x27;s own <code>--measure-candidates</code> example reads <code>4bit,8bit,fp8</code>.)</p><h2 id=\"tests\">Tests</h2><ul><li><strong>7,610 → 7,722</strong> (+112)</li></ul><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/quant-menu-ii\">Quant Menu II reference</a></li><li><a href=\"__DOCS_BASE__/training-speed-memory\">Speed &amp; Memory</a></li></ul><nav><a href=\"__DOCS_BASE__/borrowed-hardware\"><span>Previous</span><span>v0.73.0</span></a><a href=\"__DOCS_BASE__/v0532-modality-live\"><span>Next</span><span>Modality II live trainers</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

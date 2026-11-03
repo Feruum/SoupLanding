@@ -1,0 +1,152 @@
+{
+  "slug": "rag-and-steering",
+  "title": "Retrieval-Augmented FT & Activation Steering (v0.62.0)",
+  "description": "Soup CLI v0.62.0 RAG, RAFT, and activation steering. data.format: raft (query + golden_doc + distractors + answer). training.ra_dit_stage chains retriever → generator (RA-DIT). soup steer train/apply/list trains CAA / ITI / RepE activation vectors (soup steer apply only loads one and prints its metadata; soup serve --steer applies it at decode time; soup steer list reads only the Registry, and since v0.76.0 soup steer train --registry-id attaches the vector). training.citation_faithful boosts the loss on bracketed citation spans (citation_recall_threshold was never enforced and is refused at load since v0.77.0 when set; measure recall with soup eval citation). GRACE codebook edits via soup edit set --method grace (the codebook is written; no command applies it at decode time yet). +215 tests.",
+  "source": "https://trysoup.dev/docs/rag-and-steering",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "9283d50edf6b44254059ad569085f569fe167a129a79ba4cb9a3466e2bb22519",
+  "headings": [
+    {
+      "level": 2,
+      "id": "data-format-raft-stanford-raft-data",
+      "title": "data.format: raft — Stanford RAFT data"
+    },
+    {
+      "level": 2,
+      "id": "training-ra-dit-stage-two-stage-pipeline",
+      "title": "training.ra_dit_stage — two-stage pipeline"
+    },
+    {
+      "level": 3,
+      "id": "running-the-two-stages-with-soup-ra-dit",
+      "title": "Running the two stages with soup ra-dit"
+    },
+    {
+      "level": 2,
+      "id": "training-citation-faithful-weight-the-loss-toward-citation-spans",
+      "title": "training.citation_faithful — weight the loss toward citation spans"
+    },
+    {
+      "level": 2,
+      "id": "soup-steer-activation-steering-vectors",
+      "title": "soup steer — activation steering vectors"
+    },
+    {
+      "level": 2,
+      "id": "grace-codebook-soup-edit-set-method-grace",
+      "title": "GRACE codebook — soup edit set --method grace"
+    },
+    {
+      "level": 2,
+      "id": "new-recipes",
+      "title": "New recipes"
+    },
+    {
+      "level": 2,
+      "id": "numbers",
+      "title": "Numbers"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Retrieval-Augmented FT &amp; Activation Steering (v0.62.0)</h1><p>Five surfaces wired together: RAFT data format, RA-DIT two-stage pipeline, citation-faithful fine-tuning, activation steering vectors (CAA / ITI / RepE), and the GRACE codebook.</p><h2 id=\"data-format-raft-stanford-raft-data\"><code>data.format: raft</code> — Stanford RAFT data</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  train: ./raft_data.jsonl\n  format: raft\n  max_length: 4096"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Per-row schema:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\n  \"query\": \"What is the capital of France?\",\n  \"golden_doc\": \"France is a country in Europe...\",\n  \"distractor_docs\": [\"Spain is...\", \"Germany is...\"],\n  \"answer\": \"Paris\"\n}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The model learns to use retrieved context (golden + distractors) to answer queries — context-aware completion, not isolated Q&amp;A.</p><p>The golden and distractor documents are always shuffled into a reproducible order, set by <code>data.raft_shuffle_seed</code> (0 to 2147483647; unset means seed 0), and that order is fixed once, at tokenisation. Set <code>data.raft_epoch_shuffle: true</code> to re-permute them every epoch instead, so the model cannot learn to expect the golden document in one slot. Epoch 0 reproduces the fixed order exactly, so turning it on never changes the first epoch. The key does nothing for any other <code>data.format</code>. A row whose prompt fills <code>data.max_length</code> leaves no answer tokens to learn from, so it is dropped with a warning that counts the rows (raise <code>max_length</code> to keep them) rather than trained as an all-masked row.</p><p><strong>Under gradient accumulation (v0.77.0, #1444, #1771).</strong> Before this release a RAFT run at <code>gradient_accumulation_steps</code> above 1 (the default is 4) &quot;logged and clipped losses that were <code>gradient_accumulation_steps</code> times too large&quot;, in upstream&#x27;s words. Since v0.77.0 the logged <code>loss</code>, <code>train_loss</code> and <code>grad_norm</code> match a <code>gradient_accumulation_steps: 1</code> run, and <code>max_grad_norm</code> clips the gradient for the stated loss. The weighted mean over <code>loss_weights</code>, citation boosts included, is unchanged.</p><h2 id=\"training-ra-dit-stage-two-stage-pipeline\"><code>training.ra_dit_stage</code> — two-stage pipeline</h2><p>RA-DIT (Retrieval-Augmented Dual Instruction Tuning) chains:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# Stage 1: contrastive retriever\ntask: embedding\ntraining:\n  ra_dit_stage: retriever\n  ra_dit_retriever_model: sentence-transformers/all-MiniLM-L6-v2"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# Stage 2: RAFT generator\ntask: sft\ndata:\n  format: raft\ntraining:\n  ra_dit_stage: generator"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup ra-dit -r retriever.yaml -g generator.yaml</code> runs both stages in one go; both config paths are required and must sit under the current directory. <code>--plan-only</code> validates the two paths and the two stages&#x27; output directories, and prints the plan without training. <code>--timeout</code> is a per-stage limit in seconds, from 60 to 21600 (the default, six hours). <code>--retriever-model &lt;name-or-path&gt;</code> is a manual override that replaces the automatic link to the stage-1 output and records that retriever for the generator instead. It exists on <code>soup ra-dit</code> only: <code>soup train</code> has no such option. A plain <code>soup train</code> of a generator config (<code>ra_dit_stage: generator</code>) that leaves <code>training.ra_dit_retriever_model</code> unset picks up the most recent retriever run from the Registry instead (only <code>soup train</code> does this; <code>soup ra-dit</code> links its own stage-1 output), and a value you set in that key always wins. The generator records its retriever; stage 2 does not fuse the retriever&#x27;s weights into the generator.</p><p>Both stages reuse the existing trainer wrappers. <strong>Live as of v0.71.10</strong> — RAFT span-mask training (answer-only loss, <code>[doc-N]</code> citation labels) and the <code>soup ra-dit</code> one-shot orchestrator (retriever → generator in one command, with the generator linked to the retriever it just trained) run end-to-end; <code>soup steer train</code> + <code>soup serve --steer</code> (<code>soup steer apply</code> only prints a stored vector&#x27;s metadata) and <code>soup eval citation</code> are live too.</p><h3 id=\"running-the-two-stages-with-soup-ra-dit\">Running the two stages with <code>soup ra-dit</code></h3><p>A minimal pair of configs that passes config validation (the data paths are placeholders for your own files). Each file must carry its own top-level <code>output:</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# retriever.yaml (stage 1)\nbase: sentence-transformers/all-MiniLM-L6-v2\ntask: embedding\ndata:\n  train: ./pairs.jsonl\n  format: embedding\ntraining:\n  ra_dit_stage: retriever\noutput: ./output/retriever"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# generator.yaml (stage 2)\nbase: meta-llama/Llama-3.2-1B-Instruct\ntask: sft\ndata:\n  train: ./raft_data.jsonl\n  format: raft\n  max_length: 4096\ntraining:\n  ra_dit_stage: generator\noutput: ./output/generator"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Stage 1 is a <code>task: embedding</code> run, and the default <code>embedding_loss: contrastive</code> needs in-batch negatives: <code>training.batch_size: 1</code> is refused when the config loads (<code>contrastive in-batch negatives need batch_size &gt;= 2; use triplet (with negatives) or cosine for batch 1</code>), and <code>batch_size: auto</code> resolves to at least 2 (#1234). The last partial batch of an epoch is dropped, and a batch larger than the training set is lowered to its size. Through v0.75.2 a one-row batch ran, with a loss and gradient of exactly 0, so the adapter never moved: re-run a retriever you trained at <code>batch_size: 1</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup ra-dit --retriever-config retriever.yaml --generator-config generator.yaml --plan-only\nsoup ra-dit --retriever-config retriever.yaml --generator-config generator.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--retriever-config</code> (<code>-r</code>) and <code>--generator-config</code> (<code>-g</code>) are both required. Each must be an existing file under the current directory and not a symlink, otherwise the command exits 2 before doing anything. Both a live run and <code>--plan-only</code> then read the <code>output:</code> value from each YAML itself (joined with <code>experiment_name</code> when one is set, as the trainers build it), so a config that leaves it to the schema default is refused (exit 2, no training started). Since v0.77.0 a pair whose two effective outputs are the same directory, or one inside the other, is refused the same way before training starts (#2018; <code>Invalid ra-dit config: --generator-config output &#x27;./output&#x27; is the same file as --retriever-config output &#x27;./output&#x27;</code>, exit 2). The shipped <code>ra-dit-retriever</code> and <code>ra-dit-llama3-8b</code> recipes both declare <code>output: ./output</code>, so give each stage its own <code>output:</code> before you pair them; an <code>experiment_name</code> on only one stage is not enough, because its output then sits inside the other&#x27;s.</p><p>A live run trains stage 1 as <code>soup train --config &lt;retriever.yaml&gt; --yes</code>, then trains a temporary copy of the generator config with <code>training.ra_dit_retriever_model</code> set (your generator file is not modified). That value is the retriever stage&#x27;s output directory (its <code>output:</code>, plus <code>experiment_name</code> if set), or <code>--retriever-model</code> if you pass it. Neither a live run nor <code>--plan-only</code> looks in the Registry to choose it: since v0.77.0 the plan&#x27;s &quot;Retriever link&quot; line reads <code>auto-link to stage-1 output: ./output/retriever</code> for the pair above. <em>(Since closed in v0.77.0: through v0.76.1 <code>--plan-only</code> previewed the link from the Registry, so it could report no retriever found while the live run linked <code>./output/retriever</code>.)</em> <code>--timeout</code> must be 60 to 21600 on a live run (exit 2 otherwise) and is not checked by <code>--plan-only</code>. Each stage&#x27;s own output is captured, so a failing stage prints only <code>RA-DIT run failed: RA-DIT stage failed (rc=N)</code>; run that config with <code>soup train --config</code> directly to see why.</p><h2 id=\"training-citation-faithful-weight-the-loss-toward-citation-spans\"><code>training.citation_faithful</code> — weight the loss toward citation spans</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "data:\n  format: raft\ntraining:\n  citation_faithful: true\n  citation_style: bracket   # bracket | inline | footnote"
+    },
+    {
+      "kind": "html",
+      "html": "<p>When <code>citation_faithful=true</code>, the SFT trainer raises the per-token loss weight on citation spans of the chosen <code>citation_style</code> (<code>[doc-N]</code>, <code>(doc-N)</code> or <code>[^doc-N]</code>), so the model is pushed to cite sources from retrieved docs. That loss weighting is what the key does at training time. It requires <code>task: sft</code> and <code>data.format: raft</code>; since v0.77.0 <code>task: pretrain</code> is refused at load too (<code>training.citation_faithful=true requires task=&#x27;sft&#x27;</code>), because its trainer never applied the span weights (#1406, #1843).</p><p><code>training.citation_recall_threshold</code> is a staged field: the schema validates it (0.0 to 1.0), but no trainer or gate computes citation recall during training, so the final save was never refused on it. It warned at load in v0.76 (#761) and, since v0.77.0, set to anything but its default it stops the load: <code>soup train</code> exits 1 with <code>Config validation error:</code> and <code>training.citation_recall_threshold is accepted but read by nothing; refused as of v0.77. Delete the line.</code>, and <code>soup doctor --config</code> exits 2. Delete the key. Measure recall after training with <code>soup eval citation</code> or the <code>citation</code> probe in <a href=\"__DOCS_BASE__/diagnose\"><code>soup diagnose</code></a>, and gate on that.</p><h2 id=\"soup-steer-activation-steering-vectors\"><code>soup steer</code> — activation steering vectors</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup steer train --base meta-llama/Llama-3.1-8B-Instruct \\\n  --method caa --name safety-v1 \\\n  --pairs ./safety_pairs.jsonl --layer 16\n\nsoup steer apply --name safety-v1 --strength 1.5\nsoup steer list                                   # steering_vector artifacts recorded in the Registry"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup steer apply</code> does not change any model: it resolves a stored vector and prints its metadata. The decode-time intervention is <code>soup serve --steer safety-v1 --steer-strength 1.5</code>.</p><p>Three methods:</p><ul><li><strong>CAA</strong> (Contrastive Activation Addition) — add a learned vector to the residual stream.</li><li><strong>ITI</strong> (Inference-Time Intervention) — shift specific attention heads.</li><li><strong>RepE</strong> (Representation Engineering) — PCA-based direction extraction.</li></ul><p><code>|strength| ≤ 10</code> is enforced. The vector is written to <code>--output</code> (default <code>./steering/&lt;name&gt;</code>). The Registry defines a <code>steering_vector</code> artifact kind (v0.26), and since v0.76.0 (#1686) <code>soup steer train --registry-id &lt;id&gt;</code> records <code>steering_vector.safetensors</code> under it (the Registry stores one hashed file per artifact and never a directory). <code>&lt;id&gt;</code> is an entry id, a unique id prefix, <code>name:tag</code> or <code>registry://&lt;id&gt;</code>; since v0.77.0 a <code>name:tag</code> that matches several entries is refused and the error names the candidate ids (#1934). A requested attach is part of the command&#x27;s success: if it fails, the command prints <code>Error: could not attach to registry: ...</code> and exits 1, with the vector left on disk. <code>soup steer apply</code> and <code>soup serve --steer</code> find a vector by name: first <code>./steering/&lt;name&gt;</code>, then the most recent Registry entry named <code>&lt;name&gt;</code> that carries a <code>steering_vector</code> artifact, so a vector saved outside <code>./steering/&lt;name&gt;</code> still resolves when it is recorded under an entry of that name. <code>soup steer list</code> reads only the Registry and lists every <code>steering_vector</code> artifact recorded there.</p><p><em>(Since closed in v0.76.0: through v0.75.2 <code>soup steer train --registry-id</code> handed the Registry the output directory, which it refuses, so every run printed <code>Could not attach to Registry: artifact not found: &lt;dir&gt;</code> as a warning, exited 0 and recorded nothing, and <code>soup steer list</code> could never show a vector.)</em></p><p>Pairs JSONL:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\"positive\": \"You are a helpful AI.\", \"negative\": \"You are a harmful AI.\"}"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"grace-codebook-soup-edit-set-method-grace\">GRACE codebook — <code>soup edit set --method grace</code></h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup edit set --base ./model --method grace \\\n  --subject \"The CEO of Acme is\" --target \"Jane Doe\" --output ./edited"
+    },
+    {
+      "kind": "html",
+      "html": "<p>GRACE stores each knowledge edit as a (key, value) pair in a discrete latent codebook instead of changing weights, so thousands of sequential edits do not blow up weight norms. The live path shipped in v0.71.9 and is a <strong>command, not a training option</strong>: <code>soup edit set --method grace</code> captures the residual key at the subject&#x27;s last token, optimizes a value vector for the target, and appends the pair to a <code>grace_codebook.json</code> sidecar in <code>--output</code>. The base weights are never modified. The command only writes the codebook: applying it at decode time is done by the library function <code>install_grace_hook</code>, and no Soup command calls that (checked at v0.76.0 and again at v0.77.0). The edit governor on <a href=\"__DOCS_BASE__/unlearning\">Unlearning &amp; knowledge editing</a> counts GRACE edits too.</p><p><code>soup edit set --method grace --registry-id &lt;id&gt;</code> (with <code>--output</code>) records <code>grace_codebook.json</code> on a Registry entry as a <code>grace_codebook</code> artifact, and exits 1 if the attach fails (#1686; see <a href=\"__DOCS_BASE__/unlearning\">Unlearning &amp; knowledge editing</a>).</p><p>The <code>training.grace_codebook</code>, <code>grace_codebook_size</code> and <code>grace_codebook_dim</code> keys from the v0.62.0 schema are staged fields: the schema validates them, but no trainer consumes them, so setting them in <code>soup.yaml</code> never changed any training. They warned at load in v0.76 and, since v0.77.0, a non-default value stops the load with one line per key set (<code>training.grace_codebook is accepted but read by nothing; refused as of v0.77. Delete the line.</code>); <code>soup train</code> exits 1 and <code>soup doctor --config</code> exits 2. With <code>grace_codebook: true</code> and no size or dimension, only that one staged line prints, so the message does not ask for keys the next load would refuse. Delete the lines. The GRACE edit path above is the working one.</p><h2 id=\"new-recipes\">New recipes</h2><p>Three RAFT-style recipes shipped:</p><ul><li><code>raft-llama3-8b</code> — RAFT SFT generator on Llama 3.1 8B.</li><li><code>ra-dit-retriever</code> — sentence-transformer contrastive stage.</li><li><code>ra-dit-llama3-8b</code> — full RA-DIT stage-2 generator.</li></ul><h2 id=\"numbers\">Numbers</h2><p>+215 new tests in v0.62.0 (9571 → 9786). Security: 0 CRITICAL, 0 HIGH, 4 MEDIUM, 11 LOW.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a> — v0.63 <code>soup ingest</code> produces the JSONL that feeds the RAFT generator.</li><li><a href=\"__DOCS_BASE__/unlearning\">Unlearning</a> — surgical edits as a harder counterpart to soft steering.</li><li><a href=\"__DOCS_BASE__/data-forge\">Data Forge</a> — quality moat for the source docs that become golden / distractor pairs.</li></ul><nav><a href=\"__DOCS_BASE__/unlearning\"><span>Previous</span><span>Unlearning &amp; knowledge editing</span></a><a href=\"__DOCS_BASE__/anti-trend-insurance\"><span>Next</span><span>Prompt Compile &amp; Distill</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,591 @@
+{
+  "slug": "cli-reference",
+  "title": "CLI Reference",
+  "description": "Complete Soup CLI command reference at v0.77.0: all 78 top-level commands (plus the new root --version) with their flags and subcommands, the 0 / 2 / 3 exit-code scheme of the CI gates, and the global options.",
+  "source": "https://trysoup.dev/docs/cli-reference",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "d2d04ee2efe10316c88c5354f0cb9a2bf001447011dff2cfc56a87484197cc3f",
+  "headings": [
+    {
+      "level": 2,
+      "id": "core-commands",
+      "title": "Core Commands"
+    },
+    {
+      "level": 3,
+      "id": "soup-init",
+      "title": "soup init"
+    },
+    {
+      "level": 3,
+      "id": "soup-train",
+      "title": "soup train"
+    },
+    {
+      "level": 3,
+      "id": "soup-chat",
+      "title": "soup chat"
+    },
+    {
+      "level": 3,
+      "id": "soup-serve",
+      "title": "soup serve"
+    },
+    {
+      "level": 3,
+      "id": "soup-export",
+      "title": "soup export"
+    },
+    {
+      "level": 3,
+      "id": "soup-merge",
+      "title": "soup merge"
+    },
+    {
+      "level": 3,
+      "id": "soup-push",
+      "title": "soup push"
+    },
+    {
+      "level": 3,
+      "id": "soup-eval",
+      "title": "soup eval"
+    },
+    {
+      "level": 3,
+      "id": "soup-deploy",
+      "title": "soup deploy"
+    },
+    {
+      "level": 3,
+      "id": "soup-infer",
+      "title": "soup infer"
+    },
+    {
+      "level": 3,
+      "id": "soup-migrate",
+      "title": "soup migrate"
+    },
+    {
+      "level": 3,
+      "id": "soup-recipes",
+      "title": "soup recipes"
+    },
+    {
+      "level": 2,
+      "id": "data-commands",
+      "title": "Data Commands"
+    },
+    {
+      "level": 2,
+      "id": "experiment-commands",
+      "title": "Experiment Commands"
+    },
+    {
+      "level": 2,
+      "id": "other-commands",
+      "title": "Other Commands"
+    },
+    {
+      "level": 2,
+      "id": "v0-54-pre-flight-decision",
+      "title": "v0.54 — Pre-flight Decision"
+    },
+    {
+      "level": 2,
+      "id": "v0-55-eval-design",
+      "title": "v0.55 — Eval Design"
+    },
+    {
+      "level": 2,
+      "id": "v0-56-diagnose-model-report-card",
+      "title": "v0.56 — Diagnose (Model Report Card)"
+    },
+    {
+      "level": 2,
+      "id": "v0-57-v0-67-adapter-vcs",
+      "title": "v0.57 + v0.67 — Adapter VCS"
+    },
+    {
+      "level": 2,
+      "id": "v0-58-production-data-flywheel",
+      "title": "v0.58 — Production Data Flywheel"
+    },
+    {
+      "level": 2,
+      "id": "v0-59-v0-62-governance-supply-chain-unlearn-rag",
+      "title": "v0.59-v0.62 — Governance, Supply Chain, Unlearn, RAG"
+    },
+    {
+      "level": 2,
+      "id": "v0-63-production-trace-ecosystem",
+      "title": "v0.63 — Production Trace Ecosystem"
+    },
+    {
+      "level": 2,
+      "id": "v0-64-pre-flight-tooling",
+      "title": "v0.64 — Pre-flight & Tooling"
+    },
+    {
+      "level": 2,
+      "id": "v0-65-eval-depth-failure-modes-6-10",
+      "title": "v0.65 — Eval Depth (Failure Modes 6 → 10)"
+    },
+    {
+      "level": 2,
+      "id": "v0-66-post-train-x-rays",
+      "title": "v0.66 — Post-train X-rays"
+    },
+    {
+      "level": 2,
+      "id": "v0-69-data-engineering",
+      "title": "v0.69: Data engineering"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-27-fine-tune-doctor",
+      "title": "v0.71.27 — Fine-tune Doctor"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-28-mcp-server",
+      "title": "v0.71.28 — MCP Server"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-29-model-shrink",
+      "title": "v0.71.29 — Model shrink"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-30-prm-guided-grpo-rollout-envs",
+      "title": "v0.71.30 — PRM-guided GRPO + rollout envs"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-31-judge-in-the-loop",
+      "title": "v0.71.31 — Judge in the loop"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-32-asr-whisper",
+      "title": "v0.71.32 — ASR (Whisper)"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-33-speculative-decoding-drafts",
+      "title": "v0.71.33 — Speculative-decoding drafts"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-34-adapter-algebra-lisa",
+      "title": "v0.71.34 — Adapter algebra + LISA"
+    },
+    {
+      "level": 2,
+      "id": "v0-71-35-compliance-pack",
+      "title": "v0.71.35 — Compliance pack"
+    },
+    {
+      "level": 2,
+      "id": "v0-72-layer-streaming",
+      "title": "v0.72 — Layer streaming"
+    },
+    {
+      "level": 2,
+      "id": "v0-74-0-the-frozen-base-the-stack-and-a-listener",
+      "title": "v0.74.0 — the frozen base, the stack, and a listener"
+    },
+    {
+      "level": 2,
+      "id": "v0-77-0-new-changed-and-removed-flags",
+      "title": "v0.77.0: new, changed and removed flags"
+    },
+    {
+      "level": 2,
+      "id": "v0-76-0-new-commands-and-flags",
+      "title": "v0.76.0: new commands and flags"
+    },
+    {
+      "level": 3,
+      "id": "existing-commands-that-changed",
+      "title": "Existing commands that changed"
+    },
+    {
+      "level": 2,
+      "id": "every-top-level-command",
+      "title": "Every top-level command"
+    },
+    {
+      "level": 2,
+      "id": "global-flags",
+      "title": "Global Flags"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">CLI Reference</h1><p>This page covers the v0.77.0 binary: 78 top-level commands, 29 of them groups with subcommands, and the global flags at the end, the same commands as v0.76.x. v0.77.0 adds no command. It adds options to eight (<code>soup --version</code>, <code>soup compile-tools</code>, <code>soup export</code>, <code>soup loop init</code>, <code>soup loop watch</code>, <code>soup merge</code>, <code>soup registry push</code> and <code>soup ship</code>), gives <code>soup train --cloud</code> a third provider, and removes AWQ and GPTQ export; those changes are collected under <a href=\"#v0-77-0-new-changed-and-removed-flags\">v0.77.0: new, changed and removed flags</a>. Since v0.77.0 upstream also generates a complete reference of every command, option, type and default from the code, <a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.77.0/docs/cli-reference.md\"><code>docs/cli-reference.md</code> at v0.77.0</a>: use it as the exhaustive list. This page is the curated index, with the behaviour notes and exit codes the generated page does not carry. The generated page renders the <code>--help</code> strings as they are, so its <code>soup mcp serve --allow-mutating</code> and <code>--allow-execute</code> entries carry the stale help text that says execution never happens (see <a href=\"__DOCS_BASE__/mcp-server\">MCP server</a>). Six commands are new in v0.76.0 (<code>soup rewind</code>, <code>soup bench train</code>, <code>soup data clean</code>, <code>soup recipes verify</code>, <code>soup adapters check</code> and <code>soup adapters audit</code>), and <code>soup bench</code> became a group whose <code>infer</code> subcommand is the old inference benchmark; they and every other v0.76.0 change are collected under <a href=\"#v0-76-0-new-commands-and-flags\">v0.76.0: new commands and flags</a>, and <a href=\"#every-top-level-command\">Every top-level command</a> is an index with the page that documents each one.</p><p>Exit codes are defined per command, not uniformly across Soup. Since v0.76.0 eleven gate and verdict commands share one taxonomy: <code>0</code> pass, <code>2</code> gate failure, regression or drift, <code>3</code> usage or input error, and a mistyped flag on one of them is <code>3</code> as well. Every other command keeps its own scheme (a few individual codes moved too, see what moved), and a mistyped flag on those is still <code>2</code>. A CI step that tests for exit 1 as &quot;the gate failed&quot; now lets a failing gate through (<a href=\"__DOCS_BASE__/exit-codes#what-moved-in-v0-76-0-and-the-ci-step-that-now-passes-silently\">what moved</a>). <a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a> lists what each command returns.</p><h2 id=\"core-commands\">Core Commands</h2><h3 id=\"soup-init\"><code>soup init</code></h3><p>Create a config file with interactive wizard or template.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup init [--template <template>] [--output <path>]"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"soup-train\"><code>soup train</code></h3><p>Start a training run.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train [--config <path>] [--resume auto|<checkpoint>] [--wandb] [--tensorboard] \\\n           [--deepspeed zero2|zero3|zero2_offload|zero3_offload|zero++|zero_pp] [--fsdp full_shard|shard_grad|full_offload] \\\n           [--gpus auto|<N>] [--nodes <N> --node-rank <R> --master-addr <host> [--master-port <port>]] \\\n           [--no-reexec] [--gate <suite>] \\\n           [--push-as <user/repo>] [--hf-resume] [--yes]"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><code>--gpus</code> (v0.27) — GPUs <strong>per node</strong> for distributed training (<code>auto</code> or an integer): Soup detects NVLink vs PCIe and re-launches under <code>accelerate launch</code>. Since v0.76.0 it exits with the launcher&#x27;s exit code on every platform; on Windows it now waits for the launcher (through v0.75.2 the call returned 0 at once). <code>--no-reexec</code> prints the launch command instead of launching it and exits 1 (it does not exit 1 when <code>--dry-run</code> is also given).</li><li><code>--nodes</code>, <code>--node-rank</code>, <code>--master-addr</code>, <code>--master-port</code> (v0.76.0) — multi-node Accelerate launch. <code>--nodes</code> above 1 requires <code>--gpus</code> (GPUs per node, the same on every node) and <code>--master-addr</code>; <code>--master-port</code> defaults to 29500. A launch-setting mistake exits 1 with <code>Invalid distributed launch: ...</code>. See <a href=\"__DOCS_BASE__/multi-gpu#multi-node-launch\">multi-node launch</a>.</li><li><code>--deepspeed zero++</code> (v0.27) — ZeRO-3 with quantized weights &amp; grads</li><li><code>--gate</code> (v0.26) — run an eval suite at epoch boundaries and halt on regression</li><li><code>--push-as</code> (v0.29) — auto-push every <code>save_steps</code> checkpoint to HF Hub as a <code>checkpoint-&lt;N&gt;</code> branch</li><li><code>--hf-resume</code> (v0.29) — pull the latest checkpoint branch from HF Hub and resume training</li><li><code>--cloud modal|lambda|runpod</code> with <code>--gpu &lt;type&gt;</code> and <code>--cloud-submit</code> — plan-only unless you add <code>--cloud-submit</code>; see <a href=\"__DOCS_BASE__/backends#no-gpu-at-all-train-on-a-serverless-cloud-one\">serverless cloud training</a>. Each provider has its own <code>--gpu</code> list; for RunPod it is <code>a100</code> (the default), <code>h100</code>, <code>a40</code>, <code>rtx3090</code> and <code>rtx4090</code>. <code>--cloud runpod</code> is new in v0.77.0 (it was refused through v0.76.x): plan-only by default it writes a stub and contacts nothing, and <code>--cloud-submit</code> needs <code>RUNPOD_API_KEY</code> and <code>RUNPOD_SSH_PRIVATE_KEY</code> (a path to the private key, with its <code>.pub</code> beside it) and otherwise exits 1. It has not been run against a real RunPod account yet (tracked as #2098). Upstream states that it makes one attempt, copies the results back once with a 15-minute limit into a new directory next to the output path, deletes the Pod afterwards, and does not upload local input files, so the base and the data must be reachable from the Pod; see <a href=\"__DOCS_BASE__/backends#runpod-v0-77-0\">RunPod</a>. Any other <code>--cloud</code> value exits 2 with <code>Invalid --cloud</code>.</li><li><code>--yes</code> (<code>-y</code>) skips the <code>Start training?</code> confirmation. Since v0.77.0 a run whose standard input is a pipe or a redirected file exits 3 without it (<code>stdin is not a TTY, so the start-training confirmation cannot be answered. Pass --yes to start without the confirmation.</code>), and piping <code>y</code> into the prompt no longer answers it, so pass <code>--yes</code> in scripts and CI jobs. <code>--dry-run</code> does not ask.</li></ul><h3 id=\"soup-chat\"><code>soup chat</code></h3><p>Interactive chat with a trained model.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup chat --model <path> [--base <model>] [--temperature <float>] [--max-tokens <int>]"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"soup-serve\"><code>soup serve</code></h3><p>Start an OpenAI-compatible inference server.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup serve --model <path> [--backend transformers|vllm|sglang|mii] [--port <int>] [--host <host>] [--tensor-parallel <n>] [--gpu-memory <float>] [--speculative-decoding <draft-model>] [--num-speculative-tokens <n>] [--adapters <name>=<path>]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--adapters</code> (several named LoRA adapters on one server) works with <code>--backend transformers</code> only; with <code>vllm</code>, <code>sglang</code> or <code>mii</code> it exits 1. To serve one adapter on vLLM or SGLang, pass the adapter directory itself as <code>--model</code>: the base model is read from its <code>adapter_config.json</code> (on SGLang the adapter is applied since v0.77.0; through v0.76.1 every answer came from the base model, see <a href=\"__DOCS_BASE__/serving\">Serving</a>).</p><p><code>--auto-quant</code> exits 2 with <code>--auto-quant is unavailable</code> since v0.76.0: Soup cannot measure quantization candidates before an engine has loaded them, so it refuses instead of guessing a format. Any <code>--host</code> other than loopback needs <code>--tool-auth-token</code>, which gates the tool, thumbs and adapter routes only; the generation routes take no token on any backend. Since v0.77.0 <code>POST /v1/tools/python</code> and <code>POST /v1/tools/bash</code> need the token on every bind, loopback included, and answer 401 without it; the token can also come from <code>SOUP_TOOL_AUTH_TOKEN</code>. Both routes answer 501 without running anything unless the host provides OS-level isolation (transformers backend only). The isolation cuts the network; the code still runs as the server&#x27;s user, and <code>/v1/tools/python</code>, where it runs, still runs inside the RLVR code sandbox&#x27;s timeout and memory limit. See <a href=\"__DOCS_BASE__/serving\">Serving</a>.</p><h3 id=\"soup-export\"><code>soup export</code></h3><p>Export model to deployment format.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup export --model <path> --format gguf|gguf-ud|onnx|tensorrt|bitnet|tq1_0|torchao [--quant <type>] [--output <path>]\nsoup export --model <path> --format gguf [--verbose] [--no-install-deps] [--llama-cpp <dir>]   # v0.77.0: --verbose and --no-install-deps are gguf only\n# awq and gptq were removed in v0.77.0: --format awq|gptq exits 1 and names the formats that remain,\n# and --bits, --group-size and --calibration-samples were removed with them (exit 2, No such option).\n# --calibration-data is now for --format gguf-ud only. Stay on v0.76.x if you still need AWQ or GPTQ export.\nsoup export --format onnx [--onnx-task text-generation|feature-extraction]              # feature-extraction for task: embedding\nsoup export --model <path> --format gguf --deploy ollama [--deploy-name <name>]          # export, then deploy; the Ollama name defaults to soup-<model-name>"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--deploy</code> is validated before anything runs (v0.76.0): it accepts only <code>ollama</code>, and only with <code>--format gguf</code>, <code>gguf-ud</code>, <code>bitnet</code> or <code>tq1_0</code>. Any other combination exits 1 (<code>--deploy is not supported for format &#x27;onnx&#x27;. Supported formats for deploy: gguf, gguf-ud, bitnet, tq1_0</code>).</p><h3 id=\"soup-merge\"><code>soup merge</code></h3><p>Merge LoRA adapter with base model.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup merge --adapter <path> [--base <model>] [--output <path>] [--dtype float16|bfloat16|float32] [--save-format fp16|4bit|4bit_forced] [--low-memory]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--low-memory</code> (v0.77.0) merges tensor by tensor straight from the base model&#x27;s safetensors files instead of loading the whole model into RAM. It needs the default <code>--save-format fp16</code> and a plain LoRA adapter: DoRA, <code>modules_to_save</code>, rank or alpha patterns and adapters on the embeddings are refused. Upstream states that the values are identical to the regular merge. With a Hub base it is one of the paths that consult the namespace pin (<a href=\"__DOCS_BASE__/supply-chain-security\">Supply chain security</a>). See <a href=\"__DOCS_BASE__/export#merge-lora-adapter\">Model export</a>.</p><h3 id=\"soup-push\"><code>soup push</code></h3><p>Upload model to HuggingFace Hub.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup push --model <path> --repo <user/repo> [--hub hf|modelscope|modelers]\n  [--private] [--collection <owner/slug-hash>] [--message <commit message>]"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><code>--collection</code> (v0.29) — add the pushed repo to an existing HF Collection</li></ul><p>Token resolution <strong>for <code>--hub hf</code></strong>: env <code>HF_TOKEN</code> / <code>HUGGINGFACE_HUB_TOKEN</code> &gt; <code>~/.cache/huggingface/token</code> &gt; <code>~/.huggingface/token</code>. The legacy <code>--token</code> flag is deprecated and delegates to this chain.</p><p><strong>Each other hub authenticates with its own credential, and that is new in v0.75.1.</strong> <code>--hub modelscope</code> reads <code>MODELSCOPE_API_TOKEN</code>, <code>--hub modelers</code> reads <code>MODELERS_TOKEN</code>, and <strong>neither reads <code>HF_TOKEN</code></strong> any more. Before it, the chain above ran for <strong>every</strong> hub and the resolved Hugging Face token was handed to the third-party SDK, so pushing to ModelScope or Modelers disclosed a token that is often write-scoped (0.53.10 to 0.75.0). <a href=\"__DOCS_BASE__/an-empty-adapter\">Rotate it if that was you</a>.</p><h3 id=\"soup-eval\"><code>soup eval</code></h3><p>Comprehensive model evaluation platform.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval benchmark --model <path> [--benchmarks <list>] [--fewshot N] [--batch-size N] [--run-id <id>] [--device cuda|mps|cpu] [--trust-remote-code]\nsoup eval custom --model <path> --tasks <path> [--trust-remote-code]\nsoup eval judge --target <pairs.jsonl> [--model <judge-model>] [--provider openai|server|ollama] [--rubric <path>] [--api-base <url>] [--run-id <id>]\nsoup eval auto [--config <path>]\nsoup eval compare <run1> <run2>\nsoup eval leaderboard [--sort-by <benchmark>] [--format table|json|csv]\nsoup eval human --input <prompts.jsonl> --model-a <path> --model-b <path> [--output <results.json>]\nsoup eval gate --suite <suite.yaml> [--model <path>] [--baseline <registry://id|scores.json>] [--regression-threshold 0.05] [--write-baseline <file>]\nsoup eval citation <data.jsonl> [--style bracket|inline|footnote] [--shuffle-seed <n>] [--output <scores.json>]\nsoup eval against <baseline-run-id> --candidate <run-id> [--metric task_accuracy|refusal_rate|format_validity|p95_latency_ms|custom|aider_polyglot|judge:<model>|benchmark:<lm-eval-task>] [--suite <locked.json>] [--json-only]\nsoup eval quant-check --before <model|registry://id> --after <model|registry://id> --tasks <tasks.jsonl> [--format table|json|markdown] [--allow-stub]"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Notes on the rows that have more to them than the form shows:</p><ul><li><strong><code>soup eval benchmark</code></strong> wraps lm-evaluation-harness, so it needs <code>pip install &quot;soup-cli[eval]&quot;</code>. <code>--benchmarks</code> is a comma-separated list (default <code>mmlu</code>), <code>--fewshot</code> falls back to each benchmark&#x27;s own default when you leave it out, <code>--batch-size</code> defaults to 8, <code>--run-id</code> links the results to an existing training run, and <code>--model</code> may be a LoRA adapter directory.</li><li><strong><code>soup eval leaderboard</code></strong> reads the experiments database and exits 1 with <code>No eval results found.</code> until <code>soup eval benchmark</code> or <code>soup eval custom</code> has recorded something. <code>--sort-by</code> applies to the table only: <code>--format json</code> and <code>--format csv</code> print the whole leaderboard without sorting by it. A <code>--format</code> value other than <code>json</code> or <code>csv</code> is not rejected; you get the table.</li><li><strong><code>soup eval human</code></strong> is interactive, so it needs a terminal. It generates both models&#x27; answers to each prompt (a JSONL file whose rows have a <code>prompt</code> field), shows them side by side and asks <code>a</code>, <code>b</code>, <code>tie</code> or <code>q</code>. <code>q</code> ends the session early and the judgments so far are still scored and saved. The result is an Elo table, written with the judgments to <code>--output</code> (default <code>human_eval_results.json</code>). Both model paths must exist locally.</li><li><strong><code>soup eval gate</code></strong> exits 0 when the suite passes, <strong>2</strong> when a task fails or regresses against <code>--baseline</code>, and <strong>3</strong> for a setup you can fix: a suite that is missing, outside the working directory or fails its schema (since v0.76.1 also one over 1 MiB, nested deeper than 100 levels or expanding past its alias allowance), a <code>--baseline</code> that cannot be resolved, a <code>--regression-threshold</code> outside 0.0 to 1.0, <code>--write-baseline</code> without <code>--model</code>, or an unknown flag, and since v0.77.0 a suite with no tasks or a repeated task name and a baseline score that is not a finite number. It exits 1 when <code>--model</code> cannot be loaded or on an unexpected exception, such as a suite that is not valid YAML. Through v0.75.2 a failed gate and a broken invocation were both 1, so a CI job could not tell them apart by the exit code. Everything else about it, including <code>--write-baseline</code>, is on the <a href=\"__DOCS_BASE__/eval-gate\">eval gate</a> page.</li><li><strong><code>soup eval against</code></strong> compares two recorded runs with a paired bootstrap and exits 0 for no regression, <strong>2</strong> for a regression, and <strong>3</strong> for a bad flag, a missing or invalid <code>--suite</code>, or no recorded metric series for either run. The pre-push hook from <code>soup eval gate-install</code> calls it.</li><li><strong><code>soup eval quant-check</code></strong> exits 0 on OK or MINOR, <strong>2</strong> on MAJOR, <strong>3</strong> on a usage or input error such as an unknown <code>--format</code>, a path outside the working directory or a <code>.gguf</code> path, and <strong>1</strong> when a model fails to load, which since v0.76.0 stops the command. <code>--allow-stub</code> scores with deterministic stub generators instead; the output then carries a stub marker (<code>&quot;stub&quot;: true</code> in the JSON) and an OK means nothing was measured. A <code>--tasks</code> file that is not valid JSONL exits 1. See <a href=\"__DOCS_BASE__/quant-check\">quant-check</a>.</li></ul><p>On <code>soup eval judge</code>, <code>--target</code> is a JSONL file of prompt and response pairs you already generated (every line needs a <code>prompt</code> and a <code>response</code> field; <code>soup infer</code> writes exactly that shape), not a model, and <code>--model</code> names the <strong>judge</strong>. <code>--api-base</code> is the judge&#x27;s endpoint: plain <code>http</code> is accepted only for localhost, 127.0.0.1 and ::1, and since v0.75.2 an IP literal that is private, link-local or reserved is refused on <code>https</code> as well, with loopback still allowed. A hostname is not resolved, so the check narrows what a URL can name directly; it does not make an internal host unreachable by name. See <a href=\"__DOCS_BASE__/private-addresses-refused\">what v0.75.2 refuses</a>.</p><h3 id=\"soup-deploy\"><code>soup deploy</code></h3><p>Deploy models to inference runtimes.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Ollama\nsoup deploy ollama --model <gguf> --name <name> [--system <prompt>] [--template <tpl>] [--parameter <key=val>] [--yes]\nsoup deploy ollama --list                # only models whose name starts with soup-\nsoup deploy ollama --remove <name>       # any Ollama model, by name\n\n# HuggingFace Spaces (new in v0.29)\nsoup deploy hf-space \\\n  --model <user/repo> \\\n  --space <user/space> \\\n  --template gradio-chat|streamlit-chat"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup deploy hf-space</code> validates <code>model_repo</code> via <code>validate_repo_id</code> before substituting into <code>app.py</code> / <code>README.md</code> — a crafted repo id cannot inject Python code into the deployed Space. Instead of <code>--template</code> it accepts <code>--template-dir &lt;dir&gt;</code> (custom <code>app.py</code> + <code>README.md</code>, optional <code>requirements.txt</code>, <code>{MODEL_REPO}</code> placeholder; details on <a href=\"__DOCS_BASE__/hf-hub-integration#deploy-to-hf-spaces\">Hugging Face Hub integration</a>), plus <code>--private</code> and <code>--yes</code>.</p><h3 id=\"soup-infer\"><code>soup infer</code></h3><p>Batch inference on a list of prompts. With <code>--task asr</code> (v0.71.32) it transcribes a JSONL of audio clips through a Whisper model or adapter and reports per-row and corpus WER/CER when reference texts are present. See <a href=\"__DOCS_BASE__/asr-fine-tuning\">ASR fine-tuning</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup infer --model <path> --input <path> --output <path> [--max-tokens <int>] [--temperature <float>] [--batch-size <n>] [--cuda-graphs]\nsoup infer --task asr --model <whisper|adapter> --input <jsonl> --output <jsonl> \\\n  [--audio-dir <dir>] [--asr-language <lang>] [--asr-task transcribe|translate]"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"soup-migrate\"><code>soup migrate</code></h3><p>Import config from competing tools.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup migrate --from llamafactory|axolotl|unsloth <input-file> [--output <path>] [--dry-run]"
+    },
+    {
+      "kind": "html",
+      "html": "<h3 id=\"soup-recipes\"><code>soup recipes</code></h3><p>Browse and use ready-made training configs.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup recipes list                          # List all 171 recipes\nsoup recipes show <name>                   # Print recipe YAML\nsoup recipes use <name> [--output <path>]  # Copy to soup.yaml\nsoup recipes search <query>                # Search by model/task/size\nsoup recipes verify [--config <soup.yaml>] [--json] [--templates|--no-templates]   # v0.76.0: can the LoRA adapter attach? checked on the meta device, no weights downloaded"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup recipes verify</code> is one of the eleven commands on the 0 / 2 / 3 taxonomy: 0 when everything that could be checked attaches, 2 when a config cannot attach, 3 for a missing or unparseable <code>--config</code> or a usage error, 1 for a crash. A gated repository or a base that needs <code>trust_remote_code</code> is reported as unverified and does not change the exit code, so an exit 0 can mean nothing was checked. It needs the <code>[train]</code> extra (torch, transformers, peft); without it the command exits 1, after it has checked <code>--config</code> (since v0.77.0 a missing, unparseable or refused <code>--config</code> exits 3 first, on any install). <code>soup recipes use</code> exits 3 for a recipe the catalog marks unavailable (<code>kimi-k2-sft</code> and <code>kimi-k2-thinking-grpo</code> at v0.77.0) and writes nothing. See <a href=\"__DOCS_BASE__/recipes\">Recipes</a>.</p><h2 id=\"data-commands\">Data Commands</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data inspect <path> [--rows <n>] [--image-dir <dir>]  # View dataset stats (--rows: sample rows to show, default 5; --image-dir is new in v0.76.0)\nsoup data validate <path> [--format <fmt>] [--min-valid-fraction <0.0-1.0>]  # Check format compliance; exit 3 input error, 2 no usable rows or below the fraction\nsoup data clean <path> [-o <out>] [-f] [--dry-run] [--min-tokens <n>] [--prune-echo] [--strip-boilerplate] \\\n  [--repair-code] [--repair-json] [--drop-invalid-json] [--json]   # v0.76.0: sanitise a dataset, never modifies the input\nsoup data convert <path> --to <fmt> --output <f>  # Convert between formats\nsoup data merge <f1> <f2> --output <f> [--shuffle]  # Combine datasets\nsoup data dedup <path> [--threshold <float>]      # Remove duplicates\nsoup data stats <path>                            # Extended statistics\nsoup data generate --prompt \"...\" --count <n>     # Generate synthetic data\nsoup data generate --provider openai|local|server|ollama|anthropic|vllm  # Multi-provider support (openai is the default)\nsoup data generate --template code|conversation|qa|preference|reasoning  # Domain templates\nsoup data generate --quality-pipeline             # Validate + filter + dedup\nsoup data generate ... --batch-size <n>           # Examples per API call (default 5)\nsoup data filter <path> [--coherence <f>] [--perplexity <n>] [--ppl-model <id>] [--field <name>] [--score-only]  # Quality filter; perplexity is scored with gpt2 unless --ppl-model says otherwise\nsoup data sample <path> --strategy random|diverse|hard -n <n> [--pct <0-100>] [--seed <n>]  # Sample subset\nsoup data split <path> --val 10 --test 10 [--absolute] [--seed <n>]   # Split; --val/--test are integer percentages\nsoup data split <path> --val 10 --stratify <field>           # Stratify on a field\nsoup data split <path> --val 10 --stratify-semantic --num-clusters <n>  # TF-IDF + K-Means strata (v0.73.2, needs scikit-learn); not combinable with --stratify\nsoup data search <query> [--limit <n>] [--sort downloads|likes|lastModified|trending|createdAt]  # Search HuggingFace Hub\nsoup data preview <dataset_id>                               # Preview remote dataset\nsoup data download <dataset_id> [--output <path>] [--samples <n>] [--split <split>] [--format alpaca|sharegpt|chatml] [--hub hf|modelscope|modelers]  # Download (default split: train)\nsoup data register <name> --path <path> --format <fmt>       # Register local dataset\nsoup data unregister <name>                                  # Remove from registry\nsoup data registry                                           # List registered datasets\nsoup data push --input <jsonl> --hf-dataset <user/repo> [--private] [--message <text>] [--hub hf|modelscope|modelers]  # Publish JSONL as a dataset repo (v0.29)\nsoup data mix --optimize --datasets <a.jsonl,b.jsonl> [--budget 1h] [--num-probes <n>] [--seed <n>] [-o mix_recipe.yaml] [--overwrite]  # Mixture search; WITHOUT --live the proxy is synthetic\nsoup data mix --optimize --live --base-yaml <soup.yaml> --datasets ...   # --live REQUIRES --base-yaml (real short training runs)\nsoup data mix --apply <mix_recipe.yaml>                      # Prints the data: block to paste into soup.yaml; writes no dataset\nsoup data from-traces --logs <logs> --format langchain|openai|soup-serve  # Trace-to-preference (v0.26); for soup-serve --logs is the directory `soup serve --trace-log` writes, and a single file is refused\nsoup data review <pairs.jsonl>                                # Preview preference pairs (v0.26)\nsoup data augment --input <jsonl> --strategy rephrase|translate|style     # LLM augment (v0.25)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"experiment-commands\">Experiment Commands</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup runs                         # List all training runs\nsoup runs show <run_id> [--no-plot]   # Detailed run info + loss curve (--no-plot skips the curve)\nsoup runs replay <run_id> [--no-plot] # Re-render a finished run's summary and loss curve from its stored metrics\nsoup runs curriculum-curve <run_id> [--history <curriculum_history.jsonl>] [--width <4-200>]  # Dynamic-curriculum bucket weights (BETA)\nsoup runs compare <run1> <run2>   # Side-by-side comparison\nsoup runs delete <run_id>         # Remove from database\nsoup runs clean [<run_id> | --all] [--dry-run] [--force] [--keep-weights/--no-keep-weights]\n                                  # Reclaim checkpoint space: by default drops optimizer and scheduler\n                                  # states only; --no-keep-weights deletes whole non-best checkpoints (the one with the\n                                  # lowest loss recorded at its step is kept whole; with no recorded loss, the latest)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"other-commands\">Other Commands</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup deploy ollama --model <p> --name <n>       # Deploy GGUF to Ollama (both required to deploy)\nsoup profile --config soup.yaml [--json]       # Estimate memory/speed/GPU (model + task come from the config); --json for scripting\nsoup adapters list [<dir>]                     # Scan for LoRA adapters (positional, defaults to .)\nsoup adapters info <path>                      # Adapter metadata\nsoup adapters compare <a> <b>                  # Side-by-side comparison\nsoup sweep --config <path> --param key=v1,v2   # Hyperparameter search\nsoup sweep --config <path> --sweep-config <sweep.yaml>   # v0.76.0: a standalone sweep file; it replaces --param (give one of the two, never both: either mistake exits 1)\nsoup diff --model-a <p> --model-b <p>          # Compare two models\nsoup doctor [--nccl] [--disk] [--config soup.yaml]                   # Check system + deps (+ NCCL bandwidth, + media type); --config loads a soup.yaml under the current rules and exits 2 if it cannot load (it stops at the first cross-field refusal, so fix that setting and run it again)\nsoup quickstart [--dry-run] [--yes]             # One-command demo\nsoup ui [--port <int>] [--no-browser] [--host <h>] [--public] [--auth-token <t>] [--show-token]\n# --public binds 0.0.0.0 and prints a phone QR. Since v0.77.0 the URL it opens and prints in its panel for\n# --public, --host 0.0.0.0 or --host :: is a loopback one (the server still binds every interface; the --public phone URL and QR keep the LAN address),\n# and on a loopback bind the Host header is checked (403 Host not allowed). A non-loopback bind WITHOUT a valid\n# token exits 2, a guard no option of this command reaches (a valid token is always\n# generated and a malformed --auth-token exits 1 first). Every private endpoint needs\n# Authorization: Bearer; SSE takes a short-lived single-use ticket instead.\n# /docs and /openapi.json are loopback-only.\n# The launch URL carries ?token= so the first tab authenticates; on a loopback bind the page then\n# keeps the session in an HttpOnly cookie, not in sessionStorage or on window (v0.76.0).\n# --auth-token must be 16-128 URL-safe characters (A-Z a-z 0-9 _ -); anything else exits 1.\nsoup tui                                        # Full-screen training dashboard\nsoup monitor [--refresh <0.25-30>] [--once]     # Live GPU monitor: util / temp / VRAM / power per GPU\nsoup fetch examples|deepspeed_configs [<name>]  # Fetch a ready-to-edit file from the bundled catalog\nsoup quantize <model> --to gguf|onnx|tensorrt [--bits N] [-o <dir>]  # PRINTS the matching `soup export` command and runs nothing\nsoup plugins list|enable|disable|install        # lists plugins found under the soup_cli.plugins entry-point group, none on a stock install (their code is not imported until enabled);\n                                                # enable persists an opt-in in ~/.soup/plugins.json and is where third-party code loads; install explains and exits 2\nsoup llama cli|mtmd-cli|gguf-split|server|quantize ...  # Proxy to the llama.cpp binaries\n                                                        #   closed allowlist; the child env is FILTERED, so\n                                                        #   HF_TOKEN / OPENAI_API_KEY / ANTHROPIC_API_KEY and\n                                                        #   every other secret are dropped before exec. What\n                                                        #   is forwarded: PATH / HOME / USER / USERPROFILE,\n                                                        #   TMP / TEMP, TERM / COLORTERM, LANG / LC_ALL /\n                                                        #   LC_CTYPE, plus LLAMA_CPP_HOME, GGML_CUDA,\n                                                        #   GGML_METAL and OMP_NUM_THREADS.\nsoup bench infer <model> [--base <m>] [--backend auto|transformers|mlx]  # Inference speedometer; `soup bench <model>` still runs it\n                         [--max-tokens <n>] [--num-prompts <n>] [--prompts-file <p>]\n                         [--p50] [--p95] [--cuda-graphs]              # tail-latency percentiles; --cuda-graphs is experimental\nsoup bench train [--config soup.yaml] [--steps 20] [--warmup 3] [-o bench-train.json]   # v0.76.0: fails when the model was not actually training\nsoup rewind [RUN_ID] [--step <n>] [--top 10] [--json <path>] [--no-preview]              # v0.76.0: the dataset rows behind a loss spike\nsoup version [--full] [--json]                  # Show version info; --json prints one JSON object (version, python, platform, plus installed library versions with --full); soup --version prints the short form\nsoup ra-dit -r <retriever.yaml> -g <generator.yaml> [--retriever-model <m>] [--timeout <60-21600>] [--plan-only]\n                                                # RA-DIT two-stage run. BOTH recipes are required and cwd-contained;\n                                                # --timeout is per stage (default 21600 s); --retriever-model skips the registry auto-link\nsoup merge-sharded-fsdp-weights <shard_dir> -o <out.safetensors> [--plan-only]\n                                                # consolidate pytorch_model_fsdp_*.bin shards into one file; -o is required and under the cwd\nsoup delinearize-llama4 <source_dir> -o <target_dir> [--num-experts <n>] [--model-id <id>] [--plan-only]\n                                                # reshape fused expert weights to 3-D; -o is required and under the cwd;\n                                                # --num-experts defaults to num_local_experts in config.json\nsoup deploy autopilot --target <profile> [--base <model>] [--recipe-out deploy_autopilot.yaml] [--script-out deploy_autopilot.sh] [--output-dir ./output]\nsoup deploy autopilot --target <profile> --measure --tasks <tasks.jsonl> [--measure-candidates 4bit,8bit,fp8]\nsoup deploy autopilot --list                    # --target is required unless you pass --list; both output paths must be under the cwd\nsoup local-rl train --model <hf-id|path> [--db local_rl.db] [--train-method dpo|kto|orpo] [--once] [--min-pairs 10] [-o local_rl_adapter]\nsoup local-rl train --model <hf-id|path> [--scheduler-dir local-rl-scheduler] [--hour 3] [--minute 0] [--backend ollama|mlx]\n                                                # without --once it only writes a systemd/launchd scaffold; it never runs systemctl or launchctl\nsoup can pack --entry-id <registry-ref> -o <out.can> [--author <handle>] [--description <text>] [--attest <in-toto.json>]...\nsoup can fork <source.can> -o <out.can> --modify training.lr=5e-5 [--author <handle>]\nsoup can run <file.can> [--yes] [--deploy] [--extract-dir <dir>] [--env-capture <file>]\nsoup can publish <file.can> --hf-hub <user/repo> [--private] [--message <text>]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>soup doctor --disk</code> is opt-in because the probe costs roughly 9 seconds cold and 2.4 seconds warm on Windows, and with several physical disks it reports the worst one. Since v0.73.3, on Linux, it may also <strong>write a 64 MiB scratch file</strong> named <code>.soup-diskprobe-*</code> into the directory it is probing (the current directory for <code>soup doctor --disk</code>; a training run probes the shard directory instead), read it back with <code>O_DIRECT</code> to time a sequential read, and delete it, because on a disk whose rotational flag cannot be trusted the media type is settled by a measured read rather than by the flag. On Windows it only runs the disk query. It exists because <a href=\"__DOCS_BASE__/streaming-scaling\">the streaming disk tier</a> requires NVMe and refuses a SATA SSD, a spinning disk or media it cannot identify, rather than guessing and thrashing for hours.</p><p><code>soup quantize</code> quantizes nothing: it prints the <code>soup export</code> command to run. For <code>--to gguf</code> that command carries <code>--quant q4_K_M</code> (and <code>q8_K_M</code> for <code>--bits 8</code>), which <code>soup export</code> refuses, because its <code>--quant</code> is case-sensitive and accepts only <code>q4_0</code>, <code>q4_k_m</code>, <code>q5_k_m</code>, <code>q8_0</code>, <code>f16</code> and <code>f32</code>: retype it in lower case, and use <code>q8_0</code> for 8 bits. <code>--to</code> takes <code>gguf</code>, <code>onnx</code> or <code>tensorrt</code>; since v0.77.0 <code>--to awq</code> and <code>--to gptq</code> exit 2 (<code>--to must be one of [&#x27;gguf&#x27;, &#x27;onnx&#x27;, &#x27;tensorrt&#x27;]</code>). Through v0.76.x they printed a <code>--bits</code> form with a <code>Deprecated:</code> line.</p><p><code>soup monitor</code> reads <code>nvidia-smi</code> on NVIDIA systems. On Apple Silicon it reads <code>/usr/bin/powermetrics</code> through <code>sudo -n</code>, which never prompts for a password, so run <code>sudo -v</code> first or the command exits 1 and tells you to.</p><h2 id=\"v0-54-pre-flight-decision\">v0.54 — Pre-flight Decision</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup advise run <data.jsonl> --goal \"<task>\"          # Classify task + rank PROMPT_ENG/RAG/SFT/DPO/GRPO\nsoup advise run <data.jsonl> --probe                  # ROI estimates, heuristic: derived from the shape of the data, no model loaded\nsoup advise run <data.jsonl> --probe-model <id> [--probe-device cpu|cuda]   # LIVE probe: loads the model, LoRA-trains on a held-out slice\nsoup advise run <data.jsonl> --record                # Append to ~/.soup/advise_history.jsonl\nsoup advise explain                               # Print full rubric\nsoup advise compare [--limit N]                   # Prior verdicts, newest first"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-55-eval-design\">v0.55 — Eval Design</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval design <data.jsonl> --goal \"...\"        # Goal-conditioned suite (TF-IDF + dispatch)\nsoup eval discover <data.jsonl>                   # Greedy farthest-first canaries + memorization probes\nsoup eval lock <design.json>                      # SHA-256-pin the suite as an artifact\nsoup eval coverage <design.json> --task factual_lookup|style_shaping|format_conversion|reasoning|tool_use|summarization|classification  # Gap analysis vs v0.54 taxonomy (--task is required)\nsoup eval gate-install --baseline <run-id> [--suite <locked.json>] [--hook-path <file>] [--force]   # Install .git/hooks/pre-push regression gate (suite defaults to evals/locked.json)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-56-diagnose-model-report-card\">v0.56 — Diagnose (Model Report Card)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup diagnose <run-id> [--output <report.json> [--attach-to-registry <id>]] [--allow-not-run] [--holdout <jsonl>]\n                                                    # 7 failure-mode probes + OK/MINOR/MAJOR/NOT_RUN + SVG badge. Exit 2 on MAJOR, exit 3 on NOT_RUN\n                                                    # (a requested probe did not run) unless --allow-not-run. --attach-to-registry needs --output and exits 1 if the attach fails\nsoup train --diagnose-gate <evidence>               # After training: exit 2 if the evidence you supply has a MAJOR mode, exit 3 if a requested mode did not run (the adapter is already saved)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-57-v0-67-adapter-vcs\">v0.57 + v0.67 — Adapter VCS</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# v0.57 — git for LoRA\nsoup adapters diff <a> <b>                            # Per-layer Frobenius + relative drift + SVD effective rank\nsoup adapters merge <a> <b> [c...] -o <out> [--strategy linear|ties|dare|svd|cmaes] [--weights 0.5,0.5] [--density 0.2] [--rank <n>]\nsoup adapters merge <a> <b> [c...] -o <out> --strategy cmaes --eval <suite> [--budget 1h] [--population 8] [--max-generations 20]\n                                                       # v0.67 CMA-ES evolutionary search: --eval is required; --population is 2-256,\n                                                       # --max-generations 1-10000, --budget 60s-24h; --density is for ties/dare, --rank for svd\nsoup adapters blame <adapter-dir> --dataset <d> --layer <l> --budget 5m --shards 4\nsoup adapters branch <name> -c <config.yaml> --base <model> [--dataset <data>] [--attach-to-registry <id>]\nsoup adapters branch <name> --from-registry <id>       # derive config, base model and dataset hash from a registry entry instead\nsoup adapters checkout <name> -o <out.yaml>\nsoup adapters branches\n\n# v0.76.0 additions\nsoup adapters check <adapter-dir> [--json]            # is the adapter trained at all? exit 0 alive, 2 inactive, 1 unreadable\nsoup adapters audit <adapter-dir> --config <soup.yaml> [--json]   # did the run do what the config asked? exit 0 agree, 2 diverged (also a Click error), 1 adapter or config unreadable\n\n# v0.67 additions\nsoup adapters pr <title> --base-sha <64hex> --adapter <path> \\\n  --eval <eval_delta.json> --samples <sample_diffs.json> \\\n  [--dataset-diff <diff.txt>] [--format markdown|json] --output <PR.md>   # GitHub-shaped PR markdown (--dataset-diff is a text file you supply)\nsoup adapters bisect <ckpt1> <ckpt2> ... \\\n  --eval-command \"soup eval gate --suite <gate.yaml> --baseline <baseline.json> --model {ckpt}\"\n                                                       # Binary-search history for regression boundary (exit 2 on BROKEN_AT; the eval command must exit non-zero on a bad checkpoint, which soup eval custom never does; soup eval gate fails with 2, and a usage mistake in the command, which is 3, also reads as a failed checkpoint)\n\n# Shared run lockfile (v0.67)\nsoup lock write --base-model <id> --base-sha <64hex> --dataset-sha <64hex> \\\n  [--env-hash <64hex> | --env-lock <soup-env.lock>] [--output soup.lock]    # env hash derived from soup-env.lock when omitted\nsoup lock show [soup.lock]\nsoup lock check --base-model <id> --base-sha <64hex> --dataset-sha <64hex> \\\n  --env-hash <64hex> [soup.lock]                       # Exit 2 on drift; 3 if the lock is missing or unparseable or a flag is wrong"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-58-production-data-flywheel\">v0.58 — Production Data Flywheel</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup loop init <served-model> --eval <suite> --baseline registry://<id> \\\n  --monthly-budget 50usd --max-runs-per-day 3\nsoup loop init <served-model> --eval <suite> --baseline registry://<id> --pre-wired --thumbs-db <db>\nsoup loop watch                                   # Long-running daemon (SIGTERM-safe)\nsoup loop watch --pre-wired --tool-auth-token <token>   # v0.77.0: the deploy stage sends it as a Bearer token\nsoup loop status\nsoup loop pause / soup loop resume\nsoup loop canary <adapter> --traffic 5% --autoroll-on-regress\nsoup loop replay [<iter-id>]"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-59-v0-62-governance-supply-chain-unlearn-rag\">v0.59-v0.62 — Governance, Supply Chain, Unlearn, RAG</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# v0.59 — Governance & Provenance\nsoup bom emit --name <m> --version <v> --base-model <hf> --base-sha <64hex> \\\n  --config-sha <64hex> [--data-sha <64hex>] --task <t> --license <spdx> --format cyclonedx|spdx|both \\\n  --output <prefix> [--attach-to-registry <id>]   # v0.73.3; needs --output\nsoup attest emit --stage extract|train|eval|export|publish \\\n  --subject <artifact> --sha <sha> --builder <id> --invocation <cmd> \\\n  --sign unsigned|ed25519|sigstore [--key <priv.pem>] [--interactive-oidc] \\\n  --output <path> [--attach-to-registry <id>]     # ed25519 needs --key (or SOUP_SIGNING_KEY) and adds the .sig sidecar\n# --sign sigstore (v0.76.0) is keyless signing through Fulcio and Rekor. It needs\n# pip install \"soup-cli[sigstore]\" and --output, and it writes the Sigstore bundle into the\n# .sig sidecar. It never falls back to an unsigned statement: if it cannot sign it exits\n# non-zero (2 for a missing extra, a missing --output, or no ambient credential when the Sigstore\n# trust root can be loaded; 1 for a failure at Fulcio or Rekor, or a trust root that cannot be\n# loaded, for example offline) and writes nothing. CI uses an ambient OIDC credential;\n# --interactive-oidc allows the browser flow instead.\nsoup attest verify <statement> --signature <statement.sig> \\\n  [--public-key <pem> | --cert-identity <san> --cert-oidc-issuer <url>]   # exit 0 valid, 1 verifier unavailable, 2 usage, 3 invalid or policy mismatch\nsoup audit-log tail / rotate\nsoup train --annex-xi <out.md> --repro-receipt <out.json>\n\n# v0.60 — Supply Chain Security\nsoup adapters scan <dir>                          # Spectral LoRA backdoor scanner (exit 0/1/3)\nsoup adapters sign <dir> [--backend unsigned|ed25519|sigstore] [--key <k> | --generate-key <out.pem>] [--interactive-oidc]   # Merkle-root signing (--strict is on verify); sigstore is keyless and needs [sigstore]\nsoup adapters verify <dir> [--strict] [--public-key <pem>] [--cert-identity <san> --cert-oidc-issuer <url>]   # Merkle-root tamper detection; a Sigstore-signed adapter needs both cert options\nsoup adapters check-safetensors <dir> --strict    # Refuse pickle/.bin/.pt\nsoup adapters merge <a> <b> -o <out> --license <spdx-a> --license <spdx-b>   # SPDX-license gate: one --license per adapter, same order; omit them to auto-detect\nsoup airgap-bundle --model <dir> --output <bundle.tar> [--dataset <dir>]... [--wheel <dir>]... [--kernel <dir>]...   # --output is a tarball path, the others are directories\n\n# v0.61 — Unlearning & Knowledge Edit\n# (configured via task: unlearn in soup.yaml)\nsoup eval unlearning <run-id> --benchmark tofu|muse|wmdp --evidence <evidence.json>   # runs no benchmark itself; with no --evidence every metric is a neutral OK\nsoup edit set --base <m> --method rome|memit|alphaedit|grace --subject \"...\" --target \"...\" [--plan-only]\nsoup edit diff run_before run_after --probes probes.jsonl --top-k 10 \\\n  --before-model ./model-before --after-model ./model-after\n# The two ids are labels for the report, not registry lookups. With --before-model and\n# --after-model it generates the diff live and --probes is then required (exit 2 without it).\n# With neither model it prints an empty validated table and exits 0.\n\n# v0.62 — RAG & Activation Steering\nsoup steer train --base <m> --method caa|iti|repe --name <id> --pairs <jsonl>\nsoup steer apply --name <id> --strength <float>   # |strength| ≤ 10 enforced\nsoup steer list                                   # Registry entries: soup steer train --registry-id <id> (needs --output) records the vector there since v0.76.0"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-63-production-trace-ecosystem\">v0.63 — Production Trace Ecosystem</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup ingest --source langfuse|langsmith|helicone|openpipe|otel|openai-stored \\\n  --logs <jsonl> --output <out.jsonl>\nsoup ingest --source langfuse --pull [--since 7d] [--max-pages 100] \\\n  [--allow-private-host] --output <out.jsonl>\n# --pull fetches from the Langfuse API instead of --logs, and is langfuse-only.\n# Credentials come from LANGFUSE_PUBLIC_KEY + LANGFUSE_SECRET_KEY, never a flag\n# (LANGFUSE_BASE_URL or LANGFUSE_HOST for a region or self-hosted instance; it must be\n# https://, and --allow-private-host is what lets it be a private or loopback address).\n# --since max 365d; --max-pages max 10000, and hitting it exits 1 writing nothing.\nsoup prune-prompt --input <jsonl> --output <out.jsonl> --min-frequency 0.95\nsoup data active-sample --input <jsonl> --budget N\nsoup ab --input <jsonl> --metric latency|judge_score|retry_rate \\\n  [--alpha 0.05] [--effect-size 0.1] [--slack-url <url>] [--discord-url <url>]\n# Two-sided, variance-robust sequential test (v0.76.0): it reports whether the treatment is better\n# or worse, and can be re-run after every new row. --beta is refused since v0.77.0 (exit 2, before\n# any row is read); lower --alpha for a stricter accept_h0. Exit 0 on every decision, so read the\n# verdict, not the exit code.\nsoup drift-alarm --reference <ref.jsonl> --live <live.jsonl> --threshold 0.2 \\\n  [--slack-url ...] [--discord-url ...]                # Exit 3 on drift"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-64-pre-flight-tooling\">v0.64 — Pre-flight &amp; Tooling</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup tunability --dataset <path> [--candidates <names>] \\\n  [--probe-steps 100] [--holdout-size 64] [--output <path>] [--plan-only] [--list]\nsoup plan --config <soup.yaml> [--state ./soup.tfstate]\nsoup apply --config <soup.yaml> [--state ./soup.tfstate] [--dry-run]\nsoup env lock [--output ./soup-env.lock]\nsoup env status [--lock ./soup-env.lock]\nsoup env check [--lock ./soup-env.lock]                # Exit 3 on ABI drift or a violated declared bound\nsoup env fix [--lock <path>] [--format uv-pip|requirements] [--output <path>]   # print an install plan; never installs\nsoup completions bash|zsh|fish\nsoup license-advisor --target b2c|defense|embedded \\\n  [--license <spdx>] [--monthly-active-users <N>]      # Exit 3 on block"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-65-eval-depth-failure-modes-6-10\">v0.65 — Eval Depth (Failure Modes 6 → 10)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval behavior <run-id> --battery xstest|harmbench|jailbreakbench|elephant|syceval \\\n  (--evidence <responses.json> | --base-model <id> [--adapter <path>] [--device cuda|cpu]) [--output <report.json>]\nsoup eval capability <run-id> --suite full|fast|math|code [--output <report.json>]\nsoup eval checklist <spec.yaml> --evidence <responses.json> [--output <report.json>]\n# --evidence is required on both: without it (and, for behavior, without --base-model) the\n# command exits 3. Through v0.75.2 it printed a neutral OK report and exited 0.\nsoup eval irt-subset <responses.jsonl> --size full|small|tiny [--model 1pl|2pl|3pl] [--output <plan.json>]   # --model defaults to 1pl (Rasch); 2pl adds discrimination, 3pl a guessing floor"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-66-post-train-x-rays\">v0.66 — Post-train X-rays</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup probe sae-diff <sae.safetensors> <pre_acts.json> <post_acts.json> \\\n  [--top-k 20] [--output <report.json>]\nsoup probe sleeper <base> [--evidence <activations.json>] [--output <result.json>]\nsoup probe interference <losses.json> [--output <matrix.json>]   # Exit 2 if worst ≥20%\nsoup probe pack <base> [--list] [--output <manifest.json>]"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-69-data-engineering\">v0.69: Data engineering</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup build <manifest.yaml> [-o <dir>] [--dry-run]       # dbt-style DAG of dataset transforms; -o defaults to build_out\nsoup expect <data.jsonl> <suite.yaml> [--judge <url>]   # expectations suite over a JSONL dataset\n# soup expect exits 0 when the suite passes, 2 when an expectation fails, 3 when the suite\n# or the data is rejected or a flag is mistyped, and 1 when the judge cannot be reached."
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both are documented on <a href=\"__DOCS_BASE__/data-engineering-pro\">Data engineering pro</a>, including the judge expectation, which needs <code>--judge</code> or <code>args.judge</code>.</p><h2 id=\"v0-71-27-fine-tune-doctor\">v0.71.27 — Fine-tune Doctor</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data doctor <data.jsonl> --model <id|path> \\\n  [--show-mask N] [--train-on-responses-only | --no-train-on-responses-only] \\\n  [--train-on-eot] [--train-on-messages-with-train-field] [--mask-history | --no-mask-history] \\\n  [--output <report.json>]\n# 8 chat-template checks (eos_in_labels, bos_duplication, truncation_risk, …)\n# OK/MINOR/MAJOR verdict · exit 0 OK/MINOR · exit 2 MAJOR\n\nsoup data lint <data.jsonl> [--model <id|path>] [--output <report.json>]\n# Preference-data linter for dpo/orpo/simpo/ipo/bco/kto:\n# length_bias (Cohen's d), label_imbalance, near_duplicates,\n# identical_pairs, prompt_leak\n# exit 0 OK/MINOR · 2 MAJOR · 3 a missing path, an empty file, data that is not preference\n# data (use soup data doctor) or an unwritable --output · 1 a format that cannot be detected"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-28-mcp-server\">v0.71.28 — MCP Server</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[mcp]\"\nsoup mcp serve                    # stdio · 14 read-only tools\nsoup mcp serve --allow-mutating   # also run train_start / export (planning only)\nsoup mcp serve --allow-execute    # + train_execute / export_execute, token-gated (v0.73.3)"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-29-model-shrink\">v0.71.29 — Model shrink</h2><p>See <a href=\"__DOCS_BASE__/soup-shrink\">soup shrink</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup shrink --model <id|path> --calib calib.jsonl --drop-ratio 0.25 [--drop-layers N] \\\n    [--heal heal.jsonl --heal-steps 200] [--tolerance 0.10] [-o out/] [--device cpu] \\\n    [--attach-to-registry <id>] [--plan-only]   # exit 0 = SHIP, 2 = DON'T SHIP, 1 = error"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-30-prm-guided-grpo-rollout-envs\">v0.71.30 — PRM-guided GRPO + rollout envs</h2><p>See <a href=\"__DOCS_BASE__/prm-guided-grpo\">PRM-guided GRPO</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config grpo.yaml   # training.prm_reward: <path|id> · training.prm_aggregate: min|prod|last\nsoup recipes use grpo-env-calculator      # or grpo-env-retrieval-qa / grpo-env-guess-number"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-31-judge-in-the-loop\">v0.71.31 — Judge in the loop</h2><p>See <a href=\"__DOCS_BASE__/online-dpo\">Online DPO</a> and <a href=\"__DOCS_BASE__/best-of-n-evolve\">best-of-N &amp; Evolve</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config online_dpo.yaml   # task: online_dpo; training.online_dpo_judge OR training.reward_model (exactly one)\nsoup data best-of-n --base <m> --prompts p.jsonl --n 8 --judge <url> -o sft.jsonl [--emit-pairs dpo.jsonl]\nsoup data evolve --input seeds.jsonl --provider ollama|vllm --model <m> --strategy depth|breadth --rounds N -o out.jsonl\nsoup ship --task-mode pairwise --judge-model <url>     # swap-debiased judge win-rate vs a 0.5 base"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-32-asr-whisper\">v0.71.32 — ASR (Whisper)</h2><p>See <a href=\"__DOCS_BASE__/asr-fine-tuning\">ASR fine-tuning</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train,audio]\"\nsoup recipes use whisper-tiny-asr          # task: asr · format: asr · fits a 4 GB GPU\nsoup infer --task asr --model ./out --input eval.jsonl --output preds.jsonl \\\n    [--audio-dir ./data/audio] [--asr-language en] [--asr-task transcribe]"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-33-speculative-decoding-drafts\">v0.71.33 — Speculative-decoding drafts</h2><p>See <a href=\"__DOCS_BASE__/soup-draft\">soup draft</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup draft measure --target <m> --draft <d> --prompts p.jsonl   # acceptance + real tok/s\nsoup draft measure ... --min-acceptance 0.6 -o report.json      # exit 2 below the floor (CI)\nsoup draft measure ... --sweep-k 1,2,3,5,8                      # v0.76.0: also time assisted generation at each draft length (at most 8 values, each 1 to 64)\nsoup draft distill --target <tuned> --draft-base <tiny> --data d.jsonl -o draft/\nsoup draft distill ... --steps N --device cpu --force --plan-only\nsoup draft list                                                 # what --auto-spec will pick up"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-34-adapter-algebra-lisa\">v0.71.34 — Adapter algebra + LISA</h2><p>See <a href=\"__DOCS_BASE__/adapter-arithmetic\">adapter algebra</a> and <a href=\"__DOCS_BASE__/lisa\">LISA</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup adapters arithmetic \"coder + 0.5*math - toxic\" \\\n    --adapter coder=<p> --adapter math=<p> --adapter toxic=<p> -o <out> \\\n    [--allow-unscanned] [--allow-cross-base]\n\n# LISA is config-side (sft · transformers · text · quantization: none)\nsoup train --config sft.yaml   # training.lisa_enabled: true\n                               # [lisa_num_layers] [lisa_interval_steps] [lisa_reset_optimizer]"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"v0-71-35-compliance-pack\">v0.71.35 — Compliance pack</h2><p>See <a href=\"__DOCS_BASE__/compliance-pack\">compliance pack</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup init --template hipaa|soc2|eu-ai-act|sr-11-7   # regulation-shaped starting config\nsoup card <registry-id> -o MODELCARD.md            # provenance-carrying HF model card\nsoup push --model ./out --repo you/m --card <registry-id>   # upload it as the README (HF only)\nsoup ci init [--data d.jsonl --suite s.yaml --evidence ev.json] \\\n    [--branch main] [--python 3.11] [--force]      # writes .github/workflows/soup-gate.yml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Since v0.77.0 the data step of the generated workflow runs <code>soup data validate ... --min-valid-fraction 1.0</code>, so one row that does not convert fails the job. The job installs whatever <code>soup-cli</code> pip resolves for the <code>--python</code> you give, and since v0.77.0 needs Python 3.11 or newer: on 3.10 pip resolves v0.76.x.</p><h2 id=\"v0-72-layer-streaming\">v0.72 — Layer streaming</h2><p>Streaming is turned on by <strong>config keys, not CLI flags</strong>: there is deliberately no <code>--stream-layers</code>. See <a href=\"__DOCS_BASE__/layer-streaming\">layer streaming</a>, <a href=\"__DOCS_BASE__/streaming-scaling\">scaling a streaming run</a> and <a href=\"__DOCS_BASE__/streaming-preference\">preference losses over streaming</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# The whole surface is in soup.yaml, under training:\n#   stream_layers: true      # enable it (BETA)\n#   stream_source: auto      # auto | ram | disk   (NVMe-class only; ram refuses rather than falling back)\n#   stream_disk_kind: nvme   # v0.73.3: override the detected media type\n#   stream_pin: false        # v0.74.0: force the pageable store (true refuses on a CUDA target if the\n#                            #          box cannot page-lock it; since v0.76.0 that includes the disk tier's staging)\n#   stream_read_ahead: 2     # v0.76.0: disk tier only, 1-8, the read-ahead depth of the background reader\n#   stream_ngram_source: auto # v0.74.0: Qwen4-Exp external N-gram table, auto | ram | disk\n#   stream_buffers: 2        # 2-8, VRAM buffers in the pool\n#   quantization: 4bit       # or none; nothing else streams\n# task: sft | dpo | orpo | simpo | kto             (kto needs batch_size >= 2, on every run since v0.76.0)\nsoup train --config soup.yaml\nsoup train --config soup.yaml --resume auto       # unblocked for streaming in v0.72.3 (load-side); the old\n                                                  # torch < 2.6 resume block is gone since v0.75.0 raised the floor\n\nsoup doctor --disk    # report the media type behind the disk tier (NVMe / SATA SSD / HDD /\n                      # Unknown). Opt-in: the probe costs about 9 s cold, 2.4 s warm"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Since v0.76.0 the disk tier reads on a background thread through direct I/O and can stripe across several NVMe drives with the <code>SOUP_LAYER_STREAM_STRIPE_DIRS</code> environment variable. With it set, plain <code>soup doctor</code> lists each entry as a <code>Stripe root</code> row under System Resources and adds an issue when one is refused, and <code>soup doctor --disk</code> also applies the NVMe rule to them. <a href=\"__DOCS_BASE__/streaming-disk-tier\">The disk tier</a> has the rules and what was measured.</p><h2 id=\"v0-74-0-the-frozen-base-the-stack-and-a-listener\">v0.74.0 — the frozen base, the stack, and a listener</h2><p>See <a href=\"__DOCS_BASE__/loaded-in-fp32\">v0.74.0: loaded in fp32</a>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# MCP over the network. Both transports serve the same 18-tool registry as stdio.\nsoup mcp serve --transport sse --host 127.0.0.1 --port 8765 --auth-token \"$TOKEN\"\nsoup mcp serve --transport http --host 127.0.0.1 --port 8765 --auth-token \"$TOKEN\"\n# --allow-execute is REFUSED with either network transport; --host/--port/--auth-token are\n# refused under --transport stdio rather than silently ignored.\nsoup mcp runs reconcile --expunge-launching [--older-than-seconds N]   # recover capacity from stale launching rows; N defaults to 300 (min 1)\n\nsoup eval aider --model <aider-model-id> --output <results-dir> [--run-id <id>]   # Aider Polyglot ([aider])\n# --model and --output are required. --model is an Aider/LiteLLM id such as\n# openai/gpt-4.1, not a local checkpoint. --output is a DIRECTORY under the cwd: it\n# receives Aider's own result files and Soup's soup_result.json (a name like report.json\n# would just become a directory, and an existing file at that path is refused).\n# Docker must be running; the model's generated code executes inside the container.\n# Also: --exercises-dir, --image, --threads, --num-tests, --timeout, --allow-host-services.\n# The [aider] extra is NOT enough to run it: you also need the official Aider\n# benchmark image, source-built from an Aider checkout (./benchmark/docker_build.sh),\n# and a clone of polyglot-benchmark. --allow-host-services lets untrusted\n# model-generated code reach other services listening on the host.\nsoup train --config soup.yaml --cloud lambda   # plan-only by default, like --cloud modal\n# soup export --format gptq needed --calibration-data from v0.74.0 until the format was removed in v0.77.0\nsoup serve --model ./output --host 0.0.0.0 --tool-auth-token \"$TOKEN\"     # exit 2 without the token\nsoup sweep --config soup.yaml --param lora_rank=8,16   # not a config key (the rank is lora_r): exits 1\n                                                       # before the first arm, instead of running a grid"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Two scope notes on those lines. <code>--tool-auth-token</code> is the bearer token for the tool, <code>/v1/thumbs</code> and <code>/v1/adapters</code> routes of the transformers backend (since v0.77.0 the Python and Bash tool routes need it on every bind, loopback included); <strong>generation, <code>/v1/models</code>, <code>/health</code> and <code>/metrics</code> carry no token on any backend</strong>, so a non-loopback bind publishes the model to whoever can reach the port, and an authenticating reverse proxy belongs in front of it. The vLLM, SGLang and MII backends do not read the token at all. <a href=\"__DOCS_BASE__/serving#a-page-you-visit-cannot-drive-your-server-v0-75-1\">Serving</a> has the route-by-route table. And <code>--param</code> takes a shortcut name (<code>lora_r</code>, <code>lr</code>, <code>epochs</code>, <code>batch_size</code> and so on) or the full path (<code>training.lora.r</code>); a bare <code>lora.r</code> is not either: since v0.77.0 <code>--dry-run</code> refuses it before printing a grid (<code>&#x27;lora&#x27; found at both root and training level</code>, exit 1), and a sweep in which every arm fails exits 1 (one completed arm still exits 0). Through v0.76.1 every arm of such a sweep failed when its config was built, while the command still exited 0 with <code>failed</code> rows.</p><h2 id=\"v0-77-0-new-changed-and-removed-flags\">v0.77.0: new, changed and removed flags</h2><p>v0.77.0 adds no command. It adds options to eight, gives <code>soup train --cloud</code> a third provider, and removes AWQ and GPTQ export, as the v0.77.0 binary prints them:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup --version                                             # print the version and the project URL, then exit 0\nsoup train --config soup.yaml --cloud runpod [--gpu a100|h100|a40|rtx3090|rtx4090] [--cloud-submit]\nsoup train --config soup.yaml --yes                        # required when standard input is a pipe or a file\nsoup merge --adapter <dir> [--base <model>] [--output <dir>] --low-memory\nsoup export --model <path> --format gguf [--verbose] [--no-install-deps]\nsoup registry push --run-id <id> --name <n> [--tag v1] [--data <file>] [--idempotency-key <key>]\nsoup ship --evidence <ev.json> --config soup.yaml --adapter <dir> --task-eval <tasks.jsonl> --require-provenance [--data-sha256 <64hex>]\nsoup ship --base <m> --adapter <dir> --task-eval <tasks.jsonl> --chat-template-kwargs '{\"enable_thinking\":false}'\nsoup loop init <served-model> --eval <suite> --baseline registry://<id> --pre-wired [--thumbs-db <db>]\nsoup loop watch --pre-wired [--tool-auth-token <token>]\nsoup compile-tools <spec> --eval <tasks.jsonl> --optimizer textgrad --engine <model>\nsoup compile-tools <spec> --eval <tasks.jsonl> --optimizer gepa --task-lm <model> [--reflection-lm <model>]"
+    },
+    {
+      "kind": "html",
+      "html": "<div><table><thead><tr><th>Command</th><th>What changed in v0.77.0</th><th>Exit codes</th><th>Page</th></tr></thead><tbody><tr><td><code>soup --version</code></td><td>New root option; prints <code>soup v0.77.0</code> and the project URL, the same short form as <code>soup version</code></td><td>0</td><td>this page</td></tr><tr><td><code>soup train</code></td><td><code>--cloud runpod</code>: plan-only unless <code>--cloud-submit</code>, and not yet run against a real RunPod account (tracked as #2098); one attempt, one copy-back with a 15-minute limit, the Pod deleted afterwards, and local input files not uploaded. Without <code>--yes</code>, a run whose standard input is a pipe or a file is refused before any data loads</td><td>3 without <code>--yes</code> on such a standard input; 1 when a RunPod submit is not configured; 2 for a refused cloud plan</td><td><a href=\"__DOCS_BASE__/backends#runpod-v0-77-0\">Backends</a></td></tr><tr><td><code>soup export</code></td><td><code>--format awq</code> and <code>--format gptq</code> removed, and with them <code>--bits</code>, <code>--group-size</code>, <code>--calibration-samples</code> and the <code>[awq]</code> and <code>[gptq]</code> extras; <code>--verbose</code> and <code>--no-install-deps</code> (GGUF only); an architecture the pinned converter cannot convert is refused before llama.cpp is cloned</td><td>1 for <code>awq</code> or <code>gptq</code>, a missing conversion package under <code>--no-install-deps</code> or an unsupported architecture; 2 for a removed flag or a GGUF-only flag on another format</td><td><a href=\"__DOCS_BASE__/export#awq-and-gptq-export-removed-in-v0-77-0\">Model export</a></td></tr><tr><td><code>soup quantize</code></td><td><code>--to</code> takes <code>gguf</code>, <code>onnx</code> or <code>tensorrt</code></td><td>2 for <code>awq</code> or <code>gptq</code></td><td><a href=\"__DOCS_BASE__/export\">Model export</a></td></tr><tr><td><code>soup merge</code></td><td><code>--low-memory</code>: merge tensor by tensor from the base safetensors, plain LoRA and <code>--save-format fp16</code> only</td><td>2 with another save format; 1 for an adapter it cannot reproduce exactly</td><td><a href=\"__DOCS_BASE__/export\">Model export</a></td></tr><tr><td><code>soup registry push</code></td><td><code>--data &lt;file&gt;</code> records its SHA-256 as <code>data_hash</code> (the file registered as the training input, not proof of what the run trained on); <code>--idempotency-key</code> makes a retry return the existing entry</td><td>1 for a refused file or a key reused for a different registration</td><td><a href=\"__DOCS_BASE__/registry\">Model registry</a></td></tr><tr><td><code>soup registry</code> (any command taking a reference)</td><td>A <code>name:tag</code> that matches several entries is refused instead of picking the newest</td><td>1</td><td><a href=\"__DOCS_BASE__/registry\">Model registry</a></td></tr><tr><td><code>soup ship</code></td><td><code>--require-provenance</code> (an offline drift check against the adapter, task and source bytes, suite version and verdict policy; not an attestation), <code>--data-sha256</code> (caller-asserted), <code>--chat-template-kwargs</code></td><td>3 for a misuse or a drifted binding</td><td><a href=\"__DOCS_BASE__/soup-ship#evidence-bound-to-what-it-scored-require-provenance-v0-77-0\">soup ship</a></td></tr><tr><td><code>soup loop init</code>, <code>soup loop watch</code></td><td><code>--thumbs-db</code> (or <code>SOUP_LOOP_THUMBS_DB</code>) feeds <code>soup serve --record-thumbs</code> into the pre-wired harvest; <code>--tool-auth-token</code> (or <code>SOUP_TOOL_AUTH_TOKEN</code>) lets the deploy stage activate an adapter on a protected server</td><td>2 for a refused database, or an invalid watch setting with <code>--detach</code></td><td><a href=\"__DOCS_BASE__/soup-loop\">soup loop</a></td></tr><tr><td><code>soup compile-tools</code></td><td><code>--engine</code> (TextGrad), <code>--task-lm</code> and <code>--reflection-lm</code> (GEPA)</td><td>2 when a live run lacks its engine or task model</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr><tr><td><code>soup serve</code></td><td><code>/v1/tools/python</code> and <code>/v1/tools/bash</code> need <code>--tool-auth-token</code> on every bind (401 without it) and answer 501 without OS-level isolation; the token can come from <code>SOUP_TOOL_AUTH_TOKEN</code></td><td>unchanged</td><td><a href=\"__DOCS_BASE__/serving\">Inference server</a></td></tr><tr><td><code>soup ab</code></td><td><code>--beta</code> is refused</td><td>2</td><td><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a></td></tr><tr><td><code>soup data pii</code>, <code>toxicity</code>, <code>langdetect</code>, <code>educational</code>, <code>score</code>, <code>decontaminate</code></td><td>Read alpaca, preference, KTO and ShareGPT rows; count rows with no readable text</td><td>1 when no row has text they can read</td><td><a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a></td></tr><tr><td><code>soup recipes verify</code>, <code>soup recipes use</code></td><td><code>verify</code> reads <code>--config</code> before it checks the training stack; <code>use</code> refuses a recipe marked unavailable</td><td>3 for a missing <code>--config</code> on any install; 3 for an unavailable recipe</td><td><a href=\"__DOCS_BASE__/recipes\">Recipes</a></td></tr><tr><td><code>soup sweep</code>, <code>soup eval auto</code>, <code>soup drift-alarm</code>, <code>soup adapters merge --strategy cmaes</code></td><td>Fail when nothing succeeded or nothing was compared</td><td>1, 1, 1, 2</td><td><a href=\"__DOCS_BASE__/exit-codes#what-v0-77-0-adds\">Exit codes</a></td></tr><tr><td><code>soup ci init</code></td><td>A workflow generated by v0.77.0 passes <code>--min-valid-fraction 1.0</code> to its data-validate step; an existing workflow keeps its old step until you regenerate it (<code>soup ci init --force</code>)</td><td>unchanged</td><td><a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a></td></tr><tr><td><code>soup deploy autopilot</code></td><td><code>--target rtx-4090-24gb</code> plans 4-bit QLoRA with vLLM instead of AWQ</td><td>unchanged</td><td><a href=\"__DOCS_BASE__/agent-forge\">Agent Forge</a></td></tr><tr><td><code>soup data ingest</code></td><td>PDF and DOCX readers come from <code>pip install &quot;soup-cli[documents]&quot;</code></td><td>unchanged</td><td><a href=\"__DOCS_BASE__/data-pipeline-pro\">Data pipeline pro</a></td></tr></tbody></table></div><h2 id=\"v0-76-0-new-commands-and-flags\">v0.76.0: new commands and flags</h2><p>The six commands that are new in v0.76.0, plus <code>soup bench infer</code> (the old <code>soup bench &lt;model&gt;</code>, now a subcommand of the new <code>bench</code> group), as the v0.76.0 binary prints them:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup rewind [RUN_ID] [--step <n>] [--top 10] [--json <path>] [--no-preview]\nsoup bench infer <model> [--base <m>] [--backend auto|transformers|mlx] [--max-tokens <n>] [--num-prompts <n>] [--prompts-file <p>] [--p50] [--p95] [--cuda-graphs]\nsoup bench train [--config soup.yaml] [--steps 20] [--warmup 3] [-o bench-train.json]\nsoup data clean <path> [-o <out>] [-f] [--dry-run] [--min-tokens <n>] [--prune-echo] [--strip-boilerplate] \\\n  [--repair-code] [--repair-json] [--drop-invalid-json] [--json]\nsoup recipes verify [--config <soup.yaml>] [--json] [--templates|--no-templates]\nsoup adapters check <adapter-dir> [--json]\nsoup adapters audit <adapter-dir> --config <soup.yaml> [--json]"
+    },
+    {
+      "kind": "html",
+      "html": "<div><table><thead><tr><th>Command</th><th>What it answers</th><th>Exit codes</th><th>Page</th></tr></thead><tbody><tr><td><code>soup rewind</code></td><td>Which dataset rows were in the batch behind a loss spike</td><td>0 a report printed, including <code>No loss spikes recorded.</code>; 1 nothing to read; 2 a refused <code>--json</code> path</td><td><a href=\"__DOCS_BASE__/rewind\">soup rewind</a></td></tr><tr><td><code>soup bench infer</code></td><td>The old <code>soup bench &lt;model&gt;</code> inference benchmark; <code>soup bench &lt;model&gt;</code> still routes here</td><td>unchanged</td><td><a href=\"__DOCS_BASE__/soup-bench\">soup bench</a></td></tr><tr><td><code>soup bench train</code></td><td>Whether the model actually trained for a fixed number of steps; it fails when it did not</td><td>0 valid; 1 not training, a config outside its scope or the <code>[train]</code> extra missing; 2 a refused <code>-o</code> path or a Click error</td><td><a href=\"__DOCS_BASE__/soup-bench\">soup bench</a></td></tr><tr><td><code>soup data clean</code></td><td>Sanitise a dataset (control characters, zero-width spaces, BOMs by default; heuristic repairs are opt-in) and never modify the input</td><td>0 done, including dropped rows and <code>--dry-run</code>; 1 an input or output refused; 2 a mistyped option</td><td><a href=\"__DOCS_BASE__/data-clean\">Clean a dataset</a></td></tr><tr><td><code>soup recipes verify</code></td><td>Can this recipe&#x27;s LoRA adapter attach, checked on the meta device with no weights downloaded</td><td>0 everything checkable attaches; 2 a config cannot attach; 3 a missing or unparseable <code>--config</code>, or a usage error; 1 a crash, or <code>torch</code>, <code>transformers</code> or <code>peft</code> failing to import</td><td><a href=\"__DOCS_BASE__/recipes\">Recipes</a></td></tr><tr><td><code>soup adapters check</code></td><td>Is this adapter trained at all</td><td>0 alive; 2 inactive; 1 the adapter could not be read</td><td><a href=\"__DOCS_BASE__/adapter-check\">Adapter check</a></td></tr><tr><td><code>soup adapters audit</code></td><td>Did the run use the settings in this <code>soup.yaml</code></td><td>0 no divergence (unknown rows do not fail); 2 diverged, and also a forgotten <code>--config</code> or a mistyped flag; 1 the adapter, the config or the recorded settings cannot be read</td><td><a href=\"__DOCS_BASE__/adapter-check\">Adapter check</a></td></tr></tbody></table></div><p>Limits worth knowing before you script them, each stated as upstream behaves at v0.76.0:</p><ul><li><code>soup rewind --json</code> writes no file when the run had no spike (it prints <code>No loss spikes recorded.</code> and exits 0), and writes <code>NaN</code> or <code>Infinity</code>, which is not strict JSON, for a non-finite loss.</li><li><code>soup adapters check</code> needs NumPy although it does not need PyTorch (through v0.76.1 it also needed the <code>safetensors</code> package and exited 1 on a <code>bfloat16</code> weights file; since v0.77.0 it reads the file itself and widens bf16), exits 1 on an MLX adapter (the MLX trainer names its file <code>adapters.safetensors</code>), and reports <code>inactive</code> for a non-LoRA PEFT adapter such as VeRA. Its scope is LoRA adapters saved by the transformers path.</li><li><code>soup recipes verify</code> exits 0 when everything it could check attaches, which can mean everything was unverified (a gated repository, or a base that needs <code>trust_remote_code</code>).</li><li><code>soup data clean</code> ignores <code>--strip-boilerplate</code> and <code>--prune-echo</code> on <code>dpo</code> and <code>kto</code> rows without saying so.</li></ul><h3 id=\"existing-commands-that-changed\">Existing commands that changed</h3><div><table><thead><tr><th>Command</th><th>What changed in v0.76.0</th><th>Page</th></tr></thead><tbody><tr><td><code>soup train</code></td><td><code>--nodes</code>, <code>--node-rank</code>, <code>--master-addr</code>, <code>--master-port</code> for multi-node launches; <code>--gpus</code> returns the launcher&#x27;s exit code on Windows too; <code>--diagnose-gate</code> exits 3 on a NOT_RUN probe; <code>--dry-run</code> on a config whose data loads zero train rows exits 1</td><td><a href=\"__DOCS_BASE__/multi-gpu#multi-node-launch\">Multi-GPU</a></td></tr><tr><td><code>soup infer</code></td><td><code>--batch-size N</code> (opt-in, default 1) and <code>--cuda-graphs</code> (experimental, needs PyTorch 2.14 or newer)</td><td><a href=\"__DOCS_BASE__/soup-bench\">soup bench</a></td></tr><tr><td><code>soup serve</code></td><td><code>--auto-quant</code> refuses with exit 2</td><td><a href=\"__DOCS_BASE__/serving\">Inference server</a></td></tr><tr><td><code>soup export</code>, <code>soup quantize</code></td><td>AWQ and GPTQ are deprecated, removal tracked for v0.77 (since closed in v0.77.0: removed); <code>--deploy</code> is validated before anything runs</td><td><a href=\"__DOCS_BASE__/export\">Model export</a></td></tr><tr><td><code>soup expect</code></td><td><code>--judge &lt;url&gt;</code>; exit 2 means the suite failed, exit 3 means the suite or data was rejected, exit 1 means the judge was unreachable</td><td><a href=\"__DOCS_BASE__/data-engineering-pro\">Data engineering pro</a></td></tr><tr><td><code>soup eval gate</code>, <code>soup eval against</code>, <code>soup lock check</code>, <code>soup data validate</code>, <code>soup data lint</code>, <code>soup ship</code></td><td>Exit codes moved to 0 pass, 2 gate failure or drift, 3 usage or input error</td><td><a href=\"__DOCS_BASE__/exit-codes\">Exit codes</a></td></tr><tr><td><code>soup eval behavior</code>, <code>soup eval checklist</code></td><td><code>--evidence</code> is required (on <code>behavior</code>, unless <code>--base-model</code> is given); without it they exit 3</td><td><a href=\"__DOCS_BASE__/eval-depth\">Eval depth</a></td></tr><tr><td><code>soup eval quant-check</code></td><td><code>--allow-stub</code>; a model that fails to load stops the command instead of silently scoring a stub</td><td><a href=\"__DOCS_BASE__/quant-check\">Quant check</a></td></tr><tr><td><code>soup eval benchmark</code>, <code>soup eval custom</code></td><td><code>--trust-remote-code</code> (default deny); <code>soup eval benchmark</code> exits 1 with <code>Nothing measured; nothing saved to experiment tracker.</code> when no benchmark produced a score (it used to exit 0)</td><td><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a></td></tr><tr><td><code>soup diagnose</code></td><td><code>--allow-not-run</code>, <code>--holdout</code>; the NOT_RUN verdict exits 3</td><td><a href=\"__DOCS_BASE__/diagnose\">soup diagnose</a></td></tr><tr><td><code>soup ab</code></td><td>Two-sided, variance-robust sequential test that reports better or worse; <code>--beta</code> retired (ignored with a warning that named v0.77 as the version that would refuse it; since closed in v0.77.0: refused, exit 2)</td><td><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a></td></tr><tr><td><code>soup draft measure</code></td><td><code>--sweep-k</code>; reports the break-even acceptance rate and the best draft length</td><td><a href=\"__DOCS_BASE__/soup-draft\">soup draft</a></td></tr><tr><td><code>soup sweep</code></td><td><code>--sweep-config</code>; <code>--param</code> is no longer required (give one of the two)</td><td><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a></td></tr><tr><td><code>soup adapters sign</code>, <code>soup adapters verify</code>, <code>soup attest emit</code>, <code>soup attest verify</code></td><td>Sigstore keyless signing (<code>--backend sigstore</code>, <code>--sign sigstore</code>, <code>--interactive-oidc</code>, <code>--cert-identity</code>, <code>--cert-oidc-issuer</code>); needs <code>pip install &quot;soup-cli[sigstore]&quot;</code></td><td><a href=\"__DOCS_BASE__/supply-chain-security\">Supply chain security</a></td></tr><tr><td><code>soup autopilot</code></td><td><code>--model</code>, <code>--data</code> and <code>--goal</code> are asked for on a terminal (the goal defaults to <code>chat</code>); when standard input is not a terminal a missing one exits 2</td><td><a href=\"__DOCS_BASE__/autopilot\">Autopilot</a></td></tr><tr><td><code>soup data inspect</code>, <code>soup data doctor</code>, <code>soup data score</code>, <code>soup data canary insert</code>, <code>soup data recipe</code></td><td><code>--image-dir</code>; <code>--mask-history</code>; <code>--benchmark-file</code>; <code>--format alpaca|sharegpt|chatml</code>; <code>--provider ollama|anthropic|vllm</code> with <code>--model</code>, <code>--base-url</code> and <code>--offline</code></td><td><a href=\"__DOCS_BASE__/data-tools\">Data tools</a></td></tr><tr><td><code>soup edit set</code>, <code>soup steer train</code>, <code>soup eval unlearning</code>, <code>soup diagnose</code></td><td><code>--registry-id</code> and <code>--attach-to-registry</code> record the result (they need <code>--output</code>) and exit 1 when the attach fails</td><td><a href=\"__DOCS_BASE__/unlearning\">Unlearning and editing</a></td></tr><tr><td><code>soup plugins</code></td><td>Plugins are discovered from the <code>soup_cli.plugins</code> entry-point group, <code>enable</code> persists an opt-in, <code>install</code> exits 2 and installs nothing</td><td><a href=\"__DOCS_BASE__/plugins\">Plugins</a></td></tr><tr><td><code>soup ui</code></td><td>The launch URL carries <code>?token=</code>; on a loopback bind the page keeps its session in an HttpOnly cookie</td><td><a href=\"__DOCS_BASE__/web-ui\">Web UI</a></td></tr><tr><td><code>soup doctor</code></td><td>GPU architecture and precision block, MLX panel, <code>--config</code></td><td><a href=\"__DOCS_BASE__/getting-started#health-check\">Installation</a></td></tr><tr><td><code>soup reward stress</code></td><td><code>--attacks</code> default adds <code>wrapped_junk</code> and <code>answer_spray</code></td><td><a href=\"__DOCS_BASE__/reward-verifier\">Reward Forge</a></td></tr><tr><td><code>soup local-rl train</code></td><td><code>--backend</code> is accepted for compatibility and has no effect</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr></tbody></table></div><h2 id=\"every-top-level-command\">Every top-level command</h2><p>The 78 top-level commands of the v0.77.0 binary (the same set as v0.76.0), with the page that documents each. A command marked &quot;this page&quot; has its forms above; the rest are documented in depth elsewhere and are not repeated here.</p><div><table><thead><tr><th>Command</th><th>What it does</th><th>Documented on</th></tr></thead><tbody><tr><td><code>soup init</code></td><td>Create a soup.yaml from a wizard or a template</td><td><a href=\"__DOCS_BASE__/configuration\">Configuration</a></td></tr><tr><td><code>soup train</code></td><td>Start a training run from a soup.yaml</td><td><a href=\"__DOCS_BASE__/training\">Training methods</a></td></tr><tr><td><code>soup chat</code></td><td>Chat with a trained model in the terminal</td><td>this page</td></tr><tr><td><code>soup cost</code></td><td>Estimate training cost in USD across cloud providers</td><td><a href=\"__DOCS_BASE__/observability\">Observability</a></td></tr><tr><td><code>soup push</code></td><td>Push a model to Hugging Face Hub or another hub</td><td><a href=\"__DOCS_BASE__/hf-hub-integration\">Hub integration</a></td></tr><tr><td><code>soup export</code></td><td>Export to GGUF, GGUF-UD, ONNX, TensorRT-LLM, BitNet, tq1_0 or TorchAO</td><td><a href=\"__DOCS_BASE__/export\">Model export</a></td></tr><tr><td><code>soup merge</code></td><td>Merge a LoRA adapter into its base model</td><td>this page</td></tr><tr><td><code>soup card</code></td><td>Generate a model card from a registry entry</td><td><a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a></td></tr><tr><td><code>soup migrate</code></td><td>Import a LLaMA-Factory, Axolotl or Unsloth config</td><td><a href=\"__DOCS_BASE__/migration\">Migration</a></td></tr><tr><td><code>soup serve</code></td><td>OpenAI-compatible inference server</td><td><a href=\"__DOCS_BASE__/serving\">Inference server</a></td></tr><tr><td><code>soup sweep</code></td><td>Grid or random hyperparameter search</td><td><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a></td></tr><tr><td><code>soup diff</code></td><td>Compare two models&#x27; outputs on the same prompts</td><td><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a></td></tr><tr><td><code>soup infer</code></td><td>Batch inference over a JSONL of prompts, or Whisper transcription</td><td>this page; <a href=\"__DOCS_BASE__/soup-bench#soup-infer-batch-size\">soup bench</a> for <code>--batch-size</code> and <code>--cuda-graphs</code></td></tr><tr><td><code>soup profile</code></td><td>Estimate memory, speed and GPU needs before training</td><td>this page</td></tr><tr><td><code>soup doctor</code></td><td>Check dependencies, GPU and a config</td><td><a href=\"__DOCS_BASE__/getting-started#health-check\">Installation</a></td></tr><tr><td><code>soup quickstart</code></td><td>Create sample data and a config, then train a small demo</td><td><a href=\"__DOCS_BASE__/getting-started#quick-demo\">Installation</a></td></tr><tr><td><code>soup ui</code></td><td>Launch the Web UI</td><td><a href=\"__DOCS_BASE__/web-ui\">Web UI</a></td></tr><tr><td><code>soup autopilot</code></td><td>Pick hyperparameters from a model, a dataset and a goal</td><td><a href=\"__DOCS_BASE__/autopilot\">Autopilot</a></td></tr><tr><td><code>soup history</code></td><td>Lineage tree of the registry entries that share a name</td><td><a href=\"__DOCS_BASE__/registry\">Model registry</a></td></tr><tr><td><code>soup why</code></td><td>Explain a run&#x27;s training anomalies in plain English</td><td><a href=\"__DOCS_BASE__/observability\">Observability</a></td></tr><tr><td><code>soup rewind</code></td><td>Name the dataset rows behind a loss spike (new in v0.76.0)</td><td><a href=\"__DOCS_BASE__/rewind\">soup rewind</a></td></tr><tr><td><code>soup tui</code></td><td>Full-screen terminal dashboard of runs, metrics and logs</td><td><a href=\"__DOCS_BASE__/observability\">Observability</a></td></tr><tr><td><code>soup monitor</code></td><td>Live GPU monitor: utilisation, temperature, VRAM, power</td><td>this page</td></tr><tr><td><code>soup fetch</code></td><td>Fetch a ready-to-edit file from the bundled catalog</td><td>this page</td></tr><tr><td><code>soup quantize</code></td><td>Print the matching <code>soup export</code> command; quantizes nothing</td><td>this page</td></tr><tr><td><code>soup merge-sharded-fsdp-weights</code></td><td>Consolidate FSDP shard files into one safetensors file</td><td>this page</td></tr><tr><td><code>soup delinearize-llama4</code></td><td>Reshape Llama 4 fused expert weights to 3-D</td><td>this page</td></tr><tr><td><code>soup diagnose</code></td><td>Post-training report card over the failure-mode probes</td><td><a href=\"__DOCS_BASE__/diagnose\">soup diagnose</a></td></tr><tr><td><code>soup airgap-bundle</code></td><td>Tarball of a model, datasets, wheels and kernels for an air-gapped host</td><td><a href=\"__DOCS_BASE__/supply-chain-security\">Supply chain security</a></td></tr><tr><td><code>soup ingest</code></td><td>Import traces from Langfuse, LangSmith, Helicone, OpenPipe, OTel or OpenAI stored completions</td><td><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a></td></tr><tr><td><code>soup prune-prompt</code></td><td>Strip a system-prompt prefix shared across training rows</td><td><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a></td></tr><tr><td><code>soup ab</code></td><td>Two-sided sequential A/B test on latency, judge score or retry rate</td><td><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a></td></tr><tr><td><code>soup drift-alarm</code></td><td>Rolling-KL drift alarm with optional Slack or Discord webhook</td><td><a href=\"__DOCS_BASE__/trace-ecosystem\">Trace ecosystem</a></td></tr><tr><td><code>soup tunability</code></td><td>Probe-train small bases and rank them by eval delta, cost and license</td><td><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight and tooling</a></td></tr><tr><td><code>soup plan</code></td><td>Render a pre-flight plan and write soup.tfstate</td><td><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight and tooling</a></td></tr><tr><td><code>soup apply</code></td><td>Check soup.yaml against soup.tfstate (exit 3 on drift), mark the plan applied and print the <code>soup train</code> command to run; it does not start training</td><td><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight and tooling</a></td></tr><tr><td><code>soup completions</code></td><td>Emit a bash, zsh or fish completion script</td><td><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight and tooling</a></td></tr><tr><td><code>soup license-advisor</code></td><td>Recommend a license-clean base for a deploy target</td><td><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight and tooling</a></td></tr><tr><td><code>soup compile</code></td><td>Compile a DSPy or GEPA prompt program against an eval suite</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr><tr><td><code>soup distill-prompt</code></td><td>Distill prompt-heavy traces into a small fine-tune plan</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr><tr><td><code>soup compile-tools</code></td><td>Optimise tool schemas and descriptions</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr><tr><td><code>soup apple-adapter</code></td><td>Convert HF, MLX and Apple FoundationModels adapters</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr><tr><td><code>soup build</code></td><td>dbt-style DAG of dataset transforms</td><td><a href=\"__DOCS_BASE__/data-engineering-pro\">Data engineering pro</a></td></tr><tr><td><code>soup expect</code></td><td>Run an expectations suite against a JSONL dataset</td><td><a href=\"__DOCS_BASE__/data-engineering-pro\">Data engineering pro</a></td></tr><tr><td><code>soup shrink</code></td><td>Depth-prune a model, with an optional distill-heal</td><td><a href=\"__DOCS_BASE__/soup-shrink\">soup shrink</a></td></tr><tr><td><code>soup version</code></td><td>Show the Soup version</td><td>this page</td></tr><tr><td><code>soup ci</code></td><td>Write a fine-tuning CI gate workflow</td><td><a href=\"__DOCS_BASE__/compliance-pack\">Compliance pack</a></td></tr><tr><td><code>soup data</code></td><td>Dataset tools: inspect, convert, merge, dedup, validate, clean and more</td><td><a href=\"__DOCS_BASE__/data-tools\">Data tools</a></td></tr><tr><td><code>soup deploy</code></td><td>Deploy to Ollama or Hugging Face Spaces, or plan a deploy</td><td><a href=\"__DOCS_BASE__/export\">Model export</a></td></tr><tr><td><code>soup runs</code></td><td>Experiment tracking: list, show, compare, clean runs</td><td><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a></td></tr><tr><td><code>soup eval</code></td><td>Benchmarks, custom evals, LLM judge, gates and eval-depth commands</td><td><a href=\"__DOCS_BASE__/experiments\">Experiment tracking</a>, <a href=\"__DOCS_BASE__/eval-gate\">Eval gate</a></td></tr><tr><td><code>soup adapters</code></td><td>Adapter management: list, diff, merge, sign, verify, check, audit and more</td><td><a href=\"__DOCS_BASE__/adapters\">soup adapters</a></td></tr><tr><td><code>soup recipes</code></td><td>Ready-made configs: list, show, use, search, verify</td><td><a href=\"__DOCS_BASE__/recipes\">Recipes</a></td></tr><tr><td><code>soup bench</code></td><td>Benchmark a model: inference speed or a fixed-step training run</td><td><a href=\"__DOCS_BASE__/soup-bench\">soup bench</a></td></tr><tr><td><code>soup registry</code></td><td>Model registry: push, list, show, diff, search, promote, delete</td><td><a href=\"__DOCS_BASE__/registry\">Model registry</a></td></tr><tr><td><code>soup spectrum</code></td><td>Spectrum SNR scan for targeted training</td><td><a href=\"__DOCS_BASE__/spectrum-targeted-training\">Spectrum</a></td></tr><tr><td><code>soup can</code></td><td>Pack, inspect, verify, fork and run shareable .can artifacts</td><td><a href=\"__DOCS_BASE__/soup-cans\">Soup Cans</a></td></tr><tr><td><code>soup llama</code></td><td>Proxy to the llama.cpp binaries</td><td><a href=\"__DOCS_BASE__/export-to-gguf-ollama\">GGUF and Ollama</a></td></tr><tr><td><code>soup plugins</code></td><td>Discover, list, enable and disable plugins</td><td><a href=\"__DOCS_BASE__/plugins\">Plugins</a></td></tr><tr><td><code>soup agent</code></td><td>Agent Forge: spec to tool-calling dataset, train, eval</td><td><a href=\"__DOCS_BASE__/agent-forge\">Agent Forge</a></td></tr><tr><td><code>soup tokenizer</code></td><td>Train a BPE tokenizer from a JSONL</td><td><a href=\"__DOCS_BASE__/v0539-live-ux\">v0.53.9 notes</a></td></tr><tr><td><code>soup advise</code></td><td>Pre-flight decision: prompt engineering, RAG, SFT, DPO or GRPO</td><td><a href=\"__DOCS_BASE__/advise\">soup advise</a></td></tr><tr><td><code>soup ship</code></td><td>SHIP or DON&#x27;T SHIP verdict: task win and no catastrophic forgetting</td><td><a href=\"__DOCS_BASE__/soup-ship\">soup ship</a></td></tr><tr><td><code>soup loop</code></td><td>Data flywheel: traces to preference pairs to DPO to gate to canary</td><td><a href=\"__DOCS_BASE__/soup-loop\">soup loop</a></td></tr><tr><td><code>soup bom</code></td><td>CycloneDX and SPDX bill of materials</td><td><a href=\"__DOCS_BASE__/governance\">Governance</a></td></tr><tr><td><code>soup attest</code></td><td>In-toto and SLSA-3 attestations, ed25519 or Sigstore signed</td><td><a href=\"__DOCS_BASE__/governance\">Governance</a>, <a href=\"__DOCS_BASE__/supply-chain-security\">Supply chain security</a></td></tr><tr><td><code>soup audit-log</code></td><td>Tail and rotate the local JSONL audit log</td><td><a href=\"__DOCS_BASE__/governance\">Governance</a></td></tr><tr><td><code>soup edit</code></td><td>Knowledge editing with ROME, MEMIT or AlphaEdit</td><td><a href=\"__DOCS_BASE__/unlearning\">Unlearning and editing</a></td></tr><tr><td><code>soup steer</code></td><td>Activation steering with CAA, ITI or RepE</td><td><a href=\"__DOCS_BASE__/rag-and-steering\">RAG and steering</a></td></tr><tr><td><code>soup env</code></td><td>Environment lockfile and ABI drift detection</td><td><a href=\"__DOCS_BASE__/preflight-tooling\">Pre-flight and tooling</a></td></tr><tr><td><code>soup probe</code></td><td>Activation probes: sleeper, truth, harm, interference, SAE diff, probe pack</td><td><a href=\"__DOCS_BASE__/post-train-xrays\">Post-train x-rays</a></td></tr><tr><td><code>soup lock</code></td><td>Shared run lockfile: write, show, check</td><td><a href=\"__DOCS_BASE__/adapter-lifecycle\">Adapter lifecycle</a></td></tr><tr><td><code>soup local-rl</code></td><td>Personal-LLM feedback flywheel: init, status, record, harvest, train</td><td><a href=\"__DOCS_BASE__/anti-trend-insurance\">Anti-trend insurance</a></td></tr><tr><td><code>soup iterative-dpo</code></td><td>Sample, score, pair and retrain loop</td><td><a href=\"__DOCS_BASE__/loop-hardening\">Loop hardening</a></td></tr><tr><td><code>soup ra-dit</code></td><td>RA-DIT two-stage retriever-then-generator run</td><td><a href=\"__DOCS_BASE__/rag-and-steering\">RAG and steering</a></td></tr><tr><td><code>soup mcp</code></td><td>Model Context Protocol server for coding agents</td><td><a href=\"__DOCS_BASE__/mcp-server\">MCP server</a></td></tr><tr><td><code>soup draft</code></td><td>Train and measure a speculative-decoding draft model</td><td><a href=\"__DOCS_BASE__/soup-draft\">soup draft</a></td></tr><tr><td><code>soup reward</code></td><td>Synthesise and stress-test a deterministic reward verifier</td><td><a href=\"__DOCS_BASE__/reward-verifier\">Reward Forge</a></td></tr></tbody></table></div><h2 id=\"global-flags\">Global Flags</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup --version                      # print the version and the project URL, then exit (v0.77.0; soup version also works)\nsoup --verbose <command>            # Full tracebacks instead of friendly errors (short form -V)\nsoup --log-level debug <command>    # quiet | normal | verbose | debug (default: normal)\nsoup --no-audit-log <command>       # skip ~/.soup/audit.jsonl for this invocation (or SOUP_NO_AUDIT_LOG=1)\nsoup --no-telemetry <command>       # opt out for this invocation (telemetry is off unless SOUP_TELEMETRY=1 anyway)"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Note:</strong> all five are root options: they must go <strong>before</strong> the command name, not after (<code>soup train --no-telemetry</code> is refused with <code>No such option</code>). <code>soup --install-completion</code> and <code>soup --show-completion</code> are the two shell-completion options.</p></blockquote><nav><a href=\"__DOCS_BASE__/multi-gpu-deepspeed\"><span>Previous</span><span>Multi-GPU training with DeepSpeed ZeRO-3</span></a><a href=\"__DOCS_BASE__/exit-codes\"><span>Next</span><span>Exit codes</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

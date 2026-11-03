@@ -1,0 +1,19 @@
+---
+import SoupLayout from './SoupLayout.astro'
+import { SoupHeader } from './SoupHeader'
+import { SoupFooter } from './SoupFooter'
+import { SoupHire, HIRE_NAME } from './hire/SoupHire'
+import hireEnglish from './hire/content.en.json'
+import { getMessages } from './catalogue'
+import { getFooterGroups } from './locales'
+const { language = 'en' } = Astro.props
+const m = await getMessages(language)
+const content = Object.fromEntries(Object.keys(hireEnglish).map(key => [key, m[('hirePage' + key[0].toUpperCase() + key.slice(1)) as keyof typeof m]])) as typeof hireEnglish
+---
+<SoupLayout language={language} path="hire/" title={`${HIRE_NAME} — ${content.role}`} description={content.heroBody}>
+  <div class="soup-site">
+    <SoupHeader language={language} m={m} path="hire/" client:load />
+    <main id="main"><SoupHire language={language} content={content} /></main>
+    <SoupFooter language={language} m={m} path="hire/" groups={getFooterGroups(language)} client:visible />
+  </div>
+</SoupLayout>

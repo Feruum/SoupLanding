@@ -1,0 +1,44 @@
+{
+  "slug": "agent-forge",
+  "title": "Agent Forge & Deploy Autopilot (v0.46.0)",
+  "description": "Agent Forge in Soup CLI v0.46.0. soup agent synth/train/eval parses OpenAPI 3.x, MCP manifests, GraphQL introspection into tool-calling SFT datasets. soup deploy autopilot picks PEFT+quant+spec-decoding combos for a 10-profile hardware catalog.",
+  "source": "https://trysoup.dev/docs/agent-forge",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "ff0ff9747ecbddd2a76463abd7994cbe088a84ec47ace1a39b6d0a90b722fb57",
+  "headings": [
+    {
+      "level": 2,
+      "id": "soup-agent-openapi-mcp-graphql-sft",
+      "title": "soup agent — OpenAPI / MCP / GraphQL → SFT"
+    },
+    {
+      "level": 2,
+      "id": "soup-deploy-autopilot",
+      "title": "soup deploy autopilot"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Agent Forge &amp; Deploy Autopilot (v0.46.0)</h1><h2 id=\"soup-agent-openapi-mcp-graphql-sft\">soup agent — OpenAPI / MCP / GraphQL → SFT</h2><p>Parse a tool spec, synthesize tool-calling SFT data, and print the training recipe for it.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup agent synth --spec ./openapi.yaml --output ./tools.jsonl\nsoup agent train --spec ./openapi.yaml --base meta-llama/Llama-3.1-8B-Instruct\nsoup agent eval --spec ./openapi.yaml --predictions ./preds.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong><code>soup agent train</code> does not train.</strong> It writes the synthesized dataset (<code>--dataset-out</code>, default <code>agent_dataset.jsonl</code>), then prints a planned recipe and the <code>soup train --config agent_train.yaml --yes</code> command. It does not create <code>agent_train.yaml</code>: you save the recipe yourself and run that command. The printed recipe pins <code>epochs: 3</code> and <code>lr: 2.0e-5</code>. <code>soup agent train</code> writes 4 examples per endpoint by default (<code>-n</code>, 1 to 32).</p><p><code>--examples-per-endpoint</code> (<code>-n</code>) sets how many rows each endpoint gets: 1 by default for <code>soup agent synth</code>, 4 for <code>soup agent train</code>, 1 to 32 for both. The rows are templated, not model-written: each pairs one of three fixed user phrasings (built from the endpoint&#x27;s description or name) with a tool call whose arguments are the literal placeholder <code>&lt;value&gt;</code> for every parameter, so beyond 3 per endpoint the user messages repeat.</p><p>Supports OpenAPI 3.x, MCP manifests, and GraphQL introspection.</p><p><strong>The rows load as <code>format: tool-calling</code>.</strong> Since v0.76.0 (#1217), each row <code>soup agent synth</code> writes carries a top-level <code>tools</code> list with the OpenAI-style schema of the tool it calls (the parameter names, each typed as &quot;any&quot;: the spec&#x27;s parameter schemas are not copied), beside the <code>messages</code> with the call inside the assistant turn. <code>format: auto</code> detects that row as tool-calling, and <code>soup data validate</code> on the output prints <code>Auto-detected format: tool-calling</code>. Through v0.75.2 every row <code>soup agent synth</code> wrote was dropped by the tool-calling converter, and <code>soup train --dry-run</code> still printed &quot;Ready to train!&quot; on zero rows, so a run trained on that output saw none of it: re-run it. See <a href=\"__DOCS_BASE__/tool-calling\">Tool-calling fine-tuning</a>.</p><h2 id=\"soup-deploy-autopilot\">soup deploy autopilot</h2><p>Pick PEFT + quant + spec-decoding combo for a hardware target.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup deploy autopilot --base ./output --target runpod-a100\nsoup deploy autopilot --base ./output --target mac-m4-pro"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--list</code> prints the catalog. The ten target ids are <code>mac-m3</code>, <code>mac-m4-pro</code>, <code>rtx-3060-12gb</code>, <code>rtx-4090-24gb</code>, <code>iphone-16</code>, <code>pixel-9</code>, <code>ollama-local</code>, <code>lm-studio</code>, <code>runpod-a100</code> and <code>hf-jobs-h100</code>. A run writes two files, <code>deploy_autopilot.yaml</code> and <code>deploy_autopilot.sh</code>.</p><p><strong><code>rtx-4090-24gb</code> plans 4-bit QLoRA with vLLM since v0.77.0 (#1951).</strong> It used to write <code>quantization: awq</code>, which loads a base that is already AWQ-quantized, for an ordinary base, and Soup no longer produces AWQ (the AWQ export and the <code>[awq]</code> extra are gone). To serve a pre-quantized AWQ checkpoint, point vLLM at it directly, as the profile&#x27;s own note says.</p><p><code>--measure --tasks &lt;jsonl&gt;</code> also runs the Quant-Lobotomy measurement over the quants named in <code>--measure-candidates</code> (by default the profile&#x27;s primary quant), for example <code>--measure-candidates 4bit,8bit,fp8</code>. <code>gptq</code> and <code>awq</code> are still accepted there, because they load a checkpoint that is already quantized that way; a candidate whose model fails to load ends the run with exit 1 (<code>Live measure failed: ...</code> for a load error such as a missing quant kernel).</p><nav><a href=\"__DOCS_BASE__/modality-ii\"><span>Previous</span><span>Modality II</span></a><a href=\"__DOCS_BASE__/unlearning\"><span>Next</span><span>Unlearning &amp; knowledge editing</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

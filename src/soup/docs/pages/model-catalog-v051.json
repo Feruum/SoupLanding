@@ -1,0 +1,49 @@
+{
+  "slug": "model-catalog-v051",
+  "title": "Model Catalog Expansion (v0.51.0)",
+  "description": "Model Catalog Expansion in Soup CLI v0.51.0. 26 new recipes (GPT-OSS 20B/120B, GLM 4.6/5, Kimi K2/K2-Thinking (both marked unavailable in v0.77.0), MiniMax M2, QwQ-32B, QVQ-72B, Granite 4, LFM2, Cogito v2 (its recipe was removed in v0.76.0), Mistral Small/Medium 3.5, Magistral/Devstral/Ministral, MedGemma, EmbeddingGemma, LLaVA-Next, InternVL 3.5, Voxtral, Baichuan 2, Qwen-Image, DeepSeek-OCR, Paddle-OCR-VL). MULTIPACK_ARCHITECTURES 18 → 38. Alternative hubs: hf | modelscope | modelers.",
+  "source": "https://trysoup.dev/docs/model-catalog-v051",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "fd5f50393703ad3d7b5ed835d53ec28386614658a6f3b6387fc26c5d8955b2aa",
+  "headings": [
+    {
+      "level": 2,
+      "id": "new-families",
+      "title": "New families"
+    },
+    {
+      "level": 2,
+      "id": "multipack-architectures-18-38",
+      "title": "MULTIPACK_ARCHITECTURES: 18 → 38"
+    },
+    {
+      "level": 2,
+      "id": "alternative-model-hubs",
+      "title": "Alternative model hubs"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Model Catalog Expansion (v0.51.0)</h1><p>26 new recipes, catalog 80 → 106. (This is the v0.51.0 snapshot. The catalog is 171 recipes at v0.77.0; see <a href=\"__DOCS_BASE__/recipes\">Recipes</a> for the current list.)</p><h2 id=\"new-families\">New families</h2><p>GPT-OSS 20B/120B, GLM 4.6 / 5, Kimi K2 / K2-Thinking, MiniMax M2, QwQ-32B, QVQ-72B, Granite 4, LFM2, Cogito v2, Mistral Small 3 / Medium 3.5, Magistral / Devstral / Ministral, MedGemma, EmbeddingGemma, LLaVA-Next, InternVL 3.5, Voxtral, Baichuan 2, Qwen-Image, DeepSeek-OCR, Paddle-OCR-VL.</p><p>(Changed in v0.76.0: the <code>cogito-v2-sft</code> recipe was removed, because no compatible replacement base exists for its shipped definition, and several of the others were edited to correct a base model ID, for example <code>glm-4.6-sft</code>, <code>kimi-k2-sft</code>, <code>granite-4-sft</code>, <code>internvl-3-5-sft</code> and <code>voxtral-sft</code>.) (Changed in v0.77.0: <code>kimi-k2-sft</code> and <code>kimi-k2-thinking-grpo</code> are marked unavailable, because a resident Kimi K2 load is refused at config load on Transformers 5.x; <code>soup recipes use</code> exits 3 for both, see <a href=\"__DOCS_BASE__/recipes#unavailable-since-v0-77-0-the-two-kimi-k2-recipes\">Recipes</a>.)</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup recipes list\nsoup recipes search reasoning\nsoup recipes use qwq-32b-grpo"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"multipack-architectures-18-38\">MULTIPACK_ARCHITECTURES: 18 → 38</h2><p>The Multipack allowlist now spans 38 architectures — every model in the new catalog is packing-eligible where applicable.</p><h2 id=\"alternative-model-hubs\">Alternative model hubs</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  hub: modelscope   # hf | modelscope | modelers"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Cross-validator rejects <code>hub != &#x27;hf&#x27;</code> on <code>backend == &#x27;mlx&#x27;</code>. <code>utils/hubs.py</code> exposes <code>validate_hub_name</code> / <code>validate_hub_endpoint</code> / <code>resolve_endpoint</code> / <code>default_endpoint</code> / <code>endpoint_env_var</code> / <code>required_hub_package</code> / <code>is_hf</code> with full SSRF parity to the v0.29.0 HF endpoint validator.</p><p>Live downloader / uploader wiring shipped in v0.53.10, and <code>soup data push --hub</code> in v0.71.5.</p><nav><a href=\"__DOCS_BASE__/quant-menu-ii\"><span>Previous</span><span>Quant Menu II</span></a><a href=\"__DOCS_BASE__/experiments\"><span>Next</span><span>Experiment Tracking</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

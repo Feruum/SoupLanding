@@ -1,0 +1,96 @@
+{
+  "slug": "tool-calling",
+  "title": "Tool-Calling Fine-Tuning",
+  "description": "End-to-end tool-calling fine-tuning with Soup CLI. New data format, synth template, recipes, and eval scoring for agentic training.",
+  "source": "https://trysoup.dev/docs/tool-calling",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "e5b77cf731330f9195beff5725251dea802900edf5fb58ed9d877288e109755d",
+  "headings": [
+    {
+      "level": 2,
+      "id": "data-format",
+      "title": "Data format"
+    },
+    {
+      "level": 2,
+      "id": "generate-tool-call-training-data",
+      "title": "Generate tool-call training data"
+    },
+    {
+      "level": 2,
+      "id": "train",
+      "title": "Train"
+    },
+    {
+      "level": 2,
+      "id": "evaluation",
+      "title": "Evaluation"
+    },
+    {
+      "level": 2,
+      "id": "recipes",
+      "title": "Recipes"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Tool-Calling Fine-Tuning</h1><p>Soup v0.25.0 adds an end-to-end pipeline for training models that call functions.</p><h2 id=\"data-format\">Data format</h2><p>A new <code>tool-calling</code> format was added to <code>soup_cli/data/formats.py</code>:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\n  \"messages\": [{\"role\": \"user\", \"content\": \"What's the weather in Tokyo?\"}],\n  \"tools\": [\n    {\n      \"type\": \"function\",\n      \"function\": {\n        \"name\": \"get_weather\",\n        \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}\n      }\n    }\n  ],\n  \"tool_calls\": [\n    {\"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Tokyo\\\"}\"}}\n  ]\n}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The example above is the single-call form: one top-level <code>tool_calls</code> list that becomes one assistant turn after <code>messages</code>. Tool definitions are embedded in a leading system message during normalization.</p><p>Since v0.76.0 (#1217) the converter also reads calls where agent data puts them, which is the OpenAI fine-tuning shape and what <code>soup agent synth</code> writes:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "{\n  \"messages\": [\n    {\"role\": \"user\", \"content\": \"What's the weather in Tokyo?\"},\n    {\"role\": \"assistant\", \"content\": \"\", \"tool_calls\": [{\"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Tokyo\\\"}\"}}]},\n    {\"role\": \"tool\", \"content\": \"21 C, clear\", \"tool_call_id\": \"call_1\"},\n    {\"role\": \"assistant\", \"content\": \"It is 21 C and clear in Tokyo.\"}\n  ],\n  \"tools\": [{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}]\n}"
+    },
+    {
+      "kind": "html",
+      "html": "<p>An assistant turn keeps its own <code>tool_calls</code> and a <code>tool</code> turn keeps its <code>tool_call_id</code>, in source order, so a multi-turn trajectory is not rewritten as &quot;answer first, call afterwards&quot;. A top-level <code>tool_calls</code> list is appended as one assistant turn only when no assistant turn already carries calls. <code>tools</code> is optional for the conversion, and <code>format: auto</code> detects a row with <code>messages</code> and <code>tools</code> as <code>tool-calling</code>; a top-level <code>tool_calls</code> is no longer required.</p><p><code>soup train</code> now exits 1, on <code>--dry-run</code> and on a real run, when the data loads zero training rows, and the message names the format and the first dropped row&#x27;s reason.</p><p>Auto-detection reads up to the first 100 rows rather than the first row alone. A file that mixes <code>chatml</code> and <code>tool-calling</code> rows loads as <code>tool-calling</code> when the tool-calling converter accepts the <code>chatml</code> rows and produces the same messages; any other mix is refused with a message naming both shapes and the row where each first appears, and you then set <code>data.format</code> yourself. See <a href=\"__DOCS_BASE__/data-formats\">Data formats</a>.</p><h2 id=\"generate-tool-call-training-data\">Generate tool-call training data</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data generate \\\n  --prompt \"Function-calling examples: a user request, then one tool call with arguments\" \\\n  --provider openai \\\n  --format chatml \\\n  --count 1000 \\\n  --output tool_calls.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--prompt</code> is required, and <code>--template</code> is an allowlist of exactly five: <code>code</code>, <code>conversation</code>, <code>qa</code>, <code>preference</code>, <code>reasoning</code>. There is <strong>no <code>tool-calling</code> template on the CLI</strong>. The bundled builder in <code>soup_cli/data/templates/tool_calling.py</code>, configurable across API domains (weather, search, database, filesystem), is a library helper with no command-line selector, in the same way the Elo arena and judge calibration are library helpers. Describe the shape you want in <code>--prompt</code> instead.</p><h2 id=\"train\">Train</h2><p>Use a ready-made recipe:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup recipes use qwen3-8b-tools\nsoup train"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Or start from a recipe clone and edit:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: Qwen/Qwen3-8B\ntask: sft\n\ndata:\n  train: ./tool_calls.jsonl\n  format: tool-calling\n\ntraining:\n  epochs: 3\n  lr: 2e-4\n  lora: { r: 16, alpha: 32 }"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"evaluation\">Evaluation</h2><p><code>soup eval custom</code> ships three tool-call scoring functions:</p><ul><li><code>tool_call_match</code> — exact function name + arguments</li><li><code>tool_call_name_match</code> — function name only</li><li><code>tool_call_args_subset</code> — partial credit for matching a subset of arguments</li></ul><p>Since v0.77.0 <code>tool_call_match</code> and <code>tool_call_args_subset</code> compare the parsed <code>arguments</code> as JSON values, so a boolean and a number never match, at any depth, while numbers still match across forms (<code>1</code> and <code>1.0</code>) (#1755, #1756). Against an expected <code>{&quot;enabled&quot;: true}</code>, an output <code>{&quot;enabled&quot;: 1}</code> now scores <code>0.0</code> on <code>tool_call_match</code> and <code>0.5</code> on <code>tool_call_args_subset</code> (its function-name credit only); through v0.76.1 both gave it full credit, because Python&#x27;s <code>==</code> treats <code>True</code> and <code>1</code> as equal. Scores recorded before this change can be higher than the same outputs score now.</p><h2 id=\"recipes\">Recipes</h2><ul><li><code>qwen3-8b-tools</code> — Qwen 3 8B, 4bit, LoRA r=16</li><li><code>llama4-scout-tools</code> — Llama 4 Scout (17B active parameters, 109B total), 4bit, LoRA r=16</li></ul><h2 id=\"re-run-this\">Re-run this</h2><div><table><thead><tr><th>If you trained</th><th>What was wrong</th><th>What to do</th></tr></thead><tbody><tr><td><code>format: tool-calling</code> on <code>soup agent synth</code> output, or on any file whose tool calls sit inside assistant turns and which has no top-level <code>tool_calls</code></td><td>Through v0.75.2 the detector needed <code>messages</code>, <code>tools</code> and a top-level <code>tool_calls</code>, so every such row was dropped. A dry run still printed &quot;Ready to train!&quot; on zero rows (#1217)</td><td>Re-run if some of your rows had a top-level <code>tool_calls</code>: only those rows were trained on. If none did, the dry run said &quot;Ready to train!&quot; and the real run loaded the model and then failed on an empty dataset</td></tr><tr><td><code>format: auto</code> on a file whose first row lacked an optional key such as <code>tools</code></td><td>Detection read only the first row, so the poorer converter ran for the whole file and dropped the key from every row (#1424)</td><td>Re-run. A file like this now loads as the richer format or stops at load</td></tr><tr><td><code>soup eval custom</code>, or a gate or <code>soup ship</code> metric leg, on task rows scored with <code>tool_call_match</code> or <code>tool_call_args_subset</code>, before v0.77.0</td><td>A JSON number where a boolean was expected, or the reverse, scored as a correct argument (#1755, #1756)</td><td>Score the outputs again on v0.77.0 before comparing with a new run; old scores can be higher than the same outputs score now</td></tr></tbody></table></div><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/data-formats\">Data formats</a></li><li><a href=\"__DOCS_BASE__/data-clean\">Data cleaning</a> — <code>soup data clean --repair-json</code> reads calls inside assistant turns as well as a top-level <code>tool_calls</code></li><li><a href=\"__DOCS_BASE__/autopilot\">Autopilot</a> — <code>--goal tool-calling</code> picks this format automatically</li></ul><nav><a href=\"__DOCS_BASE__/mlx-backend\"><span>Previous</span><span>Apple Silicon MLX</span></a><a href=\"__DOCS_BASE__/rlvr\"><span>Next</span><span>RLVR: Verifiable Rewards</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "slug": "tracker-eval-pro",
+  "title": "Tracker & Eval Pro (v0.43.0)",
+  "description": "Tracker & Eval Pro in Soup CLI v0.43.0. --tracker mlflow|swanlab|trackio, pure-Python BLEU + ROUGE-1/2/L + effective_tokens_per_second, a KL-divergence calibration helper (Python library only, OK/MINOR/MAJOR), a Model Arena Elo tournament library, ceval/cmmlu benchmarks (the Aider Polyglot runner is soup eval aider, added in v0.74.0), soup data demo bundles.",
+  "source": "https://trysoup.dev/docs/tracker-eval-pro",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "2fa37725e907a31ecebcababa1756b34dcdc4b91195ef7eaef5acc990d74b770",
+  "headings": [
+    {
+      "level": 2,
+      "id": "tracker-allowlist",
+      "title": "--tracker allowlist"
+    },
+    {
+      "level": 2,
+      "id": "telemetry-opt-in-hardware-only-and-still-sending-nothing",
+      "title": "Telemetry: opt-in, hardware-only, and still sending nothing"
+    },
+    {
+      "level": 2,
+      "id": "nlg-metrics",
+      "title": "NLG metrics"
+    },
+    {
+      "level": 2,
+      "id": "kl-divergence-calibration-library-only-no-cli",
+      "title": "KL-divergence calibration (library only, no CLI)"
+    },
+    {
+      "level": 2,
+      "id": "model-arena-elo",
+      "title": "Model Arena (Elo)"
+    },
+    {
+      "level": 2,
+      "id": "new-benchmarks",
+      "title": "New benchmarks"
+    },
+    {
+      "level": 2,
+      "id": "profiling-helpers",
+      "title": "Profiling helpers"
+    },
+    {
+      "level": 2,
+      "id": "vs-code-launch-json-writer",
+      "title": "VS Code launch.json writer"
+    },
+    {
+      "level": 2,
+      "id": "soup-data-demo",
+      "title": "soup data demo"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Tracker &amp; Eval Pro (v0.43.0)</h1><h2 id=\"tracker-allowlist\"><code>--tracker</code> allowlist</h2><p>Closed allowlist: <code>wandb</code> | <code>tensorboard</code> | <code>mlflow</code> | <code>swanlab</code> | <code>trackio</code> | <code>none</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --tracker mlflow"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Mutually exclusive with legacy <code>--wandb</code> / <code>--tensorboard</code> via <code>resolve_report_to</code>.</p><h2 id=\"telemetry-opt-in-hardware-only-and-still-sending-nothing\">Telemetry: opt-in, hardware-only, and still sending nothing</h2><p>v0.43.0 landed a telemetry <strong>schema</strong> and the environment variables that would configure it, and for many releases that was all there was: the primitives existed and no command called them. <strong>v0.75.0 wired it</strong>, together with the public privacy policy that had been the stated precondition. Neither v0.76.0 nor v0.77.0 changed it: the telemetry code is identical to v0.75.2, and everything below still holds at v0.77.0.</p><p>Three things have to be true before a byte leaves your machine, and as shipped the third one is false.</p><p><strong>1. You have to opt in.</strong> It is off unless <code>SOUP_TELEMETRY=1</code> (or <code>true</code>, <code>yes</code>, <code>on</code>). Unset, or set to anything else including <code>0</code>, means no payload is built and the disk is never touched.</p><p><strong>2. You can turn it off per invocation.</strong> <code>--no-telemetry</code> is an option of the root <code>soup</code> command, so it goes <strong>before</strong> the subcommand: <code>soup --no-telemetry train --config soup.yaml</code>. After the subcommand it is refused with <code>No such option &#x27;--no-telemetry&#x27;</code> and exit code 2; upstream&#x27;s telemetry document printed it after the subcommand (<code>soup train --config soup.yaml --no-telemetry</code>) through v0.75.2, which does not work. (Fixed in upstream&#x27;s docs at v0.76.0, which now print <code>soup --no-telemetry train --config soup.yaml</code>; the option&#x27;s behaviour is unchanged.) It overrides the environment variable. It is checked twice, once as the parsed option and once as a raw scan of <code>argv</code>, so it still holds if callback parsing never ran.</p><p><strong>3. The bundled project key is a placeholder, and the code refuses it.</strong> The key compiled into the wheel is <code>phc_soup_public_write_only</code>, which the sender tests for by name. On a match it writes <code>Notice: telemetry is not yet live.</code> to stderr and returns <strong>without opening a socket</strong>. So the shipped binary transmits nothing even for a user who opted in. An operator who wants their own collection sets <code>SOUP_POSTHOG_KEY</code> <strong>and</strong> <code>SOUP_POSTHOG_ENDPOINT</code> together, and that endpoint must be HTTPS and must pass the same SSRF policy the rest of the CLI uses.</p><p>What the payload would carry, if all three held, is seven fields and nothing else:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "text",
+      "code": "soup_version       the running version\ncommand            the top-level command, checked against the registered\n                   command list and masked to \"(unknown)\" otherwise\npython             major.minor only\nos                 platform.system()\narch               platform.machine()\nduration_seconds   how long the command took\ndistinct_id        a random UUID4 generated locally, stored at\n                   ~/.soup/telemetry_id purely to deduplicate events"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The published policy also states what is <strong>never</strong> collected: dataset paths or contents, model names or architectures, config contents or hyperparameters, usernames or local paths, IP addresses, tokens or credentials. Delete <code>~/.soup/telemetry_id</code> and a new one is generated on the next opt-in. The upload is a fire-and-forget HTTPS POST at command exit with a one-second connect and read timeout, and every network and filesystem exception is swallowed, so telemetry cannot fail or delay a run.</p><p>The authoritative text is upstream&#x27;s own <a href=\"https://github.com/MakazhanAlpamys/Soup/blob/v0.77.0/docs/backends-and-ops.md#privacy-policy\">privacy policy</a>, a section of the backends and ops document rather than a separate file, plus the network-egress section of <code>SECURITY.md</code>.</p><h2 id=\"nlg-metrics\">NLG metrics</h2><p>Pure-Python BLEU + ROUGE-1/2/L + <code>effective_tokens_per_second</code>. Closed allowlist <code>NLG_METRICS = frozenset({&quot;bleu&quot;,&quot;rouge_1&quot;,&quot;rouge_2&quot;,&quot;rouge_l&quot;})</code>.</p><h2 id=\"kl-divergence-calibration-library-only-no-cli\">KL-divergence calibration (library only, no CLI)</h2><p><code>soup_cli.eval.calibrate.run_calibration(baseline_logits, quantized_logits)</code> compares next-token logits from a full-precision and a quantized model over a small fixed prompt set. You load both models and collect one logit row per prompt yourself; the function is pure math and takes at most 10,000 prompts. A mean KL below 0.05 is OK, below 0.20 is MINOR, and 0.20 or more is MAJOR.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "python",
+      "code": "from soup_cli.eval.calibrate import run_calibration\n\n# baseline_logits / quantized_logits: one next-token logit row per prompt, aligned\nreport = run_calibration(baseline_logits, quantized_logits)\nprint(report.delta_status, report.mean_kl)"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Through v0.76.1 it floored the candidate probabilities at <code>1e-12</code> before taking logarithms, so a large divergence could come back <code>MINOR</code> below the documented <code>MAJOR</code> line; since v0.77.0 it uses a numerically stable log-softmax with no floor (#1772, #1780). A report your own code computed with an earlier release may read too low.</p><p>No command calls it. <code>soup eval quant-check</code> is a different check: it runs a tasks file through two model directories and classifies the drop in task score, with absolute thresholds of 0.02 and 0.05. See <a href=\"__DOCS_BASE__/quant-check\">Quant-check</a>.</p><h2 id=\"model-arena-elo\">Model Arena (Elo)</h2><p>An A/B tournament with Elo ratings: K=32 default, 256-model cap, 1M-match cap, and <code>Tournament.ratings</code> returns a <code>MappingProxyType</code> so a caller cannot mutate the table.</p><blockquote><p><strong>Library only, no CLI surface.</strong> It ships as <code>soup_cli.eval.arena</code> and is used from Python. There is no <code>soup eval arena</code> subcommand; <code>soup eval</code> registers <code>benchmark</code>, <code>custom</code>, <code>judge</code>, <code>auto</code>, <code>compare</code>, <code>leaderboard</code>, <code>human</code>, <code>gate</code>, <code>quant-check</code>, <code>design</code>, <code>discover</code>, <code>lock</code>, <code>coverage</code>, <code>against</code>, <code>gate-install</code>, <code>unlearning</code>, <code>behavior</code>, <code>capability</code>, <code>checklist</code>, <code>irt-subset</code>, <code>citation</code> and <code>aider</code> (v0.74.0). For a pairwise verdict from the CLI, use <a href=\"__DOCS_BASE__/soup-ship\"><code>soup ship --task-mode pairwise</code></a>.</p></blockquote><h2 id=\"new-benchmarks\">New benchmarks</h2><p><code>ceval</code> and <code>cmmlu</code> route through lm-evaluation-harness. <code>aider_polyglot</code> is a recognised benchmark name with no lm-eval mapping, and the v0.43.1 release that was meant to add a runner for it was never cut. The live runner is <a href=\"__DOCS_BASE__/cli-reference\"><code>soup eval aider</code></a>, added in v0.74.0, which needs a locally built <code>aider-benchmark</code> Docker image and a prepared Polyglot exercises checkout.</p><h2 id=\"profiling-helpers\">Profiling helpers</h2><ul><li><code>memory_snapshot_context</code> — CUDA <code>torch.cuda.memory._record_memory_history</code> wrapper</li><li><code>detect_anomaly_context</code> — <code>torch.autograd.set_detect_anomaly</code> wrapper</li><li><code>nccl_bandwidth_check</code> — reference table for h100 / a100 / v100 / rtx40-series (OK ≥80% / MINOR ≥50% / MAJOR &lt;50%)</li></ul><h2 id=\"vs-code-launch-json-writer\">VS Code launch.json writer</h2><p>Writes <code>.vscode/launch.json</code> with cwd containment and a symlink TOCTOU guard. It ships as a <strong>library helper with no CLI surface</strong>: <code>soup_cli.utils.vscode_setup.write_vscode_launch</code> has no caller in the shipped code, and <code>soup doctor</code>&#x27;s own flags are <code>--nccl</code>, <code>--disk</code> and, since v0.75.0, <code>--config</code> — none of which writes a launch.json. Treat it as available to a script, not as a command.</p><h2 id=\"soup-data-demo\">soup data demo</h2><p>4-bundle frozen registry: <code>alpaca_demo</code> / <code>sharegpt_demo</code> / <code>dpo_demo</code> / <code>grpo_demo</code>. Atomic copy via sibling temp file + <code>os.replace</code>.</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup data demo alpaca_demo --output ./train.jsonl"
+    },
+    {
+      "kind": "html",
+      "html": "<nav><a href=\"__DOCS_BASE__/post-train-xrays\"><span>Previous</span><span>Post-train X-rays</span></a><a href=\"__DOCS_BASE__/training\"><span>Next</span><span>Training Methods</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

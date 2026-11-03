@@ -1,0 +1,115 @@
+{
+  "slug": "dpo-training-guide",
+  "title": "DPO training guide: align LLMs with human preferences",
+  "description": "Direct Preference Optimization (DPO) guide: align LLMs with human preferences using Soup CLI. Dataset format, YAML config, and DPO variants (ORPO, SimPO, IPO, KTO).",
+  "source": "https://trysoup.dev/docs/dpo-training-guide",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "a2bccb95900ff0e5d9663b138d8244fbabebfc9fcb55ce3d9de95c478206dadc",
+  "headings": [
+    {
+      "level": 2,
+      "id": "when-to-use-dpo",
+      "title": "When to use DPO"
+    },
+    {
+      "level": 2,
+      "id": "1-dpo-dataset-format",
+      "title": "1. DPO dataset format"
+    },
+    {
+      "level": 2,
+      "id": "2-config",
+      "title": "2. Config"
+    },
+    {
+      "level": 2,
+      "id": "before-you-train",
+      "title": "Before you train"
+    },
+    {
+      "level": 2,
+      "id": "3-train",
+      "title": "3. Train"
+    },
+    {
+      "level": 2,
+      "id": "4-evaluate",
+      "title": "4. Evaluate"
+    },
+    {
+      "level": 2,
+      "id": "dpo-variants-in-soup-cli",
+      "title": "DPO variants in Soup CLI"
+    },
+    {
+      "level": 2,
+      "id": "schedules-blends-and-streaming",
+      "title": "Schedules, blends and streaming"
+    },
+    {
+      "level": 2,
+      "id": "related",
+      "title": "Related"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">DPO training guide: align LLMs with human preferences</h1><p><strong>Direct Preference Optimization (DPO)</strong> aligns language models with human preferences without needing a reward model — it&#x27;s simpler and more stable than RLHF/PPO.</p><h2 id=\"when-to-use-dpo\">When to use DPO</h2><ul><li>You have a dataset of &quot;chosen&quot; vs &quot;rejected&quot; responses</li><li>You want to reduce hallucinations and off-topic answers</li><li>You want alignment without the complexity of PPO</li></ul><p>Use DPO <strong>after</strong> SFT. A typical pipeline: Pretrain → SFT → DPO.</p><h2 id=\"1-dpo-dataset-format\">1. DPO dataset format</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "json",
+      "code": "[\n  {\n    \"prompt\": \"Explain quantum entanglement.\",\n    \"chosen\": \"Quantum entanglement is a physical phenomenon where...\",\n    \"rejected\": \"Idk, something quantum.\"\n  }\n]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>prompt</code>, <code>chosen</code> and <code>rejected</code> may also be message lists (<code>[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;...&quot;}, ...]</code>). Since v0.76.1 every row reaches the trainer in one layout, all strings or all message lists, and a row that mixes the two in its answers is dropped at load with a reason; see <a href=\"__DOCS_BASE__/data-formats#one-layout-per-preference-row-v0-76-1\">Data formats</a>.</p><p>Save as <code>preferences.json</code>. That one row only shows the shape of the file: Soup holds out 10% of the rows for validation by default (<code>data.val_split</code>), so a one-row file leaves nothing to train on. Use your real dataset.</p><h2 id=\"2-config\">2. Config</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: ./merged                    # the SFT adapter merged into its base (see below)\ntask: dpo\nbackend: transformers             # root-level, NOT under training\n\ndata:\n  train: preferences.json\n  format: dpo\n  max_length: 2048                # sequence length lives under data\n\ntraining:\n  epochs: 1\n  lr: 5.0e-7                      # the key is lr, not learning_rate\n  batch_size: 2\n  gradient_accumulation_steps: 8\n  dpo_beta: 0.1                   # the key is dpo_beta, not beta\n  lora:\n    r: 16                         # LoRA turns on when r > 0; there is no enabled flag\n    alpha: 32"
+    },
+    {
+      "kind": "html",
+      "html": "<p>An SFT run saves a LoRA adapter, not a full model, and Soup does not create a <code>latest</code> directory. Merge the adapter into its base first and start DPO from the merged model:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup merge --adapter ./runs/my-sft-model --output ./merged"
+    },
+    {
+      "kind": "html",
+      "html": "<blockquote><p><strong>Spell these two exactly.</strong> <code>learning_rate</code> is not the field, so it leaves you on the <code>lr</code> default of <code>2e-5</code> — about 40x too high for DPO, which is the difference between alignment and a wrecked model. Likewise <code>beta</code> is not read; the field is <code>dpo_beta</code>. Since v0.75.0 a misspelled key is refused when the config loads (<code>soup train</code> exits 1): <code>unknown config key &#x27;training.learning_rate&#x27; - refused.</code> and <code>unknown config key &#x27;training.beta&#x27; - did you mean &#x27;kto_beta&#x27; or &#x27;dpo_beta&#x27;? Refused.</code> Since v0.74.0 it was at least reported; before that it was dropped in silence, which is how a 40x learning rate reaches a real run.</p></blockquote><p><strong>Key DPO hyperparameters:</strong></p><ul><li><code>dpo_beta: 0.1</code> — KL penalty weight. Higher = stay closer to reference model.</li><li><code>lr: 5e-7</code> — DPO needs a much smaller LR than SFT.</li><li><code>epochs: 1</code> — DPO overfits quickly, rarely needs more than 1–2 epochs.</li></ul><h2 id=\"before-you-train\">Before you train</h2><p>Save the config as <code>dpo.yaml</code> and run <code>soup doctor --config dpo.yaml</code> first. Since v0.76.0 many more settings are refused when the config loads, each naming the field and what to change, so a config that loaded on an older release can stop loading. <code>soup doctor --config</code> prints the error and exits 2 without loading a model (it stops at the first cross-field refusal, so fix that setting and run it again until it prints no error), and since v0.77.0 it no longer prints <code>All checks passed!</code> above a refusal. Several things v0.76 only warned about are refused at v0.77.0, for example a staged field (validated, read by nothing) set away from its default, which stops the load with a line ending <code>refused as of v0.77. Delete the line.</code>, and the deprecated <code>data.remove_unused_columns: true</code>. See <a href=\"__DOCS_BASE__/config-refusals\">Config refusals</a>.</p><h2 id=\"3-train\">3. Train</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup train --config dpo.yaml"
+    },
+    {
+      "kind": "html",
+      "html": "<p>In a script or CI job, pass <code>--yes</code>: since v0.77.0 <code>soup train</code> with its stdin piped or redirected and no <code>--yes</code> exits 3 instead of waiting at the confirmation prompt.</p><p>During training the held-out rows (10% by default, <code>data.val_split</code>) are evaluated at the end of each epoch and recorded as <code>eval_loss</code>; <code>training.eval_steps: N</code> evaluates every N optimizer steps instead. That is new in v0.76.0. Upstream&#x27;s changelog says that through v0.75.2 no trainer on the transformers backend scheduled an evaluation, so the held-out rows were never used and <code>val_loss</code> stayed empty (#1223).</p><h2 id=\"4-evaluate\">4. Evaluate</h2><p>Compare the DPO model against the SFT baseline:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup eval compare <sft-run-id> <dpo-run-id>"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"dpo-variants-in-soup-cli\">DPO variants in Soup CLI</h2><p>Soup supports several preference-optimization methods — swap <code>task:</code> to change algorithm:</p><ul><li><code>task: dpo</code> — Direct Preference Optimization</li><li><code>task: orpo</code> — ORPO (combines SFT + DPO in one step, no reference model)</li><li><code>task: simpo</code> — SimPO (length-normalized, no reference model)</li><li><code>task: ipo</code> — IPO (IPO loss, more stable than DPO on noisy data). Since v0.77.0 <code>training.gradient_checkpointing</code> reaches the IPO and BCO trainers, so the default <code>false</code> now trains them with checkpointing off, where TRL&#x27;s own default (on) used to apply; set <code>training.gradient_checkpointing: true</code> to keep the memory you had (#797, #1778)</li><li><code>task: kto</code> — KTO (works with unpaired binary labels). Since v0.76.0 <code>training.batch_size</code> must be at least 2 on every KTO run (<code>batch_size: auto</code> floors at 2), not only on streamed ones (#1420). Since v0.77.0 a malformed <code>label</code> is no longer coerced (#2126): a boolean, the strings <code>true</code>/<code>false</code>/<code>yes</code>/<code>no</code>/<code>1</code>/<code>0</code> (case and surrounding spaces ignored) and the integers <code>1</code>, <code>0</code> and <code>-1</code> are read, and a null, a float such as <code>1.0</code> or any other value drops the row at load with a reason (<code>KTO label must be a bool, true/false string or -1/0/1 integer, got: None</code>). <code>soup data validate --format kto</code> lists the reasons for the first rows it drops and still exits 0 while any row is valid; add <code>--min-valid-fraction 1.0</code> to stop on one bad row</li></ul><p>On Apple Silicon, <code>backend: mlx</code> trains <code>dpo</code>, <code>orpo</code>, <code>simpo</code> and <code>kto</code> natively since v0.77.0 (<code>task: preference</code> is still refused there); each MLX preference task refuses its own list of settings at load, so see <a href=\"__DOCS_BASE__/mlx-backend\">MLX backend</a>.</p><p>SimPO has one more check. Through v0.75.2, on trl 0.29, a row whose <code>chosen</code> outgrows <code>data.max_length</code> lost its whole <code>rejected</code>, the length-normalised log-probability became 0/0, every LoRA tensor went NaN and the logged loss read <code>0.0</code>. Since v0.76.0 <code>task: simpo</code> refuses such a dataset before the first step, naming how many rows are affected and the <code>data.max_length</code> involved (#1208). <strong>If you trained SimPO on an earlier version with long <code>chosen</code> answers, check the adapter.</strong> Since v0.77.0 <code>task: simpo</code> on the transformers backend also caps the prompt as DPO and ORPO do (#2112, #2116): after trl tokenizes a row, the prompt is cut to <code>data.max_length // 2</code> tokens, keeping its end, and the answers to the room left, so no sequence exceeds <code>data.max_length</code>; through v0.76.1 a long prompt reached the model whole. A prompt longer than <code>data.max_length // 2</code> tokens is cut even when the whole row would fit, until upstream&#x27;s #1196 lands (#1185).</p><h2 id=\"schedules-blends-and-streaming\">Schedules, blends and streaming</h2><ul><li><code>training.dpo_beta_schedule</code> is wired from v0.76.0 and needs <code>dpo_beta_end</code>. Through v0.75.2 a run that set it on <code>dpo</code>, <code>ipo</code> or <code>preference</code> stopped at step 0, because the callback was not a Hugging Face <code>TrainerCallback</code> (#1229, #1294); there is no finished run to re-check. <code>training.dpo_ref_regen_epochs</code> is wired under LoRA (#1345, #1636): it copies the active adapter into the frozen <code>ref</code> adapter every Nth epoch, and it is refused with <code>lora.r: 0</code>. Through v0.75.2 a run that set it on <code>dpo</code>, <code>ipo</code> or <code>preference</code> stopped when training started, for the same reason. This config loads:</li></ul>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  dpo_beta: 0.1\n  dpo_beta_schedule: linear\n  dpo_beta_end: 0.05          # required with dpo_beta_schedule\n  dpo_ref_regen_epochs: 2     # every 2 epochs; needs lora.r >= 1"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><code>task: preference</code> with <code>preference_loss_weights</code> blends DPO, IPO, SimPO and ORPO terms in one run. Since v0.77.0 a <code>dpo</code> or <code>ipo</code> term trains under any primary (#1785, #1828), and the reference runs once more per step; with a <code>simpo</code> or <code>orpo</code> primary, <code>init_strategy: pissa</code>, <code>olora</code> or <code>loftq</code> (or <code>use_olora</code>) is refused at trainer setup before the model loads, and under <code>lora.r: 0</code> such a term still stops at the first step; <code>relora_steps</code> beside a blend that names <code>dpo</code>, <code>ipo</code> or <code>bco</code> is refused at config load, and a blend that mixes <code>bco</code> with a paired loss is still refused at trainer setup. <em>(Since closed in v0.77.0: on v0.76.0 and v0.76.1 a blend naming <code>dpo</code> or <code>ipo</code> stopped at the first step.)</em> See <a href=\"__DOCS_BASE__/preference-variety#re-run-this\">Preference Variety</a> for the details and the re-run rows.</li><li><strong>Resumed runs.</strong> Through v0.76.1 <code>soup train --resume</code> on <code>task: dpo</code> or <code>ipo</code> (and <code>task: preference</code> with <code>dpo</code> or <code>ipo</code>) &quot;restored the optimizer and the step counter and trained a freshly initialised adapter&quot; (#1768, #1797). Upstream: &quot;Re-run any dpo, ipo or grpo training that was resumed from a checkpoint.&quot;</li><li><strong>ReLoRA.</strong> <code>training.relora_steps</code> is refused at load since v0.77.0 on <code>dpo</code>, <code>ipo</code>, <code>kto</code> and <code>bco</code> (and a <code>preference</code> run whose loss or blend names <code>dpo</code>, <code>ipo</code> or <code>bco</code>): every ReLoRA restart merged the trained adapter into the base weights trl reads the reference from, so on v0.76.0 and v0.76.1 &quot;from the first restart on the reference was the policy as of that step, without an error&quot; (#1835, #1891). Remove <code>relora_steps</code> and train again.</li><li>DPO also runs over a layer-streamed base (<code>training.stream_layers: true</code>). On an untied checkpoint such as Llama-3.1-8B, <code>dpo</code> and <code>kto</code> failed at the first backward through v0.75.2 and hold a private copy of the output head per step from v0.76.0; see <a href=\"__DOCS_BASE__/streaming-preference#untied-checkpoints-v0-76-0\">Streaming preference losses</a>. That page also explains why the memory pre-flight refuses a Llama-3.1-8B preference run on a 4 GB card.</li></ul><h2 id=\"related\">Related</h2><ul><li><a href=\"__DOCS_BASE__/training\">Training methods reference</a></li><li><a href=\"__DOCS_BASE__/fine-tune-llama-3-1-lora\">Fine-tune Llama 3.1 with LoRA</a></li></ul><nav><a href=\"__DOCS_BASE__/export-to-gguf-ollama\"><span>Previous</span><span>Export to GGUF and deploy on Ollama</span></a><a href=\"__DOCS_BASE__/migrate-from-llamafactory\"><span>Next</span><span>Migrate from LLaMA-Factory to Soup CLI</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

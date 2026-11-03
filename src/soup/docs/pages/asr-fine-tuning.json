@@ -1,0 +1,79 @@
+{
+  "slug": "asr-fine-tuning",
+  "title": "ASR fine-tuning (v0.71.32)",
+  "description": "ASR fine-tuning (v0.71.32) — soup train with task: asr fine-tunes OpenAI Whisper on your own audio, locally. JSONL rows of {audio, text} with data.format: asr, Seq2SeqTrainer + WhisperProcessor, optional LoRA on q/v (training.asr_lora); whisper-tiny (39M) and base (74M) train on a 4 GB GPU. soup infer --task asr transcribes and reports per-row and corpus WER/CER (pure Python, no new dependency); word accuracy feeds soup ship as the task metric. asr_language/asr_task persist to an asr_generation.json sidecar. Proof-of-mechanism on an RTX 3050: WER 1.000 to 0.000, loss 7.2 to 0.0005 at 0.4/4 GB.",
+  "source": "https://trysoup.dev/docs/asr-fine-tuning",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "4d6e91a9b9b6443a17b81c4bacb3a0c7e0e36c84ed1bb7ca2325faaea7fda4a5",
+  "headings": [
+    {
+      "level": 2,
+      "id": "config",
+      "title": "Config"
+    },
+    {
+      "level": 2,
+      "id": "config-fields",
+      "title": "Config fields"
+    },
+    {
+      "level": 2,
+      "id": "keys-this-trainer-does-not-read-v0-76-0-v0-77-0",
+      "title": "Keys this trainer does not read (v0.76.0, v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "inference-wer-cer",
+      "title": "Inference + WER/CER"
+    },
+    {
+      "level": 2,
+      "id": "recipes",
+      "title": "Recipes"
+    },
+    {
+      "level": 2,
+      "id": "honesty",
+      "title": "Honesty"
+    },
+    {
+      "level": 2,
+      "id": "security",
+      "title": "Security"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">ASR fine-tuning (v0.71.32)</h1><p><code>soup train</code> with <code>task: asr</code> fine-tunes OpenAI Whisper speech-recognition models on your own audio, locally. Data is plain JSONL rows of <code>{&quot;audio&quot;: &quot;clip.wav&quot;, &quot;text&quot;: &quot;the transcript&quot;}</code>: clips decode to 16 kHz mono log-mel input features, transcripts become the decoder labels, and the trainer wraps Hugging Face <code>Seq2SeqTrainer</code> + <code>WhisperProcessor</code>. whisper-tiny (39M) and whisper-base (74M) train on a 4 GB GPU.</p><h2 id=\"config\">Config</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "base: openai/whisper-tiny\ntask: asr\ndata:\n  train: ./data/train.jsonl\n  format: asr                 # rows: {\"audio\": \"clip.wav\", \"text\": \"hello world\"}\n  audio_dir: ./data/audio     # audio paths resolve here (containment-checked)\ntraining:\n  epochs: 3\n  lr: 1e-4\n  batch_size: 2\n  asr_language: en            # optional; pins + persists the decoder prefix\n  asr_task: transcribe        # transcribe | translate\n  asr_lora: true              # LoRA on q/v projections; default is full fine-tune\n  lora: { r: 16, alpha: 32, target_modules: [q_proj, v_proj] }\noutput: ./out"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[train,audio]\"\nsoup recipes use whisper-tiny-asr   # or whisper-base-asr / whisper-large-v3-asr\nsoup train"
+    },
+    {
+      "kind": "html",
+      "html": "<h2 id=\"config-fields\">Config fields</h2><div><table><thead><tr><th>Field</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>asr_language</code></td><td>(none)</td><td>Decoder language prefix (e.g. <code>en</code>). Persists to an <code>asr_generation.json</code> sidecar next to the weights, so inference restores it automatically.</td></tr><tr><td><code>asr_task</code></td><td><code>transcribe</code></td><td><code>transcribe</code> or <code>translate</code>. Also persisted to the sidecar.</td></tr><tr><td><code>asr_lora</code></td><td><code>false</code></td><td><code>true</code> trains LoRA on the q/v projections instead of full fine-tuning.</td></tr></tbody></table></div><p>The cross-validator requires <code>backend: transformers</code> (so <code>mlx</code> / <code>unsloth</code> are rejected) and footgun-rejects <code>asr_*</code> fields when the task is not <code>asr</code>; a separate trainer-side gate rejects a non-Whisper base before any weight download.</p><h2 id=\"keys-this-trainer-does-not-read-v0-76-0-v0-77-0\">Keys this trainer does not read (v0.76.0, v0.77.0)</h2><p><code>task: asr</code> loads Whisper and trains it as a full fine-tune, or as LoRA on q/v with <code>asr_lora: true</code>. Since v0.76.0 the config loader says so for the settings it never applies, instead of accepting them:</p><ul><li><strong><code>training.quantization</code>.</strong> The trainer never quantises the base. An unset value now resolves to <code>none</code>. An explicit <code>4bit</code>, <code>8bit</code> or <code>load_in_8bit: true</code> is refused at load since v0.77.0, naming the task (<code>training.quantization: 8bit has no effect on task=&#x27;asr&#x27;: its trainer never quantises the base, so no run can honour it. Delete the line or set quantization: none. Refused as of Soup v0.77.</code>); v0.76 loaded it with a warning and treated it as <code>none</code>. A Quant Menu value (<code>gptq</code>, <code>awq</code>, <code>hqq:*</code>, ...) or a 4-bit-only setting such as <code>bnb_4bit_quant_storage</code> is refused at load (#795). The VRAM pre-flight budgets <code>asr</code> without <code>asr_lora</code> as a full fine-tune.</li><li><strong><code>training.moe_lora</code></strong> is refused, because Whisper has no expert layers (<code>training.moe_lora is not applied by task=&#x27;asr&#x27;: that trainer loads Whisper, which has no expert layers. Remove moe_lora (or set it to false).</code>) (#1151).</li><li><strong><code>data.chat_template</code></strong>, <strong><code>training.freeze_layers</code></strong> and <strong><code>freeze_ratio</code></strong>, <strong><code>data.add_new_tokens</code></strong> and <strong><code>new_special_tokens</code></strong>, and <strong><code>training.loraplus_lr_ratio</code></strong> without <code>asr_lora: true</code> and <code>lora.r &gt; 0</code> are refused at load, each naming the task.</li><li><strong><code>backend: unsloth</code></strong> is refused with the other backends: <code>task=&#x27;asr&#x27; requires backend=&#x27;transformers&#x27;</code>.</li></ul><p><strong><code>training.gradient_checkpointing</code> is honoured since v0.77.0</strong> (#797, #2140). The ASR trainer now passes it to its Hugging Face training arguments; through v0.76.1 it ignored the key and always trained with checkpointing off. The default <code>false</code> is unchanged, so only a config that sets <code>true</code> behaves differently, and any enabled tier is full checkpointing on this task.</p><p><code>soup doctor --config &lt;file&gt;</code> runs these checks without loading a model. <code>soup recipes verify --config &lt;file&gt;</code> (which needs the training stack, the <code>[train]</code> extra) reports <code>task: asr</code> without <code>asr_lora</code> as having no adapter, since that trainer full-fine-tunes.</p><p>Audio paths in the rows resolve against <code>data.audio_dir</code> when it is set, and otherwise against the directory of the local data file the row came from. Since v0.76.0 this holds on every load path. A remote URI or a Hugging Face Hub dataset has no data-file directory, so it needs <code>data.audio_dir</code>; without it the load stops and names the setting. Local files in a streaming <code>data.interleave</code> resolve against their own folders. Rows whose file lies outside the directory are skipped with the usual &quot;rows skipped&quot; warning, and a value naming a network share, a device or an extended-length path is skipped without being looked up (#1599). Through v0.75.2 those paths kept the value as written, so a relative path was opened against the working directory and <code>data.audio_dir</code> had no effect.</p><h2 id=\"inference-wer-cer\">Inference + WER/CER</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "soup infer --task asr --model ./out --input eval.jsonl --output preds.jsonl \\\n    --audio-dir ./data/audio [--asr-language en] [--asr-task transcribe]"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>--model</code> loads a full Whisper model or a PEFT/LoRA adapter dir. Input rows are <code>{&quot;audio&quot;: path}</code> with an optional <code>&quot;text&quot;</code> reference; when references are present, each output row carries <code>transcription</code>, <code>wer</code> and <code>cer</code>, plus a corpus WER summary (sum of edits over sum of reference words, not a mean of per-row rates). The metrics are pure-Python word- and char-level Levenshtein with no new dependency, and word accuracy (1 - WER) plugs into <a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> as a higher-is-better task metric, so the SHIP / DON&#x27;T-SHIP verdict works for speech models too.</p><blockquote><p>WER/CER use a light normalizer (casefold, strip surrounding punctuation, collapse whitespace), deliberately not the full Whisper normalizer: good for before/after deltas, not leaderboard-comparable absolutes.</p></blockquote><h2 id=\"recipes\">Recipes</h2><div><table><thead><tr><th>Recipe</th><th>Base</th><th>Size</th><th>Status</th></tr></thead><tbody><tr><td><code>whisper-tiny-asr</code></td><td><code>openai/whisper-tiny</code></td><td>39M</td><td>Live, validated on a 4 GB RTX 3050</td></tr><tr><td><code>whisper-base-asr</code></td><td><code>openai/whisper-base</code></td><td>74M</td><td>Live, fits a 4 GB GPU</td></tr><tr><td><code>whisper-large-v3-asr</code></td><td><code>openai/whisper-large-v3</code></td><td>1.5B</td><td>Parse-tested; needs a 16 GB+ GPU</td></tr></tbody></table></div><p>A <code>smolvlm-256m-sft</code> tiny-VLM recipe ships alongside (parse-tested, <code>target_modules</code> pinned to q/v). v0.72.0 fixed the setup and tokenization half of <a href=\"https://github.com/MakazhanAlpamys/Soup/issues/302\">issue #302</a> (the vision processor now mirrors <code>pad_token</code> from its nested tokenizer), but a full training step still needed Idefics3-aware collation, so that recipe stayed parse-only until <strong>v0.74.0</strong>, which keeps messages and images together until collation, converts legacy <code>&lt;image&gt;</code> markers to structured multimodal content, and lets the processor produce image-token expansion and architecture-specific pixel tensors.</p><h2 id=\"honesty\">Honesty</h2><p>Proof-of-mechanism only. The live validation is a memorization run on a single RTX 3050: WER 1.000 to 0.000 and loss 7.2 to 0.0005 at 0.4 of 4 GB VRAM. That proves the loop trains end to end; real accent or domain gains need real audio. The release also fixed the hardware-fit gate mis-sizing Whisper checkpoints as 7B models, which would have wrongly blocked ASR training on consumer GPUs.</p><h2 id=\"security\">Security</h2><p>Audio decodes only through the hardened loader (a <code>soundfile</code> pre-probe before read, symlink rejection, <code>O_NOFOLLOW</code>, byte caps), never through datasets auto-decode. <code>data.audio_dir</code> is containment-checked (realpath + commonpath); UNC paths and traversal are rejected. A missing <code>[audio]</code> extra, a bad audio path, or a non-Whisper base all fail with a friendly error before a GPU hour.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/multimodal\">Vision &amp; Audio</a> — the audio-understanding (Qwen2-Audio) and vision paths.</li><li><a href=\"__DOCS_BASE__/modality-ii\">Modality II</a> — TTS, the audio-out counterpart to ASR&#x27;s audio-in.</li><li><a href=\"__DOCS_BASE__/soup-ship\">soup ship</a> — gate a speech model on word accuracy plus no forgetting.</li><li><a href=\"__DOCS_BASE__/recipes\">Recipes</a> — all 171 ready-made configs.</li></ul><nav><a href=\"__DOCS_BASE__/online-dpo\"><span>Previous</span><span>Online DPO</span></a><a href=\"__DOCS_BASE__/reward-verifier\"><span>Next</span><span>Reward Forge</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

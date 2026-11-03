@@ -1,0 +1,124 @@
+{
+  "slug": "training-speed-memory",
+  "title": "Training Speed & Memory",
+  "description": "Soup CLI v0.28.0 training speed and memory keys: Cut Cross-Entropy, FP8 training on Ada (compute capability 8.9) and newer (quantization_aware: fp8, which since v0.76.0 stops a run that cannot do FP8), gradient checkpointing (the tiers differ on task sft since v0.76.0; other tasks read the key as on or off), kernel auto-composition (kernel_auto_compose: true is refused at config load since v0.76.0), cross-document masking through packing (packing_cross_doc_attn_mask is refused), and activation offloading.",
+  "source": "https://trysoup.dev/docs/training-speed-memory",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "5ceecff8fc4cb66eedeea3b19631aaa292f9eca45020b8536a6c73303b2aa671",
+  "headings": [
+    {
+      "level": 2,
+      "id": "cut-cross-entropy",
+      "title": "Cut Cross-Entropy"
+    },
+    {
+      "level": 2,
+      "id": "fp8-training-ada-and-newer",
+      "title": "FP8 training (Ada and newer)"
+    },
+    {
+      "level": 2,
+      "id": "tiered-gradient-checkpointing",
+      "title": "Tiered gradient checkpointing"
+    },
+    {
+      "level": 2,
+      "id": "kernel-auto-composition-refused-since-v0-76-0",
+      "title": "Kernel auto-composition (refused since v0.76.0)"
+    },
+    {
+      "level": 2,
+      "id": "cross-document-attention-masking",
+      "title": "Cross-document attention masking"
+    },
+    {
+      "level": 2,
+      "id": "activation-offloading",
+      "title": "Activation offloading"
+    },
+    {
+      "level": 2,
+      "id": "fast-lora-kernels-v0-77-0",
+      "title": "Fast-LoRA kernels (v0.77.0)"
+    },
+    {
+      "level": 2,
+      "id": "which-tasks",
+      "title": "Which tasks"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">Training Speed &amp; Memory</h1><p>Soup v0.28.0 shipped six throughput and memory features. They were SFT-only in v0.28, a gate lifted in v0.33 and finished in v0.35; tasks outside the 13-task allowlist (see <a href=\"#which-tasks\">Which tasks</a> below) are still refused at config load, so a task that would ignore these keys is refused rather than allowed to ignore them. At v0.76.0 two of the features below changed: FP8 training now stops a run that cannot do FP8 instead of training on in bf16, and <code>kernel_auto_compose: true</code> is refused at config load. Gradient checkpointing tiers now differ on <code>task: sft</code>, and cross-document attention masking is a refused key, not a working mask. At v0.77.0 <code>training.gradient_checkpointing</code> reaches every trainer, so its default <code>false</code> now means off on tasks where TRL&#x27;s default used to apply (see below), <code>use_cut_ce</code> is refused with layer streaming, and <code>use_liger</code> reports itself enabled only where Liger has kernels.</p><blockquote><p><strong>If the model does not fit at all, none of these six is the answer.</strong> They shave a resident run; they cannot make a model smaller than your card. For that, see <a href=\"__DOCS_BASE__/layer-streaming\">layer streaming</a>: the frozen base never loads resident, so peak VRAM is bounded by one decoder layer instead of the whole model, and Llama-3.1-8B fine-tunes on a 4 GB card. Since v0.72.4 that covers <a href=\"__DOCS_BASE__/streaming-preference\">preference losses</a> too, not just supervised fine-tuning. It is BETA, and it is slower than resident training, so reach for it only when resident training is impossible.</p></blockquote><h2 id=\"cut-cross-entropy\">Cut Cross-Entropy</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  use_cut_ce: true"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Cut CE avoids materialising the full <code>[seq_len × vocab_size]</code> logits tensor during the cross-entropy backward pass. Biggest expected win on models with vocab ≥ 128k (Llama 3, Qwen 3), when it engages (see the log note below). Architecture detection reads <code>config.model_type</code> first, so a local checkpoint directory resolves as correctly as a hub id; a substring match on the last path component (<code>model_name.rsplit(&quot;/&quot;, 1)[-1]</code>) is only the fallback when no config can be read. That order was the v0.74.0 repair: before it, name matching came first, so a <code>soup merge</code> output called <code>checkpoint-2000</code> matched nothing and cut-cross-entropy stayed off on a flag you had explicitly set. It also means org prefixes like <code>deepseek-ai/...-phi-...</code> can&#x27;t trigger the wrong patcher.</p><p>Install the optional dep:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "pip install \"soup-cli[cce]\""
+    },
+    {
+      "kind": "html",
+      "html": "<p><strong>Check the log: it may not engage.</strong> <code>use_cut_ce</code> patches the model only if the third-party <code>cut_cross_entropy.transformers.cce_patch</code> imports. When it cannot, or no patcher matches the architecture, the run continues without it and prints a yellow <code>Cut Cross-Entropy: no matching architecture or cut_cross_entropy not installed</code>. That line is also what you see when the package is installed and an import inside it fails, and nothing checks beforehand that the package is present. A success prints <code>Cut Cross-Entropy enabled</code>. The v0.73.0 probe record (see <a href=\"__DOCS_BASE__/measurement-records\">Measurement records</a>) could not make the flag engage on any pip-installed stack it tried: cut-cross-entropy 25.1.1 ships no <code>transformers</code> submodule, and 25.9.3 failed importing symbols that transformers 4.57.6 no longer exports. That was measured on transformers 4.57.6, not on the 5.x that v0.76.0 and later require, and it has not been re-measured, so whether the current cut-cross-entropy release engages on transformers 5.x is unverified at v0.77.0. Treat the memory saving as unproven until your own log says it is enabled.</p><p><strong><code>use_cut_ce</code> is refused with <code>training.stream_layers: true</code> since v0.77.0</strong> (#2023): the streamed setup never installs the resident Cut Cross-Entropy patch, so on v0.76.x the flag loaded there and did nothing. Set <code>use_cut_ce: false</code> to stream, or train resident. Removing the line from such a config changes nothing about what trained.</p><h2 id=\"fp8-training-ada-and-newer\">FP8 training (Ada and newer)</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  quantization_aware: fp8\n  fp8_recipe: tensorwise   # tensorwise | rowwise | rowwise_with_gw_hp"
+    },
+    {
+      "kind": "html",
+      "html": "<p><code>fp8_recipe</code> picks the torchao scaling recipe and defaults to <code>tensorwise</code> (one scale per tensor). <code>rowwise</code> scales per row, and <code>rowwise_with_gw_hp</code> is rowwise with the weight gradient kept in high precision. The source describes <code>tensorwise</code> as the fastest and the two rowwise recipes as more accurate; none of that has been measured here. The key is refused unless <code>quantization_aware</code> is <code>fp8</code>, and a value outside those three is refused at config load.</p><p>Configures float8 linear layers via torchao. The key&#x27;s literal accepts <code>false</code>, <code>&quot;fp8&quot;</code> and <code>&quot;quest&quot;</code> (the experimental route covered under <a href=\"__DOCS_BASE__/backends#quantization-aware-training-qat\">Backends</a>); <code>true</code> is the refused int8 QAT, and unknown strings like <code>&quot;fp16&quot;</code> are rejected at config load.</p><p><strong>FP8 needs CUDA and a card of compute capability 8.9 or higher</strong>: RTX 40/50-series, L4, L40S, RTX 6000 Ada, H100/H200 and B100/B200. Through v0.75.2 this page said Hopper and said Soup did not check at launch. v0.76.0 checks, at setup before the model loads, and <strong>stops the run with the reason</strong> when this card, OS or torch build cannot run it (<code>FP8HardwareUnsupportedError</code>); a missing torchao stops it the same way (<code>FP8DependencyMissingError</code>, naming <code>pip install &quot;soup-cli[qat]&quot;</code>), and so does a float8 conversion that fails, which quotes torchao&#x27;s error. Before v0.76.0 the trainers printed a yellow advisory and trained in bf16 under a config that said FP8 (#835), so if you ran <code>quantization_aware: fp8</code> or <code>fp8_attention: true</code> on a card or torch build that could not do it, the run was a bf16 run. <code>quantization_aware: fp8</code> is refused at config load on <code>backend: mlx</code> and <code>backend: unsloth</code> and with <code>stream_layers: true</code>, as are <code>fp8_attention</code> and <code>nvfp4</code>. <code>soup train --dry-run</code> prints this machine&#x27;s card as a note and exits 0, because FP8 configs are often written for another machine; a missing torchao still fails it. The <code>[qat]</code> extra declares <code>torchao&gt;=0.18.0</code> since v0.76.0 (it was <code>&gt;=0.4.0</code>), so an older torchao is no longer accepted by the extra: run <code>pip install -U &quot;soup-cli[qat]&quot;</code>.</p><p><code>tensorwise</code> has no further limits. <code>rowwise</code> and <code>rowwise_with_gw_hp</code> run a separate torch kernel, so they also need a torch that dispatches it on your card, and they are never built on Windows. Before torch 2.11 that kernel is only built against CUDA 12 or newer. By compute capability: Ada (8.9) needs torch 2.7 or newer; Hopper (9.x) and datacenter Blackwell (10.x) work on any supported torch; the RTX 50-series (12.x) needs torch 2.8 or newer; 11.x needs torch 2.10 or newer. No torch release checked through 2.14 runs it on 13.x. This is a table transcribed from torch&#x27;s source, not queried from torch.</p><h2 id=\"tiered-gradient-checkpointing\">Tiered gradient checkpointing</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  gradient_checkpointing: auto   # or: selective | medium | full"
+    },
+    {
+      "kind": "html",
+      "html": "<p>The schema accepts <code>false</code>, <code>true</code>, <code>selective</code>, <code>medium</code>, <code>full</code> and <code>auto</code>. <strong>On <code>task: sft</code> (and <code>tts</code>, which trains through it) the tiers differ since v0.76.0:</strong> <code>full</code> checkpoints every block; <code>medium</code> uses Transformers&#x27; native <code>every_n_layers=2</code> path, which checkpoints every other block; <code>selective</code> wraps each decoder block&#x27;s direct attention module and leaves Hugging Face&#x27;s full-model checkpointing off, so nothing is recomputed twice. If an architecture exposes no direct attention child, Soup prints that selective is unavailable and applies <code>full</code>. <code>auto</code> picks <code>full</code> below 24 GB of VRAM, <code>medium</code> from 24 to 80 GB and <code>selective</code> above 80 GB. <strong>The other task wrappers read the key as on or off</strong>: any enabled tier is full checkpointing there, and the tier name changes nothing. Through v0.75.2 that was true of every task that read the key at all. The per-tier slowdowns in the source comments (about 30% for <code>full</code>, about 10% for <code>selective</code>) are upstream&#x27;s estimates, not measurements, so no per-tier memory or speed figure is published here.</p><p>On a <code>4bit</code>, <code>8bit</code> or <code>mxfp4</code> run, <code>gradient_checkpointing: false</code> was silently overridden to on through v0.75.2, because the k-bit preparation step used peft&#x27;s default of checkpointing on (#797). Since v0.76.0 the setting is honoured there (fifteen call sites now pass it through), so a config that relied on the override can use more VRAM than it did. This covers that preparation step only.</p><p><strong>Since v0.77.0 the key reaches the trainer, so <code>false</code> now means off.</strong> <code>training.gradient_checkpointing</code> now reaches the trainer. With the default <code>false</code>, <code>grpo</code>, <code>ipo</code>, <code>bco</code>, <code>reward_model</code> and <code>online_dpo</code> train with checkpointing off (TRL&#x27;s own default used to apply), and on <code>backend: unsloth</code> <code>false</code> now disables Unsloth&#x27;s checkpointing. Set <code>training.gradient_checkpointing: true</code> to keep the memory you had. <code>distill</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>asr</code> and <code>unlearn</code> now honour <code>true</code> too (#1778, #1981, #2140). Upstream&#x27;s shipped recipes, templates and examples for the first five tasks now set <code>true</code> (#1923). On those tasks, as on the other non-SFT wrappers, any enabled tier is full checkpointing. Through v0.76.1 the first five never passed the key to TRL, so a config that never set it trained with checkpointing on; the second six ignored it and always trained with it off; Unsloth always used its own kernel. No memory figure is published for the change.</p><p>When <code>stream_layers</code> is on, Soup leaves Hugging Face&#x27;s checkpointing off, because the streamed layers already recompute; see <a href=\"__DOCS_BASE__/layer-streaming\">layer streaming</a>.</p><h2 id=\"kernel-auto-composition-refused-since-v0-76-0\">Kernel auto-composition (refused since v0.76.0)</h2><p><code>training.kernel_auto_compose: true</code> is <strong>refused at config load</strong> (#801): <code>kernel_auto_compose is not supported: it benchmarks the same already-loaded model for every candidate and does not apply the selected flags.</code> <code>false</code>, the default, still loads. Through v0.75.2 the key was accepted: it enumerated the installed combinations of Liger Kernel, FlashAttention and Cut Cross-Entropy, timed a few forward passes per candidate and printed <code>Kernel auto-compose picked: &lt;name&gt;</code>, but it never applied the pick (nothing set <code>use_liger</code>, <code>use_flash_attn</code> or <code>use_cut_ce</code> from the result, and the SFT trainer never called it at all), and the timing loop did not switch kernels between candidates. Set the kernels explicitly instead:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  use_liger: true       # task sft or tts only\n  use_flash_attn: true  # task sft or tts only"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Both keys are refused at config load on any other task. <strong>Check the log for Liger too.</strong> Since v0.77.0 <code>use_liger: true</code> takes effect only for a <code>config.model_type</code> in Liger&#x27;s own kernel table; for any other type (<code>gpt_neox</code>, <code>phi</code>, <code>gpt2</code>, ...) the run prints <code>Liger Kernel: no matching architecture found</code> and trains without it (#1947). Through v0.76.1 such a run printed <code>Liger Kernel enabled</code> with no kernel applied, and a <code>phi</code> model could be patched as Phi-3 because of its name.</p><h2 id=\"cross-document-attention-masking\">Cross-document attention masking</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  packing: true      # this is the whole answer"
+    },
+    {
+      "kind": "html",
+      "html": "<p>When sample packing is on, documents in one packed sequence must not attend across each other. That isolation is TRL&#x27;s <strong>default <code>bfd</code> strategy</strong>, and you get it by setting <code>packing: true</code> with a FlashAttention <code>attn_implementation</code>. There is no second flag to set.</p><blockquote><p><strong><code>packing_cross_doc_attn_mask</code> is refused at config load since v0.75.0, and it never worked before that.</strong> Soup mapped it to TRL <code>packing_strategy=&quot;attention_free&quot;</code>, which has never been in TRL&#x27;s allowlist on any released version, so the flag was a <code>TypeError</code> at trainer setup rather than a working mask. It is now rejected by a <code>@model_validator</code> that names <code>bfd</code> / <code>bfd-requeue</code> / <code>wrapped</code> as the real allowlist and points at <code>packing: true</code>. This is a false-capability correction, not a regression: no release ever built that mask. Remove the key from any config that carries it.</p></blockquote><h2 id=\"activation-offloading\">Activation offloading</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  activation_offloading: cpu    # or: disk"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Saved-tensor hooks offload activations to CPU RAM (<code>cpu</code>, an ordinary pageable copy, not pinned memory) or an on-disk scratch dir (<code>disk</code>). The disk variant keeps the <code>mkstemp</code> file descriptor open until <code>torch.save</code> flushes, closing the TOCTOU window between <code>os.close(fd)</code> and <code>torch.save(path)</code>. <code>torch.load(weights_only=True)</code> prevents arbitrary Python deserialization on reload. Scratch dirs are containment-checked against cwd. <code>backend: mlx</code> is refused at config load. <code>backend: unsloth</code> is not: the schema refuses only <code>quantization_aware: fp8</code> there, and whether the offload hooks take effect on Unsloth was not checked.</p><h2 id=\"fast-lora-kernels-v0-77-0\">Fast-LoRA kernels (v0.77.0)</h2><p><code>training.fast_lora: true</code> runs a LoRA&#x27;s projections through Soup&#x27;s own autograd functions instead of peft&#x27;s modules, off by default, on <code>task: sft</code> with <code>backend: transformers</code>, text, <code>quantization</code> <code>none</code> or <code>4bit</code>, and <code>lora.dropout: 0</code> (#792). Upstream&#x27;s statement: verified on CPU (float32 and float64 against peft) only; the bf16/fp16, NF4 and streamed-CUDA checks have not been run, and no speedup is claimed. Scope, refusals and what was checked are on <a href=\"__DOCS_BASE__/lora-quality#fast-lora-kernels-training-fast-lora-v0-77-0\">LoRA quality</a>.</p><h2 id=\"which-tasks\">Which tasks</h2><p><code>use_cut_ce</code>, <code>quantization_aware: fp8</code> and <code>activation_offloading</code> were SFT-only in v0.28. Multi-trainer wiring landed in v0.33.0 and every transformer-backend trainer was wired in v0.35.0. <code>fp8_attention</code> and <code>nvfp4</code> (the Quant Menu II keys) arrived later and use the same task allowlist. At v0.77.0 all five are accepted for 13 tasks (<code>sft</code>, <code>dpo</code>, <code>pretrain</code>, <code>grpo</code>, <code>kto</code>, <code>orpo</code>, <code>simpo</code>, <code>ipo</code>, <code>bco</code>, <code>preference</code>, <code>ppo</code>, <code>reward_model</code>, <code>embedding</code>) and refused at config load for the other ten (<code>prm</code>, <code>tts</code>, <code>classifier</code>, <code>reranker</code>, <code>cross_encoder</code>, <code>distill</code>, <code>unlearn</code>, <code>moe_lora_routing</code>, <code>online_dpo</code>, <code>asr</code>), and on <code>backend: mlx</code>; <code>quantization_aware: fp8</code>, <code>fp8_attention</code> and <code>nvfp4</code> are also refused on <code>backend: unsloth</code> and with <code>stream_layers: true</code>, and since v0.77.0 so is <code>use_cut_ce</code> with <code>stream_layers: true</code>. See <a href=\"__DOCS_BASE__/multi-trainer-speed-memory\">multi-trainer speed and memory</a> for the per-trainer wiring.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/multi-gpu\">Multi-GPU mastery</a> — ZeRO++ / FSDP2 / pipeline</li><li><a href=\"__DOCS_BASE__/backends\">Backends</a> — transformers / unsloth / MLX</li><li><a href=\"__DOCS_BASE__/lora-quality\">LoRA quality</a> — Fast-LoRA kernels (<code>training.fast_lora</code>, v0.77.0)</li><li><a href=\"__DOCS_BASE__/soup-bench\">soup bench</a> — <code>soup bench train</code> runs a fixed number of steps and fails when the model was not training; before you compare two throughput numbers from it, note that thirteen runs of one byte-identical config spanned 2.43x in upstream&#x27;s reference run</li></ul><nav><a href=\"__DOCS_BASE__/multi-gpu\"><span>Previous</span><span>Multi-GPU Mastery</span></a><a href=\"__DOCS_BASE__/training-stability\"><span>Next</span><span>Training Stability</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}

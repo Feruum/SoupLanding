@@ -1,0 +1,8 @@
+---
+import HirePage from '../../soup/HirePage.astro'
+import { soupLocales } from '../../soup/locales'
+export function getStaticPaths() {
+  return Object.keys(soupLocales).filter(code => code !== 'en').map(locale => ({ params: { locale } }))
+}
+---
+<HirePage language={Astro.params.locale!} />

@@ -1,0 +1,64 @@
+{
+  "slug": "prm-guided-grpo",
+  "title": "PRM-guided GRPO (v0.71.30)",
+  "description": "PRM-guided GRPO (v0.71.30) — use a trained Process Reward Model as the per-step reward inside GRPO, the o1-era process-supervision signal. soup train with task: grpo with training.prm_reward and prm_aggregate min|prod|last scores each reasoning step and folds the per-step scores into one reward, replacing reward_fn. No OSS fine-tuning CLI ships this. Bundles three openenv rollout environments (calculator, retrieval_qa, guess_number) with recipes. Proof-of-mechanism on SmolLM2-135M with a tiny synthetic PRM.",
+  "source": "https://trysoup.dev/docs/prm-guided-grpo",
+  "retrieved": "2026-10-30",
+  "sourceSha256": "7065fea5dc5bafdaf09772c2441fa95fb3de44f6e56b3d5c7daedea08691da53",
+  "headings": [
+    {
+      "level": 2,
+      "id": "config",
+      "title": "Config"
+    },
+    {
+      "level": 2,
+      "id": "training-the-prm-task-prm-changes-in-v0-76-0",
+      "title": "Training the PRM (task: prm), changes in v0.76.0"
+    },
+    {
+      "level": 2,
+      "id": "re-run-this",
+      "title": "Re-run this"
+    },
+    {
+      "level": 2,
+      "id": "bundled-rollout-environments",
+      "title": "Bundled rollout environments"
+    },
+    {
+      "level": 2,
+      "id": "honesty",
+      "title": "Honesty"
+    },
+    {
+      "level": 2,
+      "id": "see-also",
+      "title": "See also"
+    }
+  ],
+  "blocks": [
+    {
+      "kind": "html",
+      "html": "<h1 id=\"docs-top\">PRM-guided GRPO (v0.71.30)</h1><p><code>soup train</code> with <code>task: grpo</code> can now use a trained Process Reward Model as the per-step reward signal, the o1-era process-supervision idea: grade every reasoning step, not just the final answer. Point it at a PRM you trained with <code>soup train</code> with <code>task: prm</code> and it scores each step of a generated answer, folding the per-step scores into one reward that GRPO optimizes.</p><blockquote><p>We have not found another OSS fine-tuning CLI that uses a PRM as the per-step GRPO reward.</p></blockquote><h2 id=\"config\">Config</h2>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "task: grpo\nbackend: transformers        # required (the PRM reward runs a transformers forward)\nmodality: text               # required\ndata:\n  format: chatml\n  train: ./grpo_prompts.jsonl\ntraining:\n  prm_reward: ./my-prm       # a `soup train` with `task: prm` checkpoint dir, or an HF id\n  prm_aggregate: min         # min (weakest-link, default) | prod | last\n  num_generations: 4\n  grpo_beta: 0.04\n  gradient_checkpointing: true   # since v0.77.0 the default false turns it off on GRPO"
+    },
+    {
+      "kind": "html",
+      "html": "<ul><li><code>prm_reward</code> is a local directory or a Hub id. A Hub id (<code>org/name</code>, optionally <code>org/name@revision</code>) is downloaded before training through Soup&#x27;s Hub download wrapper: the repo-id, revision and namespace-pin checks run first, and only weights, tokenizer files and custom-code modules are fetched. A value that is not a Soup-trained PRM (no reward head), a failed download, or a string that is neither an existing directory nor a repo id stops the run with one message naming the value, before any training, and an existing local path with no reward head now fails early too. <em>(Since closed in v0.76.0 (#1466): through v0.75.2 an <code>org/name</code> value loaded the tokenizer and the model and then died at the first reward call with &quot;path is not a directory&quot;.)</em></li><li><code>prm_reward</code> replaces <code>reward_fn</code>; TRL logs it as <code>rewards/prm_reward</code>, and the v0.71.26 <a href=\"__DOCS_BASE__/reward-hack-mitigation\">reward-hack controller</a> observes it like any other reward.</li><li><code>prm_aggregate</code> folds the per-step scores into one number. <code>min</code> is the weakest-link default and the safe choice; <code>prod</code> assumes calibrated <code>[0,1]</code> step scores (it can blow up or flip sign on uncalibrated labels); <code>last</code> uses the final step.</li><li>Step boundaries are a newline heuristic; each step is scored with one PRM forward pass.</li><li><code>prm_reward</code> cannot be combined with <code>reward_fn: judge_rank</code>, the LLM-judge ranking reward added in v0.77.0 (see <a href=\"__DOCS_BASE__/grpo-plus#llm-judge-ranking-reward-judge-rank-v0-77-0\">GRPO Plus</a>): the PRM replaces <code>reward_fn</code>, so the judge would never run, and the config is refused at load.</li><li><strong><code>training.gradient_checkpointing</code> reaches the GRPO trainer since v0.77.0.</strong> With the default <code>false</code>, a GRPO run now trains with checkpointing off, where TRL&#x27;s own default (on) used to apply. Set <code>training.gradient_checkpointing: true</code>, as the fence above does, to keep the memory you had; upstream&#x27;s shipped GRPO recipes now set it.</li></ul><h2 id=\"training-the-prm-task-prm-changes-in-v0-76-0\">Training the PRM (<code>task: prm</code>), changes in v0.76.0</h2><p>The PRM you point <code>prm_reward</code> at comes from <code>soup train</code> with <code>task: prm</code>. Three things changed for that task in v0.76.0:</p><ul><li><strong>It trains on fp32 master weights on every device</strong> (#1235). On CUDA it used to load the base and the reward head in bf16 with no fp32 copy for the optimizer. Since v0.74.0 that made the first step fail (outside DeepSpeed) with <code>mat1 and mat2 must have the same dtype</code>, and before that the base trained in pure bf16, where most AdamW steps at PRM learning rates round away: an RMSNorm weight at 1.0 never moves at <code>lr</code> 1e-5 or 2e-5. With the default optimizer, expect about 16 bytes per parameter before activations instead of about 8, a saved checkpoint in fp32 (without DeepSpeed), and about twice the host RAM of a bf16 load to read it. A PRM trained on CUDA before this fix did not train in fp32.</li><li><strong>It reads <code>optimizer</code>, <code>scheduler</code>, <code>warmup_ratio</code>, <code>weight_decay</code> and <code>max_grad_norm</code></strong> (#805). Through v0.75.2 the PRM trainer did not read them, so a run that set them trained with defaults it had not been given. <code>batch_size: auto</code> is also resolved for this task now (it prints <code>Auto batch size (PRM)</code>); before that it fell back to 1.</li><li><strong><code>soup train --resume</code> resumes it</strong> (#1220). It used to restart at step 0 and overwrite the checkpoints.</li></ul><p>The trainer fine-tunes every base parameter, so a non-default <code>training.lora</code> block is refused when the config loads (<code>task=&#x27;prm&#x27; does not apply training.lora: the PRM trainer fine-tunes every base parameter. Remove the lora block (or set lora.r: 0).</code>). An explicit <code>training.quantization: 4bit</code> or <code>8bit</code> (or <code>load_in_8bit: true</code>) is refused at load since v0.77.0, because the trainer never quantises the base: <code>training.quantization: 4bit has no effect on task=&#x27;prm&#x27;: its trainer never quantises the base, so no run can honour it. Delete the line or set quantization: none. Refused as of Soup v0.77.</code> v0.76 loaded it with a warning and treated it as <code>none</code>.</p><p><strong>Under gradient accumulation (v0.77.0, #1444, #1771).</strong> The PRM trainer returns a per-micro-batch mean; before this release a run at <code>gradient_accumulation_steps</code> (G) above 1 (the default is 4) &quot;logged and clipped losses G times too large&quot;, in upstream&#x27;s words. Since v0.77.0 the logged <code>loss</code>, <code>train_loss</code> and <code>grad_norm</code> match a <code>gradient_accumulation_steps: 1</code> run, and <code>max_grad_norm</code> clips the gradient for the stated loss.</p><h2 id=\"re-run-this\">Re-run this</h2><div><table><thead><tr><th>If you trained</th><th>What was wrong</th><th>What to do</th></tr></thead><tbody><tr><td><code>task: prm</code> on CUDA</td><td>The base and head were bf16 with no fp32 master weight: the run either stopped at step 1 (outside DeepSpeed) or trained in pure bf16 where most AdamW steps round away (#1235)</td><td>Re-run if the PRM mattered; a GRPO run that used it as its reward inherits it</td></tr><tr><td><code>task: prm</code> with <code>optimizer</code>, <code>scheduler</code>, <code>warmup_ratio</code>, <code>weight_decay</code> or <code>max_grad_norm</code> set</td><td>The trainer did not read them (#805)</td><td>Re-run if the defaults it used mattered</td></tr><tr><td><code>soup train --resume</code> on <code>task: prm</code></td><td>It restarted at step 0 and overwrote the checkpoints (#1220)</td><td>Do not trust a PRM that was &quot;resumed&quot; on an earlier version</td></tr><tr><td><code>task: prm</code> at <code>gradient_accumulation_steps</code> above 1 (the default is 4), before v0.77.0</td><td>Logged and clipped losses were <code>gradient_accumulation_steps</code> times too large, so <code>max_grad_norm</code> clipped against a loss G times the stated one (#1444, #1771)</td><td>Read old loss and <code>grad_norm</code> logs as G times too large; re-run if the PRM mattered</td></tr></tbody></table></div><h2 id=\"bundled-rollout-environments\">Bundled rollout environments</h2><p>v0.71.30 also ships three deterministic, pure-Python toy environments so the GRPO <code>openenv</code> rollout path works with no external setup:</p>"
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "training:\n  rollout_backend: openenv\n  rollout_func: soup_cli.envs.calculator:rollout   # or retrieval_qa | guess_number\n  reward_fn: verifiable\n  verifiable_domain: math"
+    },
+    {
+      "kind": "html",
+      "html": "<p>Ready-made recipes: <code>grpo-env-calculator</code>, <code>grpo-env-retrieval-qa</code>, <code>grpo-env-guess-number</code> (part of catalog 134 to 137). They are single-shot prompt/answer seeders (the live <code>openenv</code> contract passes seed prompts, not the model), not interactive multi-turn episodes.</p><h2 id=\"honesty\">Honesty</h2><p>Proof-of-mechanism only, validated on SmolLM2-135M with a tiny synthetic PRM and synthetic reward on a single RTX 3050, not a production reward-model claim. Scale validation is tracked in <a href=\"https://github.com/MakazhanAlpamys/Soup/issues/286\">issue #286</a>.</p><h2 id=\"see-also\">See also</h2><ul><li><a href=\"__DOCS_BASE__/grpo-plus\">GRPO Plus</a> — the 7 GRPO variants, rollout backends, and stability controls this builds on.</li><li><a href=\"__DOCS_BASE__/online-dpo\">Online DPO</a> — the judge-in-the-loop RL alternative when you have a judge instead of a PRM.</li><li><a href=\"__DOCS_BASE__/rlvr\">RLVR</a> — verifiable rewards for math / code / JSON with no reward model at all.</li></ul><nav><a href=\"__DOCS_BASE__/soup-shrink\"><span>Previous</span><span>Model Shrink</span></a><a href=\"__DOCS_BASE__/online-dpo\"><span>Next</span><span>Online DPO</span></a></nav><div><p>Soup is free and Apache-2.0. If it saved you a training run, <a href=\"https://github.com/MakazhanAlpamys/Soup\">starring the repo</a> costs nothing and helps most. You can also <a href=\"https://trysoup.dev/support\">fund the GPU time</a> behind the work a 4 GB laptop cannot reach.</p></div>"
+    }
+  ]
+}
