@@ -85,7 +85,27 @@ export function DocumentCloud({ className = '', ariaLabel }: AnimationProps) {
 
 type LightState = { current: number; target: number; frame: number }
 
-/** Hydra's SOTA strip: pointer-following filament, light cone, walls and dots. */
+// Ordered square dither makes a light falloff, rather than a solid object.
+const LIGHT_DITHER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+const LIGHT_FIELDS = Array.from({ length: 5 }, (_, index) => {
+  const layers = ['', '', '']
+  for (let row = 0; row < 32; row++) {
+    const spread = Math.min(16, 2 + row * 0.8)
+    for (let column = 0; column < 32; column++) {
+      const distance = Math.abs(column - 15.5)
+      if (distance > spread) continue
+      const intensity = (1 - row / 32) ** 1.4 * (1 - distance / (spread + 1))
+      const threshold =
+        (LIGHT_DITHER[((row + index) % 4) * 4 + (column % 4)] + 0.5) / 16
+      if (intensity < threshold) continue
+      const layer = intensity > 0.65 ? 0 : intensity > 0.25 ? 1 : 2
+      layers[layer] += `M${column * 6} ${row * 6}h4v4h-4z`
+    }
+  }
+  return layers
+})
+
+/** A dithered beam follows the pointer; idle cells keep their original quiet layout. */
 export function EvaluationAnimation({
   className = '',
   ariaLabel,
@@ -102,10 +122,12 @@ export function EvaluationAnimation({
     if (!element) return
     const activeStates = states.current
     const activeTimers = timers.current
+    let inViewport = false
     const stop = () => {
       activeStates.forEach((state, cell) => {
         cancelAnimationFrame(state.frame)
         cell.removeAttribute('data-hot')
+        cell.style.setProperty('--ln', '.5')
       })
       activeStates.clear()
       activeTimers.forEach(clearTimeout)
@@ -120,13 +142,14 @@ export function EvaluationAnimation({
     updateMotion()
     media.addEventListener('change', updateMotion)
     const observer = new IntersectionObserver(([entry]) => {
-      enabled.current = entry.isIntersecting && !document.hidden
+      inViewport = entry.isIntersecting
+      enabled.current = inViewport && !document.hidden
       if (!enabled.current) stop()
     })
     observer.observe(element)
     const visibility = () => {
-      enabled.current = !document.hidden
-      if (document.hidden) stop()
+      enabled.current = inViewport && !document.hidden
+      if (!enabled.current) stop()
     }
     document.addEventListener('visibilitychange', visibility)
     return () => {
@@ -142,8 +165,14 @@ export function EvaluationAnimation({
     const cell = event.currentTarget
     const bounds = cell.getBoundingClientRect()
     cell.setAttribute('data-hot', '')
-    cell.style.setProperty('--x', `${event.clientX - bounds.left}px`)
-    cell.style.setProperty('--y', `${event.clientY - bounds.top}px`)
+    cell.style.setProperty(
+      '--x',
+      `${Math.round((event.clientX - bounds.left) / 6) * 6}px`,
+    )
+    cell.style.setProperty(
+      '--y',
+      `${Math.round((event.clientY - bounds.top) / 6) * 6}px`,
+    )
     const target = Math.min(
       0.7,
       Math.max(0.3, (event.clientX - bounds.left) / bounds.width),
@@ -184,7 +213,7 @@ export function EvaluationAnimation({
     <div
       ref={root}
       className={`hydra-evaluation hbr ${className}`}
-      role={ariaLabel ? 'img' : undefined}
+      role={ariaLabel ? 'group' : undefined}
       aria-label={ariaLabel}
       aria-hidden={ariaLabel ? undefined : true}
     >
@@ -193,6 +222,11 @@ export function EvaluationAnimation({
           <div
             className="hbr-cell"
             key={index}
+            tabIndex={ariaLabel ? 0 : undefined}
+            onFocus={(event) =>
+              event.currentTarget.setAttribute('data-hot', '')
+            }
+            onBlur={(event) => leave(event.currentTarget)}
             onPointerEnter={(event) =>
               event.pointerType !== 'touch' && track(event)
             }
@@ -218,8 +252,21 @@ export function EvaluationAnimation({
           >
             <span className="hbr-lamp">
               <span className="hbr-src">
-                <span className="hbr-cone" />
-                <span className="hbr-bloom" />
+                <svg
+                  className="hbr-cone"
+                  viewBox="0 0 192 192"
+                  fill="none"
+                  aria-hidden="true"
+                  shapeRendering="crispEdges"
+                >
+                  {LIGHT_FIELDS[index].map((path, layer) => (
+                    <path
+                      key={layer}
+                      className={`hbr-beam-${layer}`}
+                      d={path}
+                    />
+                  ))}
+                </svg>
               </span>
             </span>
             <span className="hbr-edge" />
@@ -233,10 +280,8 @@ export function EvaluationAnimation({
               <span className="hbr-lab">{labels?.[index]}</span>
               <svg className="hbr-arr" viewBox="0 0 12 12" fill="none">
                 <path
-                  d="M3 9 9 3M4 3h5v5"
-                  stroke="currentColor"
-                  strokeWidth="1.25"
-                  strokeLinecap="square"
+                  d="M3 2h7v7H8V6H6v2H4v2H2V8h2V6h2V4H3z"
+                  fill="currentColor"
                 />
               </svg>
             </span>

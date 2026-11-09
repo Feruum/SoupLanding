@@ -8,6 +8,15 @@
         "value": "geist",
         "createdAt": "2026-10-30T23:42:27.198Z",
         "reason": "Agent decision: preserve the inherited Omarchy typography to honor the requested Omarchy design. These five declarations load language subsets of the same intentional typeface."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/soup/omarchy-sections.css"
+        ],
+        "createdAt": "2026-11-09T18:05:58.738Z",
+        "reason": "Agent triage: L738 .os-graph-node > i and L783 .os-graph-branches > div:nth-child(2)::before/::after are absolutely positioned vertical connector segments in the base-to-adapters-to-merge diagram, not decorative card borders. Preserve intentional diagram topology and pixel rail thickness."
       }
     ]
   }

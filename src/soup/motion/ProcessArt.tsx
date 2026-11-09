@@ -12,15 +12,47 @@ export const PROCESS_KINDS: readonly ProcessKind[] = [
 ]
 const indexStyle = (index: number) => ({ '--pp-i': index }) as CSSProperties
 
+// Every corner is on a square unit grid. These are actual staircases,
+// including the small weight cells; crispEdges is only a rendering hint.
+const SLAB =
+  'M-8 0H8V4H20V8H32V12H44V16H56V20H68V24H80V28H92V32H104V40H92V44H80V48H68V52H56V56H44V60H32V64H20V68H8V72H-8V68H-20V64H-32V60H-44V56H-56V52H-68V48H-80V44H-92V40H-104V32H-92V28H-80V24H-68V20H-56V16H-44V12H-32V8H-20V4H-8Z'
+const WEIGHT = 'M-3 0H3V2H7V6H3V8H-3V6H-7V2H-3Z'
+const CHECK = 'M0 8H4V12H8V8H12V4H16V0H20'
+
+function panelPath(width: number, height: number, corner = 4) {
+  return `M${corner} 0H${width - corner}V${corner}H${width}V${height - corner}H${width - corner}V${height}H${corner}V${height - corner}H0V${corner}H${corner}Z`
+}
+
+function ChipPins({ size = 76 }: { size?: number }) {
+  return (
+    <g className="pp-chip-pins">
+      {[12, 28, 44, 60].map((offset) => (
+        <g key={offset}>
+          <rect x={offset} y="-8" width="8" height="12" />
+          <rect x={offset} y={size - 4} width="8" height="12" />
+          <rect x="-8" y={offset} width="12" height="8" />
+          <rect x={size - 4} y={offset} width="12" height="8" />
+        </g>
+      ))}
+    </g>
+  )
+}
+
 function File({ x, y, label }: { x: number; y: number; label: string }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <path className="pp-surface" d="M0 0H58L78 20V92H0ZM58 0V20H78" />
+      <path className="pp-file-shadow" d="M4 4H60V12H68V20H76V28H84V100H4Z" />
+      <path
+        className="pp-file-paper"
+        d="M0 4H4V0H56V8H64V16H72V24H80V92H76V96H0Z"
+      />
+      <path className="pp-file-fold" d="M56 0V24H80V32H48V0Z" />
+      <path className="pp-file-band" d="M0 80H80V92H76V96H0Z" />
       {[0, 1, 2, 3].map((i) => (
         <path
-          className="pp-rule"
+          className="pp-file-rule"
           key={i}
-          d={`M14 ${38 + i * 9}H${i % 2 ? 53 : 64}`}
+          d={`M12 ${40 + i * 10}H${i % 2 ? 48 : 64}`}
         />
       ))}
       <text x="39" y="115" textAnchor="middle">
@@ -38,7 +70,11 @@ function DataArt() {
       </text>
       <path className="pp-rule" d="M178 133H273M355 133H446M314 169V220H380" />
       <g className="pp-bin">
-        <path className="pp-rule" d="M372 209V229H396V209" />
+        <path className="pp-bin-shape" d="M372 209H396V229H372Z" />
+        <path
+          className="pp-bin-cross"
+          d="M378 213H382V217H386V221H390M390 213H386V217H382V221H378"
+        />
         <text x="402" y="226" className="pp-tiny">
           dup
         </text>
@@ -63,31 +99,61 @@ function DataArt() {
             className={`pp-record pp-motion ${i === 2 ? 'pp-duplicate' : ''}`}
             style={indexStyle(i)}
           >
-            <rect className="pp-surface" width="137" height="23" />
-            <rect className="pp-hot" x="8" y="8" width="7" height="7" />
-            <path className="pp-rule" d={`M25 8H${83 + i * 7}M25 15H116`} />
-            <text x="-16" y="15" className="pp-tiny">
+            <path className="pp-record-surface" d={panelPath(137, 23, 2)} />
+            <path className="pp-paper-highlight" d="M2 2H135V4H2Z" />
+            <path className="pp-record-edge" d="M2 21H135V23H2Z" />
+            <rect
+              className="pp-record-index-box"
+              x="6"
+              y="5"
+              width="18"
+              height="13"
+            />
+            <rect
+              className="pp-record-mark"
+              x="113"
+              y="7"
+              width="16"
+              height="9"
+            />
+            <path
+              className="pp-record-rule"
+              d={`M31 8H${88 + i * 3}M31 15H77`}
+            />
+            <text x="15" y="15" textAnchor="middle" className="pp-record-index">
               {String(i + 1).padStart(2, '0')}
             </text>
           </g>
         </g>
       ))}
       <g className="pp-dedupe" transform="translate(276 95)">
-        <path className="pp-chip-outline" d="M0 0H76V76H0Z" />
-        <path className="pp-hot-stroke" d="M20 25H56M20 38H56M20 51H42" />
+        <ChipPins />
+        <path className="pp-chip-outline" d={panelPath(76, 76)} />
+        <path className="pp-chip-shine" d="M8 8H68V12H12V64H8Z" />
+        <path
+          className="pp-chip-inset"
+          d={panelPath(60, 36, 2)}
+          transform="translate(8 20)"
+        />
         <g className="pp-scan pp-motion">
           <rect className="pp-hot" x="-10" y="0" width="96" height="3" />
         </g>
-        <text x="38" y="103" textAnchor="middle">
+        <text className="pp-chip-text" x="38" y="43" textAnchor="middle">
           dedupe
         </text>
       </g>
       {[0, 1, 2, 3].map((i) => (
         <g key={i} transform={`translate(447 ${71 + i * 31})`}>
           <g className="pp-clean pp-motion" style={indexStyle(i)}>
-            <rect className="pp-surface" width="142" height="23" />
-            <path className="pp-hot-stroke" d="M10 11L14 15 21 7" />
-            <path className="pp-rule" d="M32 8H119M32 15H98" />
+            <path className="pp-record-surface" d={panelPath(142, 23, 2)} />
+            <path className="pp-paper-highlight" d="M2 2H140V4H2Z" />
+            <path className="pp-record-edge" d="M2 21H140V23H2Z" />
+            <path
+              className="pp-record-check"
+              d={CHECK}
+              transform="translate(112 4)"
+            />
+            <path className="pp-record-rule" d="M10 8H97M10 15H76" />
           </g>
         </g>
       ))}
@@ -107,8 +173,15 @@ function MethodArt() {
         d="M120 133H239M315 133H382V53H451M382 106H451M382 159H451M382 133V212H451"
       />
       <g className="pp-advise" transform="translate(239 95)">
-        <rect className="pp-chip-outline" width="76" height="76" />
-        <text className="pp-bright" x="38" y="42" textAnchor="middle">
+        <ChipPins />
+        <path className="pp-chip-outline" d={panelPath(76, 76)} />
+        <path className="pp-chip-shine" d="M8 8H68V12H12V64H8Z" />
+        <path
+          className="pp-chip-inset"
+          d={panelPath(60, 36, 2)}
+          transform="translate(8 20)"
+        />
+        <text className="pp-chip-text" x="38" y="42" textAnchor="middle">
           advise
         </text>
       </g>
@@ -123,7 +196,7 @@ function MethodArt() {
             className={`pp-branch pp-motion ${i === 0 ? 'pp-selected' : ''}`}
             style={indexStyle(i)}
           >
-            <rect className="pp-surface" width="127" height="41" />
+            <path className="pp-method-surface" d={panelPath(127, 41)} />
             <text x="19" y="25">
               {method}
             </text>
@@ -131,7 +204,8 @@ function MethodArt() {
               <path
                 className="pp-hot-stroke pp-check"
                 pathLength="1"
-                d="M95 20L101 26 111 14"
+                d={CHECK}
+                transform="translate(92 13)"
               />
             )}
           </g>
@@ -151,7 +225,7 @@ function ConfigArt() {
       {['base', 'data', 'lora', 'training'].map((key, i) => (
         <g key={key} transform={`translate(43 ${47 + i * 47})`}>
           <g className="pp-config-tile pp-motion" style={indexStyle(i)}>
-            <rect className="pp-surface" width="154" height="32" />
+            <path className="pp-method-surface" d={panelPath(154, 32)} />
             <text x="14" y="21">
               {key}
             </text>
@@ -159,20 +233,26 @@ function ConfigArt() {
           </g>
         </g>
       ))}
-      <g transform="translate(386 40)">
+      <g transform="translate(386 55)">
         <path
-          className="pp-chip-outline"
-          d="M0 0H169L193 24V194H0ZM169 0V24H193"
+          className="pp-file-paper"
+          d="M0 2H2V0H111V8H119V16H127V24H135V158H133V160H0Z"
         />
-        <text x="18" y="32" className="pp-bright">
+        <path className="pp-file-fold" d="M111 0V24H135V30H105V0Z" />
+        <path className="pp-paper-highlight" d="M2 2H105V4H2Z" />
+        <path className="pp-file-band" d="M0 148H135V158H133V160H0Z" />
+        <text x="14" y="28" className="pp-file-text">
           soup.yaml
         </text>
         {['base:', 'data:', 'lora:', 'training:'].map((key, i) => (
           <g key={key} className="pp-yaml-row pp-motion" style={indexStyle(i)}>
-            <text x="19" y={65 + i * 30}>
+            <text className="pp-file-text" x="14" y={52 + i * 26}>
               {key}
             </text>
-            <path className="pp-rule" d={`M34 ${76 + i * 30}H${143 - i * 8}`} />
+            <path
+              className="pp-file-rule"
+              d={`M25 ${62 + i * 26}H${112 - i * 6}`}
+            />
           </g>
         ))}
       </g>
@@ -181,7 +261,8 @@ function ConfigArt() {
         <path
           className="pp-inverse"
           pathLength="1"
-          d="M280 132L285 137 292 127"
+          d={CHECK}
+          transform="translate(277 126) scale(.7)"
         />
       </g>
     </g>
@@ -200,12 +281,19 @@ function TrainArt() {
         </text>
         <path
           className="pp-rule"
-          d="M29 142H190L234 165M402 165L450 142H590M450 142V220H190V167"
+          d="M29 142H178M462 142H524M462 142V266H178V178"
         />
         {[0, 1, 2, 3, 4].map((i) => (
           <g key={i} transform={`translate(${35 + i * 28} 130)`}>
             <g className="pp-token pp-motion" style={indexStyle(i)}>
               <rect className="pp-hot" width="22" height="24" />
+              <rect
+                className="pp-token-inset"
+                x="4"
+                y="4"
+                width="14"
+                height="16"
+              />
               <text className="pp-token-code" x="4" y="16">
                 {i % 2 ? '10' : '01'}
               </text>
@@ -213,15 +301,19 @@ function TrainArt() {
           </g>
         ))}
       </g>
-      <g className="pp-weight-stack" transform="translate(-80 -36) scale(1.25)">
+      <g className="pp-weight-stack" transform="translate(320 5)">
         {[4, 3, 2, 1, 0].map((layer) => (
-          <g key={layer} transform={`translate(320 ${43 + layer * 28})`}>
-            <g className="pp-weight-layer pp-motion" style={indexStyle(layer)}>
+          <g key={layer} transform={`translate(0 ${layer * 44})`}>
+            <g
+              className={`pp-weight-layer pp-motion pp-layer-${layer}`}
+              style={indexStyle(layer)}
+            >
               <path
                 className="pp-layer-side"
-                d="M-104 31L0 65 104 31V42L0 76-104 42Z"
+                d={SLAB}
+                transform="translate(0 8)"
               />
-              <path className="pp-layer-top" d="M0 0L104 31 0 65-104 31Z" />
+              <path className="pp-layer-top" d={SLAB} />
               {Array.from({ length: 36 }, (_, pixel) => {
                 const column = pixel % 6,
                   row = Math.floor(pixel / 6)
@@ -229,14 +321,14 @@ function TrainArt() {
                   <path
                     key={pixel}
                     className={`pp-weight ${(pixel + layer * 2) % 4 === 0 ? 'pp-adapter' : ''}`}
-                    d="M0 0L9 3 0 6-9 3Z"
-                    transform={`translate(${(column - row) * 15} ${10 + (column + row) * 4.6})`}
+                    d={WEIGHT}
+                    transform={`translate(${(column - row) * 16} ${8 + (column + row) * 5})`}
                   />
                 )
               })}
               <path
                 className="pp-layer-activation pp-motion"
-                d="M0 0L104 31 0 65-104 31Z"
+                d={SLAB}
                 style={indexStyle(layer)}
               />
               <text className="pp-layer-label" x="116" y="40">
@@ -250,16 +342,26 @@ function TrainArt() {
         <path
           className="pp-backward pp-motion"
           pathLength="100"
-          d="M450 142V220H190V167"
+          d="M462 142V266H178V178"
         />
         <g className="pp-checkpoint pp-motion">
-          <rect className="pp-surface" x="520" y="111" width="95" height="59" />
+          <g transform="translate(524 102)">
+            <path className="pp-file-paper" d="M0 4H4V0H48V8H56V16H64V68H0Z" />
+            <path className="pp-file-fold" d="M48 0V16H64V24H40V0Z" />
+            <path className="pp-file-band" d="M0 56H64V68H0Z" />
+            <path className="pp-paper-highlight" d="M4 2H40V4H4Z" />
+            <path
+              className="pp-checkpoint-code"
+              d="M10 30H50M10 40H30M10 50H22"
+            />
+          </g>
           <path
             className="pp-hot-stroke pp-check"
             pathLength="1"
-            d="M537 142L547 152 567 130"
+            d={CHECK}
+            transform="translate(564 142) scale(.65)"
           />
-          <text x="568" y="192" textAnchor="middle">
+          <text x="556" y="192" textAnchor="middle">
             ./output
           </text>
         </g>
@@ -281,23 +383,29 @@ function EvalArt() {
           key={i}
           transform={`translate(${214 + (i % 3) * 68} ${54 + Math.floor(i / 3) * 58})`}
         >
-          <rect className="pp-surface" width="56" height="46" />
+          <path className="pp-test-surface" d={panelPath(56, 46)} />
           <text x="6" y="12" className="pp-tiny">
             0{i + 1}
           </text>
           <g className="pp-test-check pp-motion" style={indexStyle(i)}>
-            <path className="pp-hot-stroke" d="M20 24L26 30 37 17" />
+            <path
+              className="pp-test-tick"
+              d={CHECK}
+              transform="translate(18 17)"
+            />
           </g>
         </g>
       ))}
       <path className="pp-eval-sweep pp-motion" d="M204 47H419V49H204Z" />
       <g transform="translate(485 96)">
         <g className="pp-verdict pp-motion">
-          <rect className="pp-chip-outline" width="112" height="74" />
+          <path className="pp-verdict-surface" d={panelPath(112, 74)} />
+          <path className="pp-file-band" d="M0 62H112V70H108V74H4V70H0Z" />
           <path
             className="pp-hot-stroke pp-check"
             pathLength="1"
-            d="M19 25L29 35 45 16"
+            d={CHECK}
+            transform="translate(19 12) scale(1.3)"
           />
           <text x="18" y="58" className="pp-bright pp-verdict-text">
             SHIP
@@ -325,7 +433,7 @@ function ExportArt() {
           {Array.from({ length: 96 }, (_, i) => (
             <rect
               key={i}
-              className={i % 5 === 0 ? 'pp-hot' : 'pp-weight'}
+              className={i % 5 === 0 ? 'pp-hot' : 'pp-weight pp-export-weight'}
               x={(i % 12) * 13}
               y={Math.floor(i / 12) * 16}
               width="9"
@@ -337,8 +445,15 @@ function ExportArt() {
       <path className="pp-rule" d="M204 134H283M359 134H476" />
       <path className="pp-signal pp-motion" pathLength="100" d="M204 134H476" />
       <g className="pp-gguf" transform="translate(283 96)">
-        <rect className="pp-chip-outline" width="76" height="76" />
-        <text x="38" y="43" textAnchor="middle" className="pp-bright">
+        <ChipPins />
+        <path className="pp-chip-outline" d={panelPath(76, 76)} />
+        <path className="pp-chip-shine" d="M8 8H68V12H12V64H8Z" />
+        <path
+          className="pp-chip-inset"
+          d={panelPath(60, 36, 2)}
+          transform="translate(8 20)"
+        />
+        <text x="38" y="43" textAnchor="middle" className="pp-chip-text">
           GGUF
         </text>
       </g>
@@ -347,7 +462,8 @@ function ExportArt() {
         <path
           className="pp-hot-stroke pp-check"
           pathLength="1"
-          d="M493 117L500 124 513 108"
+          d={CHECK}
+          transform="translate(492 111)"
         />
       </g>
       <text x="283" y="226">

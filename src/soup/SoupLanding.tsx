@@ -13,6 +13,7 @@ import { usePointerProximity } from './motion/usePointerProximity'
 import { LANDING_SCROLL_GROUPS } from './motion/scroll-motion'
 import { ProcessScene } from './motion/ProcessScene'
 import { PROCESS_KINDS } from './motion/ProcessArt'
+import { PixelIcon } from './PixelIcon'
 import type { FooterGroup } from './locales'
 import { DocumentCloud, EvaluationAnimation } from './HydraAnimations'
 import {
@@ -29,7 +30,7 @@ const INSTALL = 'pip install "soup-cli[train]"'
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
     <span aria-hidden="true" className="arrow">
-      {diagonal ? '↗' : '→'}
+      <PixelIcon name={diagonal ? 'arrowUpRight' : 'arrowRight'} />
     </span>
   )
 }
@@ -61,25 +62,9 @@ function CopyCommand({
         <code>{command}</code>
         <button onClick={() => void copy()} aria-label={m.copy} title={m.copy}>
           {status === 'copied' ? (
-            '✓'
+            <PixelIcon name="check" />
           ) : (
-            <svg
-              width="17"
-              height="17"
-              viewBox="0 0 20 20"
-              fill="none"
-              aria-hidden="true"
-            >
-              <rect
-                x="6"
-                y="6"
-                width="11"
-                height="11"
-                rx="1"
-                stroke="currentColor"
-              />
-              <path d="M13 6V3H3v10h3" stroke="currentColor" />
-            </svg>
+            <PixelIcon name="copy" />
           )}
         </button>
       </div>
@@ -235,7 +220,7 @@ export default function SoupLanding({
                 </a>
                 <a className="text-link" href="#workflow">
                   {m.heroSecondary}
-                  <span aria-hidden="true">↓</span>
+                  <PixelIcon name="arrowDown" />
                 </a>
               </div>
               <p className="hero-note">{m.heroNote}</p>
@@ -249,7 +234,7 @@ export default function SoupLanding({
               </span>
               <a href="#workflow">
                 {m.scroll}
-                <span aria-hidden="true">↓</span>
+                <PixelIcon name="arrowDown" />
               </a>
             </div>
           </section>
@@ -353,7 +338,7 @@ export default function SoupLanding({
               <div className="feature-art document-art">
                 <div className="art-caption" dir="ltr">
                   <span>data.jsonl</span>
-                  <span>→</span>
+                  <PixelIcon name="arrowRight" />
                   <span>soup data doctor</span>
                 </div>
                 <DocumentCloud ariaLabel={m.animationData} />
@@ -383,7 +368,7 @@ export default function SoupLanding({
                   {[m.evalFeature1, m.evalFeature2, m.evalFeature3].map(
                     (text) => (
                       <li key={text}>
-                        <span aria-hidden="true">↗</span>
+                        <PixelIcon name="arrowUpRight" />
                         {text}
                       </li>
                     ),

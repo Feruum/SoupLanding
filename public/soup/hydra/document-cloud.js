@@ -256,7 +256,6 @@ export function mountDocumentCloud(e, t, n) {
   let i = g.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
     a = g.matchMedia(`(hover: hover) and (pointer: fine)`).matches,
     o = [],
-    s = `237,237,234`,
     c = new Path2D(`M540 422h10l-10 38h-10z M558 422h10l-10 38h-10z`),
     l = Gi.length / 4,
     u = 7,
@@ -274,8 +273,14 @@ export function mountDocumentCloud(e, t, n) {
           name: `#${String(t + 1).padStart(4, '0')}`,
           dx: Math.cos(r) * n,
           dy: Math.sin(r) * n * 1.35,
-          w: 4 + d() * d() * 26,
-          h: 4 + d() * 30,
+          w:
+            t % 19 === 0
+              ? 24 + Math.floor(d() * 3) * 3
+              : 3 + Math.floor(d() * 2) * 3,
+          h:
+            t % 19 === 0
+              ? 30 + Math.floor(d() * 4) * 3
+              : 3 + Math.floor(d() * 2) * 3,
           dark: d() < 0.25,
           m: 0,
           x: 0,
@@ -284,9 +289,8 @@ export function mountDocumentCloud(e, t, n) {
       }),
     m = new Float64Array(qi.length / 2).fill(-1),
     h = !1,
-    _ = Array.from({ length: l }, () => [])
-  for (let e = 0; e < qi.length; e += 2)
-    (_[qi[e]].push(qi[e + 1]), _[qi[e + 1]].push(qi[e]))
+    graphNeighbors = Array.from({ length: l }, () => []),
+    graphEdges = []
   let v = 0,
     T = -1,
     E = !1,
@@ -296,7 +300,7 @@ export function mountDocumentCloud(e, t, n) {
     A = 1,
     j = 1,
     M = !1,
-    N = !1,
+    N = 0,
     P = 0,
     F = [],
     I = 0,
@@ -329,6 +333,86 @@ export function mountDocumentCloud(e, t, n) {
     },
     J = p.reduce((e, t) => Math.max(e, Math.hypot(t.gx, t.gy)), 1),
     Y = []
+  let palette
+  const readPalette = () => {
+    const style = g.getComputedStyle(t)
+    const token = (name, fallback) =>
+      style.getPropertyValue(name).trim() || fallback
+    // The surrounding document art intentionally keeps a dark surface in both themes.
+    palette = {
+      paper:
+        document.documentElement.dataset.theme === 'white'
+          ? token('--t-brand-ink', '#fff')
+          : token('--t-field-crest', '#f7d4c4'),
+      ember: token('--accent', '#c0512d'),
+      warm: token('--accent-light', '#e07b4f'),
+    }
+  }
+  readPalette()
+  const pixel = (value) => Math.round(value / 3) * 3
+  const connector = (x0, y0, x1, y1) => {
+    x0 = pixel(x0)
+    y0 = pixel(y0)
+    x1 = pixel(x1)
+    y1 = pixel(y1)
+    const steps = Math.max(
+      1,
+      Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / 12),
+    )
+    r.moveTo(x0, y0)
+    for (let step = 1; step <= steps; step++) {
+      const nextX = pixel(x0 + ((x1 - x0) * step) / steps)
+      const nextY = pixel(y0 + ((y1 - y0) * step) / steps)
+      r.lineTo(nextX, pixel(y0 + ((y1 - y0) * (step - 1)) / steps))
+      r.lineTo(nextX, nextY)
+    }
+  }
+  const layoutGraph = () => {
+    // Presentation-only aggregation: every source particle still morphs into its
+    // cell; one existing node owns that cell's label and a few visible edges.
+    // The source graph and source document data stay intact.
+    const cells = new Map()
+    const grid = 24
+    for (let index = 0; index < l; index++) {
+      const node = p[index]
+      const x = Math.round((node.gx * q.sc) / grid) * grid
+      const y = Math.round((node.gy * q.sc) / grid) * grid
+      const key = `${x},${y}`
+      const representative = cells.get(key)
+      if (representative === undefined || p[representative].deg < node.deg)
+        cells.set(key, index)
+      node.graphX = q.cxR + x
+      node.graphY = q.cyR + y
+      node.cell = key
+      node.representative = false
+    }
+    for (const index of cells.values()) p[index].representative = true
+    const candidates = new Map()
+    for (let index = 0; index < qi.length; index += 2) {
+      const a = cells.get(p[qi[index]].cell)
+      const b = cells.get(p[qi[index + 1]].cell)
+      if (a === b) continue
+      const key = a < b ? `${a},${b}` : `${b},${a}`
+      candidates.set(key, [a, b])
+    }
+    const distance = ([a, b]) =>
+      Math.hypot(p[a].graphX - p[b].graphX, p[a].graphY - p[b].graphY)
+    graphEdges = []
+    graphNeighbors = Array.from({ length: l }, () => [])
+    for (const [a, b] of [...candidates.values()].sort(
+      (a, b) => distance(a) - distance(b),
+    )) {
+      if (graphNeighbors[a].length >= 3 || graphNeighbors[b].length >= 3)
+        continue
+      graphEdges.push(a, b)
+      graphNeighbors[a].push(b)
+      graphNeighbors[b].push(a)
+    }
+    m.fill(-1)
+    T = G = -1
+    v = 0
+    if (n) n.style.opacity = '0'
+  }
   function te() {
     let t = e.getBoundingClientRect()
     if (
@@ -379,6 +463,7 @@ export function mountDocumentCloud(e, t, n) {
         lo: 4,
       }
     }
+    layoutGraph()
     ;((Y = o.map((e) => {
       let n = e.getBoundingClientRect()
       return {
@@ -401,7 +486,7 @@ export function mountDocumentCloud(e, t, n) {
       ? +(t.top <= i)
       : Math.max(0, Math.min(1, (r - t.top) / (r - i)))
   }
-  let ne = (e) => Math.round(e * R) / R
+  let ne = pixel
   function re(t) {
     B = 0
     if (i) for (const node of p) node.m = 1
@@ -450,9 +535,8 @@ export function mountDocumentCloud(e, t, n) {
       !i &&
       j < A &&
       !N &&
-      ((N = !0),
-      requestAnimationFrame((e) => {
-        N = !1
+      (N = requestAnimationFrame((e) => {
+        N = 0
         let n = e - t
         n <= 0 ||
           n > 500 ||
@@ -471,67 +555,87 @@ export function mountDocumentCloud(e, t, n) {
       ;((e.px = e.x), (e.py = e.y))
       let t = q.cxL + e.dx * q.rx,
         n = q.cyL + e.dy * q.ry,
-        r = q.cxR + e.gx * q.sc,
-        i = q.cyR + e.gy * q.sc
+        r = e.graphX,
+        i = e.graphY
       ;((e.x = t + (r - t) * e.m), (e.y = n + (i - n) * e.m))
     }
-    ;((r.strokeStyle = `rgba(${s},.35)`),
-      (r.lineWidth = 0.6),
+    ;((r.strokeStyle = palette.warm),
+      (r.globalAlpha = 0.3),
+      (r.lineWidth = 1),
       r.beginPath(),
       (h = !1))
-    for (let e = 0; e < qi.length; e += 2) {
-      let n = p[qi[e]],
-        a = p[qi[e + 1]],
+    for (let e = 0; e < graphEdges.length; e += 2) {
+      let n = p[graphEdges[e]],
+        a = p[graphEdges[e + 1]],
         o = e >> 1
       n.m < 0.9 || a.m < 0.9
         ? (m[o] = -1)
         : (m[o] < 0 && (m[o] = t),
-          t - m[o] < 900 && !i
-            ? (h = !0)
-            : (r.moveTo(n.x, n.y), r.lineTo(a.x, a.y)))
+          t - m[o] < 900 && !i ? (h = !0) : connector(n.x, n.y, a.x, a.y))
     }
-    if ((r.stroke(), h)) {
-      r.lineWidth = 0.9
-      for (let e = 0; e < qi.length; e += 2) {
+    if ((r.stroke(), (r.globalAlpha = 1), h)) {
+      r.lineWidth = 2
+      for (let e = 0; e < graphEdges.length; e += 2) {
         let n = e >> 1,
           i = t - m[n]
         if (m[n] < 0 || i >= 900) continue
-        let a = p[qi[e]],
-          o = p[qi[e + 1]],
+        let a = p[graphEdges[e]],
+          o = p[graphEdges[e + 1]],
           s = i / 900,
-          c = 0.35 + 0.35 * (1 - s) ** 1.6,
-          l = (237 + 18 * (1 - s) * 1) | 0,
-          u = (237 + -150 * (1 - s) ** 1.3) | 0,
-          d = (234 + -209 * (1 - s) ** 1.3) | 0
-        ;((r.strokeStyle = `rgba(${l},${u},${d},${c.toFixed(3)})`),
+          c = 0.35 + 0.35 * (1 - s) ** 1.6
+        ;((r.strokeStyle = palette.ember),
+          (r.globalAlpha = c),
           r.beginPath(),
-          r.moveTo(a.x, a.y),
-          r.lineTo(o.x, o.y),
+          connector(a.x, a.y, o.x, o.y),
           r.stroke())
       }
+      r.globalAlpha = 1
     }
     for (let e of p) {
       let t = e.m
       if (t < 0.98) {
-        let n = e.w * (1 - t) + 3 * t,
-          i = e.h * (1 - t) + 3 * t
-        if (
-          ((r.fillStyle = e.dark
-            ? `rgba(236,235,231,${0.85 * (1 - t) + 0.2})`
-            : `rgba(122,121,117,${0.5 * (1 - t) + 0.2})`),
-          r.fillRect(e.x - n / 2, e.y - i / 2, n, i),
-          !e.dark && n > 12 && t < 0.2)
-        ) {
-          r.fillStyle = `rgba(0,0,0,.5)`
-          for (let t = 2; t < i - 2; t += 3)
-            r.fillRect(e.x - n / 2 + 2, e.y - i / 2 + t, n * 0.7, 0.7)
+        let n = Math.max(3, pixel(e.w * (1 - t) + 3 * t)),
+          i = Math.max(3, pixel(e.h * (1 - t) + 3 * t)),
+          x = pixel(e.x - n / 2),
+          y = pixel(e.y - i / 2)
+        r.fillStyle = e.dark ? palette.ember : palette.paper
+        r.globalAlpha = n > 12 ? 1 : 0.38 + 0.42 * t
+        if (n >= 18 && i >= 18 && t < 0.6) {
+          const fold = 6
+          // Three-pixel stair steps make the folded corner legible without a diagonal.
+          r.beginPath()
+          r.moveTo(x, y)
+          r.lineTo(x + n - fold, y)
+          r.lineTo(x + n - fold, y + 3)
+          r.lineTo(x + n - 3, y + 3)
+          r.lineTo(x + n - 3, y + fold)
+          r.lineTo(x + n, y + fold)
+          r.lineTo(x + n, y + i)
+          r.lineTo(x, y + i)
+          r.closePath()
+          r.fill()
+          r.fillStyle = '#0a0a0a'
+          r.fillRect(x + n - fold - 3, y + 3, 3, fold)
+          r.fillRect(x + n - fold - 3, y + fold, fold, 3)
+          for (let line = 12; line < i - 5; line += 6)
+            r.fillRect(
+              x + 6,
+              y + line,
+              Math.max(3, n - (line % 12 ? 12 : 9)),
+              3,
+            )
+        } else {
+          r.fillRect(x, y, n, i)
         }
-      } else {
+        r.globalAlpha = 1
+      } else if (e.representative) {
         let t = e.deg,
-          n = t >= 15 ? 7 : t >= 10 ? 5 : t >= 4 ? 3 : 2
+          n = t >= 10 ? 9 : 6
         ;((r.fillStyle =
-          t >= 10 ? `#fff` : t >= 4 ? `rgba(${s},.92)` : `rgba(${s},.72)`),
+          t >= 10 ? palette.paper : t >= 4 ? palette.warm : palette.ember),
+          (r.globalAlpha = t >= 4 ? 1 : 0.7),
           r.fillRect(ne(e.x - n / 2), ne(e.y - n / 2), n, n))
+        r.globalAlpha = 1
       }
     }
     ;((r.lineWidth = 1), (r.lineCap = `butt`))
@@ -546,22 +650,20 @@ export function mountDocumentCloud(e, t, n) {
       let s = Math.min(54, o * 8),
         c = i / o,
         l = a / o,
-        u = Math.sin(Math.PI * t) * 0.65,
-        d = r.createLinearGradient(e.x - c * s, e.y - l * s, e.x, e.y)
-      ;(d.addColorStop(0, `rgba(255,87,25,0)`),
-        d.addColorStop(1, `rgba(255,87,25,${u.toFixed(3)})`),
-        (r.strokeStyle = d),
-        r.beginPath(),
-        r.moveTo(e.x - c * s, e.y - l * s),
-        r.lineTo(e.x, e.y),
-        r.stroke())
+        u = Math.sin(Math.PI * t) * 0.65
+      r.fillStyle = palette.ember
+      for (let trail = 0; trail < s; trail += 9) {
+        r.globalAlpha = u * (1 - trail / s)
+        r.fillRect(pixel(e.x - c * trail), pixel(e.y - l * trail), 3, 3)
+      }
+      r.globalAlpha = 1
     }
     let J = -1,
       te = 14
     if (a && U > -1e3)
       for (let e = 0; e < l; e++) {
         let t = p[e]
-        if (t.m < 0.98) continue
+        if (t.m < 0.98 || !t.representative) continue
         let n = Math.hypot(U - t.x, ee - t.y)
         n < te && ((te = n), (J = e))
       }
@@ -575,33 +677,36 @@ export function mountDocumentCloud(e, t, n) {
         v > 0.001 && T >= 0)
       ) {
         let e = p[T],
-          t = _[T],
+          t = graphNeighbors[T],
           n = 1e3 * q.sc + 24
         ;((r.fillStyle = `rgba(0,0,0,${(0.68 * v).toFixed(3)})`),
-          r.beginPath(),
-          r.arc(q.cxR, q.cyR, n, 0, 7),
-          r.fill(),
-          (r.strokeStyle = `rgba(255,87,25,${(0.9 * v).toFixed(3)})`),
-          (r.lineWidth = 1),
+          r.fillRect(
+            pixel(q.cxR - n),
+            pixel(q.cyR - n),
+            pixel(n * 2),
+            pixel(n * 2),
+          ),
+          (r.strokeStyle = palette.ember),
+          (r.globalAlpha = 0.9 * v),
+          (r.lineWidth = 2),
           r.beginPath())
         for (let n of t) {
           let t = p[n]
-          t.m < 0.9 || (r.moveTo(e.x, e.y), r.lineTo(t.x, t.y))
+          t.m < 0.9 || connector(e.x, e.y, t.x, t.y)
         }
-        ;(r.stroke(), (r.fillStyle = `rgba(255,255,255,${v.toFixed(3)})`))
+        ;(r.stroke(), (r.fillStyle = palette.paper), (r.globalAlpha = v))
         for (let e of t) {
           let t = p[e]
           if (t.m < 0.9) continue
-          let n = t.deg >= 10 ? 6 : 4
+          let n = t.deg >= 10 ? 6 : 3
           r.fillRect(ne(t.x - n / 2), ne(t.y - n / 2), n, n)
         }
-        ;((r.fillStyle = `rgba(255,87,25,${v.toFixed(3)})`),
-          r.fillRect(ne(e.x - 3.5), ne(e.y - 3.5), 7, 7),
-          (r.strokeStyle = `rgba(255,87,25,${v.toFixed(3)})`),
-          (r.lineWidth = 1.2),
-          r.beginPath(),
-          r.arc(e.x, e.y, 9, 0, 7),
-          r.stroke())
+        ;((r.fillStyle = palette.ember),
+          r.fillRect(ne(e.x - 3), ne(e.y - 3), 6, 6),
+          (r.strokeStyle = palette.ember),
+          (r.lineWidth = 2),
+          r.strokeRect(ne(e.x - 9), ne(e.y - 9), 18, 18),
+          (r.globalAlpha = 1))
       }
     }
     if (n && J !== G) {
@@ -623,7 +728,7 @@ export function mountDocumentCloud(e, t, n) {
         i = Math.round(t - 16),
         a = Math.round(n - 15)
       ;((r.globalAlpha = ae),
-        (r.strokeStyle = `rgb(${s})`),
+        (r.strokeStyle = palette.warm),
         (r.lineWidth = 1),
         r.beginPath(),
         z
@@ -661,7 +766,7 @@ export function mountDocumentCloud(e, t, n) {
         r.translate(i + 9, a + 8),
         r.scale(14 / 66.55, 14 / 66.55),
         r.translate(-528.81, -408.56),
-        (r.fillStyle = `#FF5719`),
+        (r.fillStyle = palette.ember),
         r.fill(c),
         r.restore(),
         (r.globalAlpha = 1))
@@ -690,6 +795,16 @@ export function mountDocumentCloud(e, t, n) {
     oe = () => {
       ;((U = ee = -1e4), (K = !1), Z())
     }
+  const themeObserver = new MutationObserver(() => {
+    readPalette()
+    K = false
+    if (i || y) re(performance.now())
+    else Z()
+  })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
   if ((te(), i || y)) {
     re(performance.now())
     const observer = new ResizeObserver(() => {
@@ -697,7 +812,10 @@ export function mountDocumentCloud(e, t, n) {
       re(performance.now())
     })
     observer.observe(t)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      themeObserver.disconnect()
+    }
   }
   let se = new IntersectionObserver(
     (e) => {
@@ -738,7 +856,9 @@ export function mountDocumentCloud(e, t, n) {
     () => {
       H = false
       ;(B && cancelAnimationFrame(B),
+        N && cancelAnimationFrame(N),
         document.removeEventListener(`visibilitychange`, onVisibility),
+        themeObserver.disconnect(),
         se.disconnect(),
         ce.disconnect(),
         g.removeEventListener(`scroll`, ae),

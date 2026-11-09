@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Messages } from '../catalogue'
 import { readSoupTheme, transitionSoupTheme } from './runtime'
 import './themes.css'
+import { PixelIcon } from '../PixelIcon'
 
 export { themeInitScript } from './runtime'
 
@@ -75,18 +76,7 @@ export function SoupThemePicker({ m }: { m: Messages }) {
       title={`${m.theme}: ${white ? 'Black' : 'White'} (T)`}
       onClick={() => void toggle()}
     >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="8" />
-        <path d="M12 4a8 8 0 0 0 0 16Z" fill="currentColor" stroke="none" />
-      </svg>
+      <PixelIcon name="theme" size={20} />
     </button>
   )
 }

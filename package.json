@@ -19,7 +19,7 @@
     "assemble": "node scripts/assemble-static.mjs",
     "parity": "python3 scripts/parity.py",
     "typecheck": "tsc --noEmit",
-    "test": "node --test scripts/soup.test.mjs src/soup/themes/runtime.test.mjs src/soup/zero/*.test.mjs src/soup/ecosystem/*.test.mjs src/soup/docs/*.test.mjs src/lib/pixel-field-geometry.test.mjs src/soup/motion/*.test.mjs",
+    "test": "node --test scripts/soup.test.mjs src/soup/themes/runtime.test.mjs src/soup/zero/*.test.mjs src/soup/ecosystem/*.test.mjs src/soup/docs/*.test.mjs src/lib/pixel-field-geometry.test.mjs src/components/HeroPixelField.test.mjs src/soup/motion/*.test.mjs",
     "build:da": "npm run build:locale -- da",
     "dev:da": "PUBLIC_SITE_LOCALE=da ASTRO_DEV_BACKGROUND=1 astro dev --ignore-lock --port 3114",
     "build:locale": "node scripts/build-locale.mjs",

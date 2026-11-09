@@ -595,6 +595,10 @@
   gap: 4px;
 }
 .os-memory-source > div > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   padding: 10px 2px;
   text-align: center;
   background: #1c1812;
@@ -614,6 +618,7 @@
 .os-memory-gpu {
   flex: 1;
   min-width: 0;
+  color: var(--accent-light);
 }
 .os-memory-gpu > div {
   display: flex;
@@ -663,15 +668,13 @@
   place-items: center;
   width: 57px;
   height: 65px;
-  border: 1px solid #61513a;
-  background: #1c1810;
+  border: 0;
+  background: none;
   font-size: 30px;
-  color: #b5a174;
+  color: var(--t-field-crest, #f7d4c4);
 }
 .os-artifact-check {
-  border-color: #aa7442;
-  background: #291e11;
-  color: #d2a56e;
+  color: var(--accent-light);
 }
 .os-gate-list {
   margin: 0 20px;
@@ -730,9 +733,9 @@
 .os-graph-node > i {
   position: absolute;
   left: 50%;
-  top: 23px;
+  top: 36px;
   height: 27px;
-  border-left: 1px solid #7c5638;
+  border-left: 3px solid var(--accent);
 }
 .os-graph-branches {
   display: grid;
@@ -750,7 +753,7 @@
   right: 16.666%;
   top: -21px;
   height: 15px;
-  border: 1px solid #7c5638;
+  border: 3px solid var(--accent);
   border-bottom: 0;
 }
 .os-graph-branches::after {
@@ -777,7 +780,7 @@
   left: 50%;
   top: -21px;
   height: 15px;
-  border-left: 1px solid #7c5638;
+  border-left: 3px solid var(--accent);
 }
 .os-graph-branches > div:nth-child(2)::after {
   top: auto;
@@ -821,6 +824,14 @@
   gap: 15px;
   font: 10px var(--font-mono);
   color: #b1aa90;
+}
+.os-provenance code {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.os-provenance .soup-pixel-icon {
+  color: var(--accent-light);
 }
 .os-ci-flow {
   display: flex;

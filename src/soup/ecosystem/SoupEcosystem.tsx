@@ -5,6 +5,7 @@ import type { Messages } from '../catalogue'
 import { localePath } from '../locales'
 import english from './content.en.json'
 import { PixelToolIcon } from './PixelToolIcon'
+import { PixelIcon } from '../PixelIcon'
 import type { PixelTool } from './PixelToolIcon'
 import './ecosystem.css'
 
@@ -12,7 +13,6 @@ export { PixelToolIcon, PixelModelIcon } from './PixelToolIcon'
 export type { PixelTool, PixelModel, PixelResolution } from './PixelToolIcon'
 export type EcosystemMessages = typeof english
 type CopyKey = keyof EcosystemMessages
-
 
 type Tool = {
   id: PixelTool
@@ -253,17 +253,7 @@ const TRACE_SOURCES: {
 ]
 
 function ExternalArrow() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path d="M2 10 10 2M3 2h7v7" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  )
+  return <PixelIcon name="arrowUpRight" size={12} />
 }
 
 export function SoupEcosystem({
@@ -362,20 +352,7 @@ export function SoupEcosystem({
           aria-label={copy(paused ? 'ecosysResume' : 'ecosysPause')}
           title={copy(paused ? 'ecosysResume' : 'ecosysPause')}
         >
-          <svg
-            viewBox="0 0 16 16"
-            width="14"
-            height="14"
-            fill="currentColor"
-            shapeRendering="crispEdges"
-            aria-hidden="true"
-          >
-            {paused ? (
-              <path d="M4 2h2v2h2v2h2v2H8v2H6v2H4z" />
-            ) : (
-              <path d="M3 3h3v10H3zM10 3h3v10h-3z" />
-            )}
-          </svg>
+          <PixelIcon name={paused ? 'play' : 'pause'} size={14} />
         </button>
       </div>
 
@@ -448,22 +425,7 @@ export function SoupEcosystem({
                   aria-label={m.copy}
                   title={m.copy}
                 >
-                  {copied === command ? (
-                    <span aria-hidden="true">✓</span>
-                  ) : (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M6 6h8v8H6zM3 10H2V2h8v1"
-                        stroke="currentColor"
-                      />
-                    </svg>
-                  )}
+                  <PixelIcon name={copied === command ? 'check' : 'copy'} />
                 </button>
               </div>
               <div className="se-trace-foot">

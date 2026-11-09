@@ -15,11 +15,11 @@
   z-index: 1;
 }
 .soup-zero .zero-tool-window {
-  border: 1px solid var(--zero-line);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--zero-line));
   background: var(--zero-panel);
   min-width: 0;
   position: relative;
-  animation: zero-window-arrive 8s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  animation: zero-window-arrive 8s steps(4, end) infinite;
   animation-delay: calc(var(--tool-index) * 0.28s);
 }
 .soup-zero .zero-tool-title {
@@ -28,7 +28,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--zero-line);
+  border-bottom: 2px solid var(--zero-line);
   font: 8px/1.4 var(--font-mono);
   color: var(--zero-soft);
   white-space: nowrap;
@@ -52,9 +52,9 @@
 }
 .soup-zero .zero-tool-outlet {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  inset-inline-end: -3px;
+  width: 6px;
+  height: 6px;
+  inset-inline-end: -4px;
   top: 50%;
   background: var(--accent-light);
 }
@@ -65,14 +65,22 @@
   width: 100%;
 }
 .soup-zero .zero-mini-lines i {
-  height: 3px;
-  background: var(--zero-soft);
-  opacity: 0.3;
+  height: 4px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--zero-soft) 0 4px,
+    transparent 4px 6px
+  );
+  opacity: 0.55;
   display: block;
 }
 .soup-zero .zero-mini-lines i:nth-child(3n) {
-  background: var(--accent);
-  opacity: 0.7;
+  background: repeating-linear-gradient(
+    to right,
+    var(--accent-light) 0 4px,
+    transparent 4px 6px
+  );
+  opacity: 0.9;
 }
 .soup-zero .zero-tool-cursor {
   color: var(--accent-light);
@@ -83,31 +91,35 @@
   position: relative;
   color: var(--accent-light);
 }
-.soup-zero .zero-assembly-rails svg {
+.soup-zero .zero-assembly-rails > svg {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
 }
-.soup-zero .zero-assembly-rails path {
+.soup-zero .zero-assembly-rails > svg > path {
   fill: none;
-  stroke: var(--zero-line);
-  stroke-width: 1;
+  stroke: color-mix(in srgb, var(--accent) 38%, var(--zero-line));
+  stroke-width: 4;
+  stroke-linejoin: miter;
 }
 .soup-zero .zero-assembly-rails .zero-rail-pulse {
   stroke: var(--accent-light);
-  stroke-dasharray: 7 93;
-  animation: zero-rail-flow 5s linear infinite;
+  stroke-dasharray: 3 2 3 92;
+  animation: zero-rail-flow 5s steps(32, end) infinite;
+}
+.soup-zero .zero-rail-junctions {
+  fill: var(--accent-light);
 }
 .soup-zero .zero-assembly-rails > span {
   position: absolute;
   inset-inline-end: -4px;
-  top: calc(50% - 12px);
+  top: calc(50% - 10px);
   background: var(--zero-bg);
   font-size: 17px;
 }
 .soup-zero .zero-unified-window {
-  border: 1px solid var(--accent);
+  border: 3px solid var(--accent);
   min-width: 0;
   background: var(--zero-bg);
   position: relative;
@@ -115,8 +127,8 @@
 .soup-zero .zero-unified-window::after {
   content: '';
   position: absolute;
-  inset: -4px;
-  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   pointer-events: none;
 }
 .soup-zero .zero-unified-title {
@@ -124,7 +136,8 @@
   align-items: center;
   gap: 12px;
   padding: 13px 15px;
-  border-bottom: 1px solid var(--zero-line);
+  border-bottom: 3px solid
+    color-mix(in srgb, var(--accent) 38%, var(--zero-line));
   font: 11px/1.4 var(--font-mono);
 }
 .soup-zero .zero-unified-title .zero-slash-mark {
@@ -132,8 +145,10 @@
 }
 .soup-zero .zero-unified-title > span:last-child {
   margin-inline-start: auto;
-  color: var(--accent-light);
-  font-size: 5px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-light);
+  font-size: 0;
 }
 .soup-zero .zero-unified-content {
   display: grid;
@@ -142,7 +157,8 @@
 }
 .soup-zero .zero-unified-sidebar {
   padding-top: 16px;
-  border-inline-end: 1px solid var(--zero-line);
+  border-inline-end: 3px solid
+    color-mix(in srgb, var(--accent) 22%, var(--zero-line));
 }
 .soup-zero .zero-unified-sidebar > span {
   display: flex;
@@ -177,7 +193,7 @@
   gap: 5px;
 }
 .soup-zero .zero-unified-main > .zero-mini-lines i {
-  height: 3px;
+  height: 4px;
 }
 .soup-zero .zero-unified-rows {
   margin-top: 17px;
@@ -207,11 +223,41 @@
 .soup-zero .zero-unified-terminal code {
   font: 7px/1.7 var(--font-mono);
 }
-.soup-zero .zero-unified-terminal > span {
-  font: 8px/1 var(--font-mono);
-  color: var(--accent-light);
-  letter-spacing: 2px;
-  animation: zero-meter-signal 4s ease-in-out infinite;
+.soup-zero .zero-pixel-meter {
+  display: inline-flex;
+  gap: 3px;
+  flex: none;
+}
+.soup-zero .zero-pixel-meter i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: var(--zero-line);
+}
+.soup-zero .zero-pixel-meter .is-filled {
+  background: var(--accent-light);
+}
+.soup-zero .zero-unified-terminal > .zero-pixel-meter {
+  animation: zero-meter-signal 4s steps(3, end) infinite;
+}
+.soup-zero .zero-tool-gpus {
+  display: grid;
+  gap: 8px;
+  font: 7px/1.4 var(--font-mono);
+  width: 100%;
+}
+.soup-zero .zero-tool-gpus > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.soup-zero .zero-tool-gpus .zero-pixel-meter {
+  gap: 2px;
+}
+.soup-zero .zero-tool-gpus .zero-pixel-meter i {
+  width: 3px;
+  height: 3px;
 }
 .soup-zero .zero-station-scene {
   height: 228px;
@@ -282,9 +328,34 @@
   padding-top: 15px;
 }
 .soup-zero .zero-prompt-sheet {
-  border: 1px solid var(--zero-line);
+  border: 2px solid var(--zero-line);
   padding: 13px;
   min-width: 0;
+  position: relative;
+  background: color-mix(in srgb, var(--accent) 5%, var(--zero-bg));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    calc(100% - 12px) 4px,
+    calc(100% - 8px) 4px,
+    calc(100% - 8px) 8px,
+    calc(100% - 4px) 8px,
+    calc(100% - 4px) 12px,
+    100% 12px,
+    100% 100%,
+    0 100%
+  );
+}
+.soup-zero .zero-prompt-sheet::after,
+.soup-zero .zero-document-stack > div::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto auto;
+  width: 12px;
+  height: 12px;
+  border-inline-start: 4px solid var(--accent-light);
+  border-bottom: 4px solid var(--accent-light);
+  opacity: 0.7;
 }
 .soup-zero .zero-prompt-sheet:nth-child(2) {
   border-top-color: var(--accent);
@@ -299,7 +370,7 @@
 .soup-zero .zero-prompt-result {
   display: flex;
   justify-content: space-between;
-  border-top: 1px solid var(--zero-line);
+  border-top: 2px dashed var(--zero-line);
   padding-top: 12px;
   margin-top: 20px;
   font-size: 11px;
@@ -322,7 +393,7 @@
   position: absolute;
   width: 80%;
   padding: 9px;
-  border: 1px solid var(--zero-line);
+  border: 2px solid color-mix(in srgb, var(--accent) 40%, var(--zero-line));
   background: var(--zero-bg);
   height: 120px;
 }
@@ -343,12 +414,28 @@
   text-align: center;
   color: var(--accent-light);
   font-size: 17px;
+  position: relative;
+}
+.soup-zero .zero-context-rail::before {
+  content: '';
+  position: absolute;
+  height: 4px;
+  inset: 50% 2px auto;
+  background: repeating-linear-gradient(
+    to right,
+    var(--accent) 0 4px,
+    transparent 4px 8px
+  );
+}
+.soup-zero .zero-context-rail .soup-pixel-icon {
+  position: relative;
 }
 .soup-zero .zero-context-result {
   width: 38%;
-  border: 1px solid var(--zero-line);
+  border: 2px solid var(--accent);
   padding: 13px;
   min-height: 100px;
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .soup-zero .zero-context-result > span {
   font-size: 18px;
@@ -381,11 +468,13 @@
   margin-top: 9px;
 }
 .soup-zero .zero-tool-calls > div {
-  border: 1px solid var(--zero-line);
+  border: 2px solid color-mix(in srgb, var(--accent) 40%, var(--zero-line));
   padding: 11px;
   display: flex;
   flex-direction: column;
   gap: 9px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--zero-bg));
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 20%, transparent);
 }
 .soup-zero .zero-tool-calls strong {
   font-weight: 400;
@@ -403,6 +492,17 @@
   text-align: center;
   margin-top: 20px;
   font-size: 9px;
+}
+.soup-zero .zero-tool-return > svg {
+  vertical-align: middle;
+  color: var(--accent-light);
+}
+.soup-zero .zero-tool-title i,
+.soup-zero .zero-unified-rows i,
+.soup-zero .zero-station-scene i,
+.soup-zero .zero-pipeline-node > i {
+  display: inline-flex;
+  align-items: center;
 }
 .soup-zero .zero-layer-scene {
   height: 100%;
@@ -560,19 +660,26 @@
 .soup-zero .zero-monitor-grid {
   fill: none;
   stroke: var(--zero-line);
-  stroke-width: 0.6;
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
 }
 .soup-zero .zero-monitor-line {
   fill: none;
   stroke: var(--accent-light);
-  stroke-width: 1.4;
+  stroke-width: 4;
+  stroke-linejoin: miter;
+}
+.soup-zero .zero-monitor-pixels {
+  fill: var(--zero-bg);
+  stroke: var(--accent-light);
+  stroke-width: 2;
 }
 .soup-zero .zero-monitor-sweep {
   fill: none;
   stroke: var(--accent-light);
-  stroke-width: 1;
+  stroke-width: 4;
   opacity: 0.35;
-  animation: zero-monitor-sweep 4s linear infinite;
+  animation: zero-monitor-sweep 4s steps(25, end) infinite;
 }
 .soup-zero .zero-team-scene {
   padding: 10px;
@@ -587,7 +694,7 @@
   place-items: center;
   width: 25px;
   height: 25px;
-  border: 1px solid var(--zero-line);
+  border: 2px solid color-mix(in srgb, var(--accent) 50%, var(--zero-line));
   font-size: 14px;
   color: var(--accent-light);
 }
@@ -630,13 +737,14 @@
   color: var(--accent-light);
 }
 .soup-zero .zero-chat-prompt {
-  border: 1px solid var(--zero-line);
+  border: 2px solid color-mix(in srgb, var(--accent) 35%, var(--zero-line));
   padding: 12px;
   display: flex;
   align-items: center;
   gap: 16px;
   width: 84%;
   margin-inline-start: auto;
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--accent) 15%, transparent);
 }
 .soup-zero .zero-chat-prompt > span {
   font-size: 13px;
@@ -653,13 +761,21 @@
 }
 .soup-zero .zero-token-output i {
   height: 6px;
-  background: var(--zero-soft);
+  background: repeating-linear-gradient(
+    to right,
+    var(--zero-soft) 0 6px,
+    transparent 6px 9px
+  );
   opacity: 0.2;
-  animation: zero-token-write 5s linear infinite;
+  animation: zero-token-write 5s steps(3, end) infinite;
   animation-delay: calc(var(--token-index) * 0.055s);
 }
 .soup-zero .zero-token-output i:nth-child(7n) {
-  background: var(--accent-light);
+  background: repeating-linear-gradient(
+    to right,
+    var(--accent-light) 0 6px,
+    transparent 6px 9px
+  );
 }
 .soup-zero .zero-token-output > span {
   font-size: 12px;
@@ -687,9 +803,13 @@
   position: absolute;
   top: 20px;
   bottom: 20px;
-  inset-inline-start: 18px;
-  width: 1px;
-  background: var(--zero-line);
+  inset-inline-start: 16px;
+  width: 4px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--accent) 0 4px,
+    var(--zero-line) 4px 8px
+  );
 }
 .soup-zero .zero-pipeline-node {
   display: grid;
@@ -703,15 +823,15 @@
 .soup-zero .zero-pipeline-node > span {
   display: grid;
   place-items: center;
-  border: 1px solid var(--zero-line);
-  height: 28px;
+  border: 3px solid color-mix(in srgb, var(--accent) 35%, var(--zero-line));
+  height: 32px;
   background: var(--zero-bg);
   font-size: 8px;
   color: var(--zero-soft);
 }
 .soup-zero .zero-pipeline-node > div {
-  border-bottom: 1px solid var(--zero-line);
-  padding-bottom: 8px;
+  border-bottom: 2px solid var(--zero-line);
+  padding: 8px 0;
   min-width: 0;
 }
 .soup-zero .zero-pipeline-node strong {
@@ -735,6 +855,8 @@
 .soup-zero .zero-pipeline-node.is-active > span {
   border-color: var(--accent);
   color: var(--accent-light);
+  background: color-mix(in srgb, var(--accent) 12%, var(--zero-bg));
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--accent) 25%, transparent);
 }
 .soup-zero .zero-pipeline-node.is-active strong,
 .soup-zero .zero-pipeline-node.is-active i {
@@ -746,19 +868,21 @@
 .soup-zero .zero-pipeline-node.is-active::after {
   content: '';
   position: absolute;
-  width: 3px;
-  height: 3px;
-  inset-inline-start: 17px;
-  top: 39px;
+  width: 6px;
+  height: 6px;
+  inset-inline-start: 15px;
+  top: 45px;
   background: var(--accent-light);
-  animation: zero-pipeline-packet 2s linear infinite;
+  animation: zero-pipeline-packet 2s steps(5, end) infinite;
 }
 .soup-zero .zero-pipeline-feedback {
   position: absolute;
   inset: 47px 25px 151px auto;
   width: 19px;
-  border-right: 1px solid var(--zero-line);
-  border-block: 1px solid var(--zero-line);
+  border-right: 3px solid
+    color-mix(in srgb, var(--accent) 40%, var(--zero-line));
+  border-block: 3px solid
+    color-mix(in srgb, var(--accent) 40%, var(--zero-line));
   color: var(--accent-light);
   display: flex;
   justify-content: space-between;
@@ -767,18 +891,18 @@
   font: 17px/1 var(--font-mono);
 }
 .soup-zero .zero-pipeline-feedback > span:first-child {
-  transform: translate(-4px, -8px);
+  transform: translate(-4px, -8px) rotate(180deg);
 }
 .soup-zero .zero-pipeline-feedback > span:last-child {
-  transform: translate(-4px, 8px);
+  transform: translate(-4px, 8px) rotate(180deg);
 }
 .soup-zero .zero-pipeline-feedback i {
   position: absolute;
-  right: -2px;
-  width: 3px;
-  height: 3px;
+  right: -4px;
+  width: 6px;
+  height: 6px;
   background: var(--accent-light);
-  animation: zero-feedback-packet 5s linear infinite;
+  animation: zero-feedback-packet 5s steps(24, end) infinite;
 }
 .soup-zero .zero-artifact-ledger {
   border-top: 1px solid var(--zero-line);
@@ -804,8 +928,19 @@
   color: var(--accent-light);
 }
 .soup-zero .zero-fragment-art:not([data-zero-visible]) *,
-.soup-zero .zero-loop-field:not([data-zero-visible]) * {
+.soup-zero .zero-fragment-art:not([data-zero-visible]) *::before,
+.soup-zero .zero-fragment-art:not([data-zero-visible]) *::after,
+.soup-zero .zero-loop-field:not([data-zero-visible]) *,
+.soup-zero .zero-loop-field:not([data-zero-visible]) *::before,
+.soup-zero .zero-loop-field:not([data-zero-visible]) *::after,
+.soup-zero .zero-station-scene[data-scene-paused] * {
   animation-play-state: paused;
+}
+.soup-zero .zero-station-scene[data-scene-static] * {
+  animation: none !important;
+}
+.soup-zero .zero-station-scene[data-scene-static] .zero-token-output i {
+  opacity: 0.7;
 }
 @keyframes zero-window-arrive {
   0%,
@@ -1008,26 +1143,27 @@
     gap: 5px;
   }
   .soup-zero .zero-mini-lines i {
-    height: 2px;
+    height: 4px;
   }
   .soup-zero .zero-assembly-rails {
     height: 65px;
-    width: 1px;
-    border-inline-start: 1px solid var(--zero-line);
+    width: 4px;
+    border-inline-start: 4px solid
+      color-mix(in srgb, var(--accent) 38%, var(--zero-line));
     margin: auto;
   }
   .soup-zero .zero-assembly-rails::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -1px;
-    width: 3px;
-    height: 3px;
+    left: -5px;
+    width: 6px;
+    height: 6px;
     background: var(--accent-light);
-    animation: zero-feedback-packet 3s linear infinite;
+    animation: zero-feedback-packet 3s steps(10, end) infinite;
     animation-direction: reverse;
   }
-  .soup-zero .zero-assembly-rails svg {
+  .soup-zero .zero-assembly-rails > svg {
     display: none;
   }
   .soup-zero .zero-assembly-rails > span {
@@ -1154,6 +1290,10 @@
     transform: none;
   }
 }
-.soup-zero[data-zero-hidden] * {
+.soup-zero[data-zero-hidden] *,
+.soup-zero[data-zero-hidden] *::before,
+.soup-zero[data-zero-hidden] *::after,
+.soup-zero[data-motion-paused] *::before,
+.soup-zero[data-motion-paused] *::after {
   animation-play-state: paused;
 }

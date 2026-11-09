@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { PixelIcon } from '../PixelIcon'
 import { ProcessScene } from '../motion/ProcessScene'
 import type { ProcessKind } from '../motion/ProcessArt'
 import type { ZeroContent } from './SoupZero'
@@ -17,13 +18,24 @@ function MiniLines({ count = 5 }: { count?: number }) {
   return (
     <div className="zero-mini-lines">
       {Array.from({ length: count }, (_, index) => (
-        <i key={index} style={{ width: `${42 + ((index * 19) % 53)}%` }} />
+        <i key={index} style={{ width: `${40 + ((index * 20) % 60)}%` }} />
       ))}
     </div>
   )
 }
 
-/** Six flat tool windows converge along rails into a single workspace. */
+/** Bounded, square status cells shared by the decorative workspace scenes. */
+function PixelMeter({ filled = 5 }: { filled?: number }) {
+  return (
+    <span className="zero-pixel-meter">
+      {Array.from({ length: 7 }, (_, index) => (
+        <i key={index} className={index < filled ? 'is-filled' : ''} />
+      ))}
+    </span>
+  )
+}
+
+/** Six pixel tool windows converge along rails into a single workspace. */
 export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
   return (
     <div className="zero-assembly zero-scene-motion" aria-hidden="true">
@@ -36,7 +48,9 @@ export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
           >
             <div className="zero-tool-title">
               <span>{index === 0 ? c.terminal : tool}</span>
-              <i>↗</i>
+              <i>
+                <PixelIcon name="arrowUpRight" size={12} />
+              </i>
             </div>
             <div className="zero-tool-body">
               {index === 0 ? (
@@ -54,11 +68,14 @@ export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
                   epochs: 2
                 </code>
               ) : index === 3 ? (
-                <code>
-                  GPU 0 ▰▰▰▱
-                  <br />
-                  GPU 1 ▰▰▱▱
-                </code>
+                <div className="zero-tool-gpus">
+                  <span>
+                    GPU 0 <PixelMeter filled={5} />
+                  </span>
+                  <span>
+                    GPU 1 <PixelMeter filled={3} />
+                  </span>
+                </div>
               ) : (
                 <MiniLines count={index === 4 ? 4 : 5} />
               )}
@@ -68,15 +85,28 @@ export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
         ))}
       </div>
       <div className="zero-assembly-rails">
-        <svg viewBox="0 0 100 330" preserveAspectRatio="none">
-          <path d="M0 52H24V165H100M0 165H100M0 278H44V165" />
+        <svg
+          viewBox="0 0 100 330"
+          preserveAspectRatio="none"
+          shapeRendering="crispEdges"
+        >
+          <path d="M0 52H24V164H100M0 164H100M0 276H44V164" />
           <path
             className="zero-rail-pulse"
-            d="M0 52H24V165H100M0 165H100M0 278H44V165"
+            d="M0 52H24V164H100M0 164H100M0 276H44V164"
             pathLength="100"
           />
+          <g className="zero-rail-junctions">
+            <rect x="20" y="48" width="8" height="8" />
+            <rect x="20" y="160" width="8" height="8" />
+            <rect x="40" y="160" width="8" height="8" />
+            <rect x="40" y="272" width="8" height="8" />
+            <rect x="76" y="160" width="8" height="8" />
+          </g>
         </svg>
-        <span>→</span>
+        <span>
+          <PixelIcon name="arrowRight" size={20} />
+        </span>
       </div>
       <div className="zero-unified-window">
         <div className="zero-unified-title">
@@ -105,7 +135,9 @@ export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
               {['support-tickets.jsonl', './output', 'quality.jsonl'].map(
                 (file) => (
                   <span key={file}>
-                    <i>✓</i>
+                    <i>
+                      <PixelIcon name="check" size={10} />
+                    </i>
                     {file}
                   </span>
                 ),
@@ -117,7 +149,7 @@ export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
                 <br />
                 --config soup.yaml
               </code>
-              <span>▰▰▰▰▱</span>
+              <PixelMeter />
             </div>
           </div>
         </div>
@@ -126,7 +158,7 @@ export function ZeroFragmentAssembly({ c }: { c: ZeroContent }) {
   )
 }
 
-/** Each station has its own flat visual grammar; there are no particle scenes here. */
+/** Each station keeps its own content within a shared square-cell visual grammar. */
 export function ZeroStationScene({
   station,
   c,
@@ -166,12 +198,16 @@ export function ZeroStationScene({
           <div className="zero-prompt-sheet" key={version}>
             <header>
               {version}
-              <span>{index ? '↗' : '—'}</span>
+              <span>
+                <PixelIcon name={index ? 'arrowUpRight' : 'file'} size={14} />
+              </span>
             </header>
             <MiniLines count={6} />
             <div className="zero-prompt-result">
               {'{ }'}
-              <i>✓</i>
+              <i>
+                <PixelIcon name="check" size={14} />
+              </i>
             </div>
           </div>
         ))}
@@ -188,9 +224,13 @@ export function ZeroStationScene({
             </div>
           ))}
         </div>
-        <div className="zero-context-rail">→</div>
+        <div className="zero-context-rail">
+          <PixelIcon name="arrowRight" size={20} />
+        </div>
         <div className="zero-context-result">
-          <span>⌕</span>
+          <span>
+            <PixelIcon name="data" size={24} />
+          </span>
           <MiniLines count={3} />
           <code>[0:128]</code>
         </div>
@@ -200,19 +240,25 @@ export function ZeroStationScene({
     scene = (
       <div className="zero-tools-scene">
         <div className="zero-tool-request">
-          LLM<span>↓</span>
+          LLM
+          <span>
+            <PixelIcon name="arrowDown" size={16} />
+          </span>
         </div>
         <div className="zero-tool-calls">
           {['MCP', 'CLI', 'API'].map((tool, index) => (
             <div key={tool}>
               <span>0{index + 1}</span>
               <strong>{tool}</strong>
-              <i>{'{ }'}</i>
+              <i>
+                <PixelIcon name="code" size={18} />
+              </i>
             </div>
           ))}
         </div>
         <div className="zero-tool-return">
-          ↳ <code>{'{ "result": "…" }'}</code>
+          <PixelIcon name="arrowRight" size={14} />{' '}
+          <code>{'{ "result": "…" }'}</code>
         </div>
       </div>
     )
@@ -222,15 +268,28 @@ export function ZeroStationScene({
         <header>
           GPU / 000<span>24:00</span>
         </header>
-        <svg viewBox="0 0 300 130">
+        <svg viewBox="0 0 300 130" shapeRendering="crispEdges">
           <path
             className="zero-monitor-grid"
             d="M0 26H300M0 52H300M0 78H300M0 104H300M50 0V130M100 0V130M150 0V130M200 0V130M250 0V130"
           />
           <path
             className="zero-monitor-line"
-            d="M0 80H20L30 70 42 90 56 49 68 73 80 60 93 70 108 34 121 46 136 30 148 68 162 57 176 67 190 37 203 44 217 21 231 45 244 35 260 53 274 36 287 47H300"
+            d="M0 80H20V72H32V88H44V48H56V72H68V60H80V68H96V36H108V44H124V28H136V68H148V56H164V64H176V36H192V44H204V20H216V44H232V36H244V52H260V36H276V48H300"
           />
+          <g className="zero-monitor-pixels">
+            {[
+              [32, 88],
+              [56, 72],
+              [108, 44],
+              [136, 68],
+              [176, 36],
+              [216, 44],
+              [260, 36],
+            ].map(([x, y]) => (
+              <rect key={x} x={x - 3} y={y - 3} width="6" height="6" />
+            ))}
+          </g>
           <path className="zero-monitor-sweep" d="M0 0V130" />
         </svg>
         <footer>
@@ -243,16 +302,24 @@ export function ZeroStationScene({
     scene = (
       <div className="zero-team-scene">
         <header>
-          <span>◧</span>
-          <span>◨</span>
-          <span>◩</span>
+          <span>
+            <PixelIcon name="users" size={16} />
+          </span>
+          <span>
+            <PixelIcon name="network" size={16} />
+          </span>
+          <span>
+            <PixelIcon name="shield" size={16} />
+          </span>
           <code>run #42</code>
         </header>
         {['soup.yaml', 'quality.jsonl', './output'].map((file, index) => (
           <div key={file}>
             <span>0{index + 1}</span>
             <code>{file}</code>
-            <i>✓</i>
+            <i>
+              <PixelIcon name="check" size={12} />
+            </i>
           </div>
         ))}
         <span className="zero-team-diff">
@@ -264,10 +331,15 @@ export function ZeroStationScene({
     scene = (
       <div className="zero-token-scene">
         <header>
-          llama-3.1-8b <span>▷</span>
+          llama-3.1-8b{' '}
+          <span>
+            <PixelIcon name="play" size={14} />
+          </span>
         </header>
         <div className="zero-chat-prompt">
-          <span>↳</span>
+          <span>
+            <PixelIcon name="chat" size={18} />
+          </span>
           <MiniLines count={2} />
         </div>
         <div className="zero-token-output">
@@ -277,7 +349,7 @@ export function ZeroStationScene({
               style={
                 {
                   '--token-index': index,
-                  width: `${12 + ((index * 13) % 30)}px`,
+                  width: `${12 + ((index * 12) % 36)}px`,
                 } as CSSProperties
               }
             />
@@ -286,13 +358,17 @@ export function ZeroStationScene({
         </div>
         <footer>
           {c.stationPlayground}
-          <span>→</span>
+          <span>
+            <PixelIcon name="arrowRight" size={14} />
+          </span>
         </footer>
       </div>
     )
   return (
     <div
       className={`zero-station-scene zero-station-scene-${station} zero-scene-motion`}
+      data-scene-paused={paused || undefined}
+      data-scene-static={instant || undefined}
       aria-hidden="true"
     >
       {scene}
@@ -338,14 +414,27 @@ export function ZeroPipelineScene({
                 }
               </code>
             </div>
-            <i>{index < active ? '✓' : index === active ? '→' : '·'}</i>
+            <i>
+              {index <= active ? (
+                <PixelIcon
+                  name={index < active ? 'check' : 'arrowRight'}
+                  size={16}
+                />
+              ) : (
+                '·'
+              )}
+            </i>
           </div>
         ))}
       </div>
       <div className="zero-pipeline-feedback">
-        <span>↰</span>
+        <span>
+          <PixelIcon name="arrowRight" size={16} />
+        </span>
         <i />
-        <span>↵</span>
+        <span>
+          <PixelIcon name="arrowRight" size={16} />
+        </span>
       </div>
       <div className="zero-artifact-ledger">
         <span>{c.sampleEvidence}</span>

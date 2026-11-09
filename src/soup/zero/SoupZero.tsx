@@ -3,6 +3,7 @@ import type { Messages } from '../catalogue'
 import { localePath } from '../locales'
 import { useScrollMotion } from '../motion/useScrollMotion'
 import { ZERO_SCROLL_GROUPS } from '../motion/scroll-motion'
+import { PixelIcon, type PixelIconName } from '../PixelIcon'
 import {
   ZeroFragmentAssembly,
   ZeroStationScene,
@@ -24,38 +25,38 @@ type Station = {
   title: keyof ZeroContent
   body: keyof ZeroContent
   live?: string
-  glyph: string
+  glyph: PixelIconName
 }
 const STATIONS: Station[] = [
-  { title: 'stationPlayground', body: 'stationPlaygroundBody', glyph: '▷' },
-  { title: 'stationData', body: 'stationDataBody', glyph: '▦' },
-  { title: 'stationPrompts', body: 'stationPromptsBody', glyph: '⌘' },
-  { title: 'stationRag', body: 'stationRagBody', glyph: '⌗' },
-  { title: 'stationAgents', body: 'stationAgentsBody', glyph: '↳' },
+  { title: 'stationPlayground', body: 'stationPlaygroundBody', glyph: 'play' },
+  { title: 'stationData', body: 'stationDataBody', glyph: 'data' },
+  { title: 'stationPrompts', body: 'stationPromptsBody', glyph: 'terminal' },
+  { title: 'stationRag', body: 'stationRagBody', glyph: 'network' },
+  { title: 'stationAgents', body: 'stationAgentsBody', glyph: 'chip' },
   {
     title: 'stationTrain',
     body: 'stationTrainBody',
     live: 'training',
-    glyph: '≋',
+    glyph: 'layers',
   },
   {
     title: 'stationEvals',
     body: 'stationEvalsBody',
     live: 'eval-gate',
-    glyph: '✓',
+    glyph: 'check',
   },
   {
     title: 'stationDeploy',
     body: 'stationDeployBody',
     live: 'serving',
-    glyph: '↗',
+    glyph: 'arrowUpRight',
   },
-  { title: 'stationMonitor', body: 'stationMonitorBody', glyph: '⌁' },
-  { title: 'stationTeam', body: 'stationTeamBody', glyph: '⊞' },
+  { title: 'stationMonitor', body: 'stationMonitorBody', glyph: 'monitor' },
+  { title: 'stationTeam', body: 'stationTeamBody', glyph: 'users' },
 ]
 
 function Arrow() {
-  return <span aria-hidden="true">↗</span>
+  return <PixelIcon name="arrowUpRight" />
 }
 
 function Install({ m }: { m: Messages }) {
@@ -83,7 +84,7 @@ function Install({ m }: { m: Messages }) {
           aria-label={m.copy}
           title={m.copy}
         >
-          {status === 'copied' ? '✓' : '⧉'}
+          <PixelIcon name={status === 'copied' ? 'check' : 'copy'} />
         </button>
       </div>
       <span className="zero-copy-status" role="status">
@@ -179,7 +180,7 @@ export function SoupZero({
                 {c.getStarted} <Arrow />
               </a>
               <a className="zero-text-link" href="#zero-live">
-                {c.seeLive} <span aria-hidden="true">↓</span>
+                {c.seeLive} <PixelIcon name="arrowDown" />
               </a>
             </div>
             <p className="zero-small zero-muted">{c.heroNote}</p>
@@ -205,7 +206,7 @@ export function SoupZero({
                 aria-label={paused ? c.playMotion : c.pauseMotion}
                 title={paused ? c.playMotion : c.pauseMotion}
               >
-                {paused ? '▷' : 'Ⅱ'}
+                <PixelIcon name={paused ? 'play' : 'pause'} />
               </button>
             </div>
           </div>
@@ -236,7 +237,9 @@ export function SoupZero({
                     setStation(index)
                   }}
                 >
-                  <span aria-hidden="true">{item.glyph}</span>
+                  <span aria-hidden="true">
+                    <PixelIcon name={item.glyph} />
+                  </span>
                   <span>{c[item.title]}</span>
                   <i
                     className={item.live ? 'is-live' : ''}
@@ -316,7 +319,7 @@ export function SoupZero({
           ].map(([title, id]) => (
             <a key={id} href={`#${id}`}>
               {title}
-              <span aria-hidden="true">↗</span>
+              <PixelIcon name="arrowUpRight" />
             </a>
           ))}
         </div>
@@ -342,7 +345,7 @@ export function SoupZero({
         <div className="zero-fragment-art">
           <div className="zero-art-labels">
             <span>{c.fragmented}</span>
-            <span aria-hidden="true">→</span>
+            <PixelIcon name="arrowRight" />
             <span>{c.connected}</span>
           </div>
           <ZeroFragmentAssembly c={c} />
@@ -419,7 +422,7 @@ export function SoupZero({
               <p>{c.ownershipBody}</p>
             </div>
             <span className="zero-ownership-corner" aria-hidden="true">
-              ↗
+              <PixelIcon name="arrowUpRight" size={32} />
             </span>
           </div>
         </div>
@@ -606,7 +609,8 @@ export function SoupZero({
                 <code>soup ship</code>
               </div>
               <span className="zero-verdict-word" aria-hidden="true">
-                SHIP<span>↗</span>
+                SHIP
+                <PixelIcon name="arrowUpRight" size={32} />
               </span>
               <p className="zero-tiny zero-muted">{c.verdictExample}</p>
               <h3>{c.verdictTitle}</h3>
@@ -614,7 +618,7 @@ export function SoupZero({
               <ul>
                 {[c.proofTask, c.proofGeneral, c.proofGaming].map((proof) => (
                   <li key={proof}>
-                    <span aria-hidden="true">✓</span>
+                    <PixelIcon name="check" />
                     {proof}
                   </li>
                 ))}

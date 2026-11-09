@@ -281,9 +281,8 @@ export function HeroPixelField({
     const ctx = canvas.getContext('2d', { alpha: false })
     if (!ctx) return
 
-    const reducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
+    const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let reducedMotion = motionMedia.matches
     const finePointer = window.matchMedia(
       '(hover: hover) and (pointer: fine)',
     ).matches
@@ -371,8 +370,7 @@ export function HeroPixelField({
     let awaitingFirstEtch = isHero && !reducedMotion && held
     let etchToken = 0
     let disposed = false
-    const spectrumOn = isHero && !reducedMotion
-    if (spectrumOn) void loadMusic()
+    if (isHero && !reducedMotion) void loadMusic()
     const bandsNow = new Float32Array(BANDS)
     let beatPulse = 0
 
@@ -416,8 +414,9 @@ export function HeroPixelField({
       palette = readPalette()
       buildRamp()
       buildRestInks()
-      if (reducedMotion) draw(lastDraw)
-      else if (isHero) {
+      if (reducedMotion) {
+        if (canDraw()) draw(0)
+      } else if (isHero) {
         if (pickerOpen) etchPending = true
         else beginEtch()
       }
@@ -458,6 +457,7 @@ export function HeroPixelField({
     let rMin = 0
     let ramp = new Float32Array(0)
     let publishedGrid = ''
+    let measured = false
 
     // The quiet block's own box is much taller and wider than the words in
     // it, so the ramp is measured from each line of copy instead. Those
@@ -546,7 +546,10 @@ export function HeroPixelField({
         glyph,
         window.devicePixelRatio,
       )
-      if (!next) return false
+      if (!next) {
+        measured = false
+        return false
+      }
       dpr = next.dpr
       // Assigning canvas.width wipes the buffer, so only do it when the size
       // has actually changed. A drag-resize fires this observer continuously
@@ -628,6 +631,7 @@ export function HeroPixelField({
           ramp[r * cols + c] = shape * clear * clearOf(x, y)
         }
       }
+      measured = true
       return true
     }
 
@@ -685,7 +689,7 @@ export function HeroPixelField({
 
       let beatNow = 0
       let listening = false
-      if (spectrumOn) {
+      if (isHero && !reducedMotion) {
         const heard = music.sample(time)
         for (let i = 0; i < BANDS; i++) {
           const rise = heard.bands[i] > bandsNow[i]
@@ -1048,7 +1052,14 @@ export function HeroPixelField({
 
     let frame = 0
     let lastDraw = 0
+    const canDraw = () => !disposed && measured && visible && !document.hidden
+    const stopDrawing = () => {
+      cancelAnimationFrame(frame)
+      frame = 0
+    }
     const loop = (time: number) => {
+      frame = 0
+      if (!canDraw() || reducedMotion) return
       frame = requestAnimationFrame(loop)
       if (time - lastDraw < 25) return
       lastDraw = time
@@ -1096,7 +1107,7 @@ export function HeroPixelField({
     }
 
     const onPointerMove = (event: PointerEvent) => {
-      if (!visible) return
+      if (!canDraw()) return
       const { inside, strength: level, x, y } = locate(event)
       // While a press is held or the picker is up, the glow stays muted no
       // matter where the cursor wanders; only a move after both are done
@@ -1113,7 +1124,7 @@ export function HeroPixelField({
     }
 
     const onPointerDown = (event: PointerEvent) => {
-      if (!visible) return
+      if (!canDraw()) return
       const { inside, x, y } = locate(event)
       if (!inside) return
       pointer.x = x
@@ -1156,26 +1167,49 @@ export function HeroPixelField({
     }
 
     // Keep observing zero-size hosts so drawing can start when they become visible.
-    let drawing = false
     const startDrawing = () => {
-      if (drawing) return
-      drawing = true
-      if (reducedMotion) draw(0)
-      else frame = requestAnimationFrame(loop)
+      if (!canDraw()) {
+        stopDrawing()
+        return
+      }
+      if (reducedMotion) {
+        stopDrawing()
+        draw(0)
+      } else if (!frame) frame = requestAnimationFrame(loop)
     }
-    if (measure()) startDrawing()
+    measure()
+    startDrawing()
+
+    const onMotionPreference = () => {
+      reducedMotion = motionMedia.matches
+      stopDrawing()
+      if (reducedMotion) {
+        // Finish any entrance and clear transient motion before the static paint.
+        ++etchToken
+        etch?.free()
+        etch = null
+        etchPending = false
+        awaitingFirstEtch = false
+        holding = null
+        spriteHold = null
+        spriteStampAt = Infinity
+        sprite.strength = 0
+        strength = 0
+        targetStrength = 0
+        pings = []
+        bandsNow.fill(0)
+        beatPulse = 0
+      } else if (isHero) void loadMusic()
+      startDrawing()
+    }
+    motionMedia.addEventListener('change', onMotionPreference)
+    document.addEventListener('visibilitychange', startDrawing)
 
     // Pause drawing while the field is outside the viewport.
     const visibility = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting
-        if (reducedMotion) return
-        if (visible && frame === 0) {
-          frame = requestAnimationFrame(loop)
-        } else if (!visible && frame !== 0) {
-          cancelAnimationFrame(frame)
-          frame = 0
-        }
+        startDrawing()
       },
       { rootMargin: '64px' },
     )
@@ -1195,11 +1229,14 @@ export function HeroPixelField({
       passive: true,
     })
     const observer = new ResizeObserver(() => {
-      if (!measure()) return
+      if (!measure()) {
+        stopDrawing()
+        return
+      }
       startDrawing()
       // Repaint in the same tick as the resize. Waiting for the throttled
       // frame would leave a just-cleared buffer on screen mid-drag.
-      draw(reducedMotion ? 0 : lastDraw)
+      if (!reducedMotion && canDraw()) draw(lastDraw)
     })
     observer.observe(host)
     const slot = isHero ? document.querySelector('[data-hero-wordmark]') : null
@@ -1209,9 +1246,11 @@ export function HeroPixelField({
       disposed = true
       etch?.free()
       etch = null
-      cancelAnimationFrame(frame)
+      stopDrawing()
       observer.disconnect()
       visibility.disconnect()
+      motionMedia.removeEventListener('change', onMotionPreference)
+      document.removeEventListener('visibilitychange', startDrawing)
       window.removeEventListener(THEME_EVENT, onTheme)
       window.removeEventListener(ETCH_EVENT, onEtch)
       window.removeEventListener(PICKER_STATE_EVENT, onPickerState)

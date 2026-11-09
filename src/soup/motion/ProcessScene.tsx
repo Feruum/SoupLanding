@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { PixelIcon } from '../PixelIcon'
 import { ProcessArt } from './ProcessArt'
 import type { ProcessKind } from './ProcessArt'
 import { bindProcessVisibility } from './process-visibility'
@@ -25,10 +26,21 @@ export function ProcessScene({
   const root = useRef<HTMLDivElement>(null)
   const [localPaused, setLocalPaused] = useState(false)
   const [visible, setVisible] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(false)
   const timeline = useRef<ReturnType<typeof createProcessTimeline>>(null)
   const stopped = paused || localPaused
   useEffect(() => {
     if (root.current) return bindProcessVisibility(root.current, setVisible)
+  }, [])
+  useEffect(() => {
+    const media = root.current?.ownerDocument.defaultView?.matchMedia?.(
+      '(prefers-reduced-motion: reduce)',
+    )
+    if (!media) return
+    const update = () => setReducedMotion(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
   }, [])
   useEffect(() => {
     const element = root.current
@@ -37,7 +49,7 @@ export function ProcessScene({
       '(prefers-reduced-motion: reduce)',
     ).matches
     // Reduced motion and keyboard jumps get the finished frame, not the clip.
-    if (reduced) return
+    if (reducedMotion || reduced) return
     const tl = createProcessTimeline(
       kind,
       element,
@@ -49,20 +61,20 @@ export function ProcessScene({
       tl.revert()
       timeline.current = null
     }
-  }, [kind, instant])
+  }, [kind, instant, reducedMotion])
   useEffect(() => {
     const tl = timeline.current
     if (!tl) return
     if (visible && !stopped && !instant) tl.play()
     else tl.pause()
-  }, [visible, stopped, instant, kind])
+  }, [visible, stopped, instant, kind, reducedMotion])
   return (
     <div
       ref={root}
       className={`pixel-process ${compact ? 'pp-compact' : ''}`}
       data-process-kind={kind}
       data-process-paused={stopped || undefined}
-      data-process-static={instant || undefined}
+      data-process-static={instant || reducedMotion || undefined}
     >
       <ProcessArt kind={kind} compact={compact} />
       {kind === 'train' && (
@@ -90,13 +102,7 @@ export function ProcessScene({
           }
           disabled={paused && !onPausedChange}
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            {stopped ? (
-              <path d="M4 2L11 7 4 12Z" />
-            ) : (
-              <path d="M3 2H5V12H3ZM9 2H11V12H9Z" />
-            )}
-          </svg>
+          <PixelIcon name={stopped ? 'play' : 'pause'} size={14} />
         </button>
       </div>
     </div>

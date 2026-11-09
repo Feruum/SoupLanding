@@ -3,6 +3,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { CardRail } from '@/components/CardRail'
 import { SectionHeading } from '@/components/SectionHeading'
 import { PixelModelIcon } from './ecosystem/PixelToolIcon'
+import { PixelIcon } from './PixelIcon'
 import type { Messages } from './catalogue'
 import { SoupLocaleContext } from './SoupLocaleContext'
 import { localePath } from './locales'
@@ -14,7 +15,7 @@ const SOURCE = 'https://github.com/MakazhanAlpamys/Soup'
 type Props = { m: Messages }
 
 function Arrow() {
-  return <span aria-hidden="true">↗</span>
+  return <PixelIcon name="arrowUpRight" />
 }
 
 function DocLink({
@@ -130,7 +131,7 @@ function Copy({ command, m }: { command: string; m: Messages }) {
         aria-label={m.copy}
         title={m.copy}
       >
-        {status === 'done' ? '✓' : '⧉'}
+        <PixelIcon name={status === 'done' ? 'check' : 'copy'} />
       </button>
       <span role="status" className="sr-only">
         {status === 'done' ? m.copied : status === 'failed' ? m.copyFailed : ''}
@@ -182,7 +183,7 @@ export function SoupInstall({ m }: Props) {
         <div className="os-install-grid">
           <div className="os-install-package">
             <div className="os-package-icon" aria-hidden="true">
-              ⌁
+              <PixelIcon name="bowl" size={48} />
             </div>
             <span className="os-kicker">Python / PyPI</span>
             <h3>{m.installStep1}</h3>
@@ -322,10 +323,7 @@ export function SoupMethods({ m }: Props) {
                 <span>.jsonl</span>
               </div>
               <div className="os-dataset-icon" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-                <b>{'{ }'}</b>
+                <PixelIcon name="data" size={64} />
               </div>
               <code className="os-sample-file">{method.file}</code>
               <pre dir="ltr">{method.sample}</pre>
@@ -354,11 +352,11 @@ export function SoupMethods({ m }: Props) {
               />
               <div className="os-run-route" dir="ltr">
                 <code>{method.file}</code>
-                <span>↓</span>
+                <PixelIcon name="arrowDown" />
                 <code>soup.yaml</code>
-                <span>↓</span>
+                <PixelIcon name="arrowDown" />
                 <strong>LoRA</strong>
-                <span>↓</span>
+                <PixelIcon name="arrowDown" />
                 <code>./output</code>
               </div>
               <div className="os-run-backends">
@@ -435,13 +433,19 @@ function TrainWorkbench({ m }: Props) {
           <code>RAM / NVMe</code>
           <div>
             {Array.from({ length: 8 }, (_, i) => (
-              <span key={i}>L{String(i).padStart(2, '0')}</span>
+              <span key={i}>
+                <PixelIcon name="layers" size={24} />L
+                {String(i).padStart(2, '0')}
+              </span>
             ))}
           </div>
         </div>
-        <span className="os-memory-arrow">→</span>
+        <span className="os-memory-arrow">
+          <PixelIcon name="arrowRight" size={24} />
+        </span>
         <div className="os-memory-gpu">
           <code>GPU</code>
+          <PixelIcon name="chip" size={64} />
           <div>
             <span>
               W<sub>frozen</sub>
@@ -470,17 +474,23 @@ function ShipWorkbench({ m }: Props) {
     <Window title="soup ship">
       <div className="os-release-flow" dir="ltr">
         <div>
-          <span className="os-artifact">▤</span>
+          <span className="os-artifact">
+            <PixelIcon name="file" size={48} />
+          </span>
           <code>eval-suite.yaml</code>
         </div>
         <span>+</span>
         <div>
-          <span className="os-artifact">◈</span>
+          <span className="os-artifact">
+            <PixelIcon name="layers" size={48} />
+          </span>
           <code>./output</code>
         </div>
-        <span>→</span>
+        <PixelIcon name="arrowRight" />
         <div>
-          <span className="os-artifact os-artifact-check">⌁</span>
+          <span className="os-artifact os-artifact-check">
+            <PixelIcon name="shield" size={48} />
+          </span>
           <code>soup ship</code>
         </div>
       </div>
@@ -489,7 +499,7 @@ function ShipWorkbench({ m }: Props) {
           <div key={text}>
             <span>0{index + 1}</span>
             <p>{text}</p>
-            <span aria-hidden="true">◇</span>
+            <PixelIcon name="check" />
           </div>
         ))}
       </div>
@@ -511,29 +521,39 @@ function OperateWorkbench() {
     <Window title="soup / adapters">
       <div className="os-adapter-graph" dir="ltr">
         <div className="os-graph-node">
-          <span>●</span>
+          <span>
+            <PixelIcon name="layers" size={32} />
+          </span>
           <code>base</code>
           <i />
         </div>
         <div className="os-graph-branches">
           <div>
-            <span>●</span>
+            <span>
+              <PixelIcon name="layers" size={24} />
+            </span>
             <code>adapter / v1</code>
             <i />
           </div>
           <div>
-            <span>●</span>
+            <span>
+              <PixelIcon name="layers" size={24} />
+            </span>
             <code>adapter / v2</code>
             <i />
           </div>
           <div>
-            <span>●</span>
+            <span>
+              <PixelIcon name="layers" size={24} />
+            </span>
             <code>adapter / v3</code>
             <i />
           </div>
         </div>
         <div className="os-graph-node os-graph-merge">
-          <span>◇</span>
+          <span>
+            <PixelIcon name="layers" size={32} />
+          </span>
           <code>diff · compare · merge</code>
         </div>
       </div>
@@ -561,10 +581,17 @@ function SecureWorkbench() {
     <Window title="soup / provenance">
       <div className="os-provenance" dir="ltr">
         <div>
-          <code>model-bom.json</code>
-          <code>provenance.json</code>
-          <code>attestation.sig</code>
-          <code>soup.lock</code>
+          {[
+            'model-bom.json',
+            'provenance.json',
+            'attestation.sig',
+            'soup.lock',
+          ].map((file) => (
+            <code key={file}>
+              <PixelIcon name="file" size={24} />
+              {file}
+            </code>
+          ))}
         </div>
       </div>
       <div className="os-ci-flow" dir="ltr">
@@ -737,7 +764,7 @@ export function SoupRecipes({ m }: Props) {
               </div>
               <div className="os-recipe-editor">
                 <div className="os-recipe-file">
-                  <span aria-hidden="true">≡</span>
+                  <PixelIcon name="file" />
                   {recipe.file}
                   <span>YAML</span>
                 </div>
@@ -786,42 +813,13 @@ function CommunityIcon({
 }: {
   type: 'source' | 'chat' | 'paper' | 'tasters'
 }) {
-  const paths = {
-    source: (
-      <>
-        <path d="m9 7-5 5 5 5m6-10 5 5-5 5m-2-14-2 18" />
-      </>
-    ),
-    chat: (
-      <>
-        <path d="M20 15a3 3 0 0 1-3 3H9l-5 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3Z" />
-        <path d="M8 8h8M8 12h5" />
-      </>
-    ),
-    paper: (
-      <>
-        <path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6M9 16h6" />
-      </>
-    ),
-    tasters: (
-      <>
-        <path d="M4 12h16a8 8 0 0 1-16 0ZM2 12h20M8 8c-3-3 3-3 0-6m8 6c-3-3 3-3 0-6M8 21h8" />
-      </>
-    ),
-  }
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="27"
-      height="27"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      aria-hidden="true"
-    >
-      {paths[type]}
-    </svg>
-  )
+  const names = {
+    source: 'code',
+    chat: 'chat',
+    paper: 'file',
+    tasters: 'bowl',
+  } as const
+  return <PixelIcon name={names[type]} size={32} />
 }
 
 export function SoupModelsCommunity({ m }: Props) {

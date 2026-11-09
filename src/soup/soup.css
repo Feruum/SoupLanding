@@ -1722,6 +1722,72 @@ pre,
   width: fit-content;
   color: var(--accent-light);
 }
+.soup-pixel-icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.15em;
+}
+.soup-footer-identity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.soup-bowl {
+  flex: none;
+  width: 90px;
+  height: 75px;
+  overflow: visible;
+}
+.soup-steam-trail {
+  opacity: 0.45;
+  animation: soup-steam-rise 3.6s steps(6, end) infinite;
+  animation-play-state: paused;
+}
+.soup-steam-trail:nth-child(2) {
+  animation-delay: -1.2s;
+}
+.soup-steam-trail:nth-child(3) {
+  animation-delay: -2.4s;
+}
+.soup-bowl[data-steaming] .soup-steam-trail {
+  animation-play-state: running;
+}
+@keyframes soup-steam-rise {
+  0% {
+    transform: translateY(2px);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.65;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .soup-bowl-dish {
+    transform-origin: 18px 25px;
+    transition: transform 180ms steps(3, end);
+  }
+  .soup-bowl:hover .soup-bowl-dish {
+    transform: translateY(-1px) rotate(-4deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .soup-bowl .soup-steam-trail {
+    animation: none;
+    opacity: 0.45;
+  }
+  .soup-bowl .soup-bowl-dish {
+    transition: none;
+    transform: none;
+  }
+}
 .soup-footer-brand img {
   display: block;
   flex: none;

@@ -3,6 +3,9 @@
   --pp-ease: cubic-bezier(0.77, 0, 0.175, 1);
   --pp-line: color-mix(in srgb, var(--fg) 55%, transparent);
   --pp-paper: var(--bg, #0a0a0a);
+  --pp-ink: #24130d;
+  --pp-brown: color-mix(in srgb, var(--accent) 32%, #24130d);
+  --pp-peach: color-mix(in srgb, var(--accent-light) 32%, #fff);
   position: relative;
   isolation: isolate;
   color: var(--fg);
@@ -37,23 +40,139 @@
 }
 .pp-registration {
   fill: none;
-  stroke: var(--pp-line);
+  stroke: color-mix(in srgb, var(--accent) 30%, transparent);
   stroke-width: 1;
 }
 .pp-surface {
-  fill: var(--pp-paper);
-  stroke: var(--pp-line);
-  stroke-width: 1.5;
+  fill: var(--pp-brown);
+  stroke: none;
 }
 .pp-rule {
   fill: none;
-  stroke: var(--pp-line);
-  stroke-width: 1.5;
+  stroke: color-mix(in srgb, var(--accent-light) 64%, var(--pp-brown));
+  stroke-width: 2;
 }
 .pp-chip-outline {
-  fill: var(--pp-paper);
-  stroke: var(--accent-light);
+  fill: var(--accent);
+  stroke: var(--accent);
   stroke-width: 2;
+}
+.pp-chip-pins {
+  fill: var(--accent);
+}
+.pp-chip-shine {
+  fill: var(--accent-light);
+}
+.pp-chip-inset {
+  fill: var(--pp-brown);
+}
+.pp-config-lock .pp-hot {
+  fill: var(--pp-brown);
+  stroke: var(--accent-light);
+  stroke-width: 1.5;
+}
+.pp-art .pp-chip-text {
+  fill: var(--pp-peach);
+  font-weight: 700;
+}
+.pp-file-shadow,
+.pp-file-band {
+  fill: var(--accent);
+}
+.pp-file-paper,
+.pp-record-surface,
+.pp-verdict-surface {
+  fill: var(--pp-peach);
+}
+.pp-file-fold {
+  fill: var(--accent-light);
+}
+.pp-art .pp-file-text {
+  fill: var(--pp-ink);
+  font-weight: 700;
+}
+.pp-art .pp-config-tile text,
+.pp-art .pp-branch:not(.pp-selected) text,
+.pp-art .pp-test-surface + .pp-tiny {
+  fill: var(--pp-peach);
+}
+.pp-file-rule,
+.pp-record-rule,
+.pp-checkpoint-code {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+.pp-record-surface {
+  stroke: color-mix(in srgb, var(--accent) 55%, var(--pp-peach));
+  stroke-width: 1;
+}
+.pp-paper-highlight {
+  fill: color-mix(in srgb, var(--pp-peach) 55%, #fff);
+}
+.pp-record-edge {
+  fill: var(--accent-light);
+}
+.pp-record-index-box {
+  fill: var(--pp-brown);
+}
+.pp-art .pp-record-index {
+  fill: var(--pp-peach);
+  font-size: 9px;
+  font-weight: 700;
+}
+.pp-record-rule {
+  stroke-width: 2;
+}
+.pp-checkpoint-code {
+  stroke-width: 2;
+}
+.pp-checkpoint .pp-check {
+  stroke: var(--pp-ink);
+  stroke-width: 3;
+}
+.pp-record-mark {
+  fill: var(--accent-light);
+}
+.pp-record-check,
+.pp-test-tick,
+.pp-bin-cross {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+}
+.pp-record-check {
+  stroke: var(--pp-ink);
+}
+.pp-test-tick {
+  stroke: var(--pp-peach);
+}
+.pp-bin-shape {
+  fill: var(--pp-peach);
+}
+.pp-bin-cross {
+  stroke: var(--accent);
+}
+.pp-method-surface,
+.pp-test-surface {
+  fill: var(--pp-brown);
+}
+.pp-selected .pp-method-surface {
+  fill: var(--pp-peach);
+}
+.pp-art .pp-selected text,
+.pp-art .pp-clean text {
+  fill: var(--pp-ink);
+}
+.pp-selected .pp-check {
+  stroke: var(--pp-ink);
+}
+.pp-verdict .pp-check {
+  stroke: var(--pp-ink);
+}
+.pp-art .pp-verdict-text {
+  fill: var(--pp-ink);
 }
 .pp-hot,
 .pp-eval-sweep {
@@ -63,51 +182,70 @@
   fill: none;
   stroke: var(--accent-light);
   stroke-width: 3;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
 }
 .pp-inverse {
   fill: none;
-  stroke: var(--pp-paper);
-  stroke-width: 1;
+  stroke: var(--pp-peach);
+  stroke-width: 2;
 }
 .pp-weight {
-  fill: color-mix(in srgb, var(--fg) 78%, transparent);
+  fill: var(--pp-peach);
 }
 .pp-adapter {
   fill: var(--accent-light);
 }
 .pp-adapter:nth-child(3n) {
-  fill: color-mix(in srgb, var(--accent-light) 55%, var(--fg));
+  fill: var(--accent);
+}
+.pp-export-weight:nth-child(n + 37) {
+  fill: var(--accent-light);
+}
+.pp-export-weight:nth-child(n + 61) {
+  fill: var(--accent);
 }
 .pp-layer-top {
   fill: var(--pp-paper);
-  stroke: var(--pp-line);
-  stroke-width: 1.5;
+  stroke: var(--pp-brown);
+  stroke-width: 2;
+  stroke-linejoin: miter;
 }
 .pp-layer-side {
-  fill: color-mix(in srgb, var(--accent) 26%, var(--pp-paper));
-  stroke: var(--pp-line);
-  stroke-width: 1;
+  fill: var(--pp-brown);
+  stroke: none;
+}
+.pp-layer-3 .pp-layer-top,
+.pp-layer-4 .pp-layer-top {
+  fill: color-mix(in srgb, var(--accent) 78%, var(--pp-brown));
+  stroke: var(--accent);
+}
+.pp-layer-3 .pp-layer-side,
+.pp-layer-4 .pp-layer-side {
+  fill: color-mix(in srgb, var(--accent) 62%, var(--pp-brown));
 }
 .pp-layer-activation {
   fill: var(--accent);
-  fill-opacity: 0.48;
-  stroke: var(--accent-light);
-  stroke-width: 2;
+  fill-opacity: 0.08;
+  stroke: none;
   opacity: 0;
 }
 .pp-art .pp-layer-label {
-  font-size: 10px;
+  font-size: 11px;
 }
 .pp-art .pp-token-code {
-  fill: #0a0a0a;
+  fill: var(--pp-peach);
   font-size: 11px;
   font-weight: 700;
+}
+.pp-token-inset {
+  fill: var(--accent);
 }
 .pp-signal,
 .pp-backward {
   fill: none;
   stroke: var(--accent-light);
-  stroke-width: 5;
+  stroke-width: 3;
   stroke-dasharray: 14 86;
   opacity: 0;
 }

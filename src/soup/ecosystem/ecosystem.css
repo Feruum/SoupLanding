@@ -99,7 +99,7 @@
   color: var(--se-accent);
 }
 .soup-ecosystem .se-marquee:hover .se-marquee-track,
-.soup-ecosystem .se-marquee:focus-within .se-marquee-track,
+.soup-ecosystem .se-marquee-window:focus-within .se-marquee-track,
 .soup-ecosystem .se-marquee[data-paused] .se-marquee-track {
   animation-play-state: paused;
 }

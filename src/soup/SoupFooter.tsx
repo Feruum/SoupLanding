@@ -4,6 +4,7 @@ import type { Messages } from './catalogue'
 import { localePath } from './locales'
 import type { FooterGroup } from './locales'
 import { leaderboardStrings } from './leaderboard/strings'
+import { SoupBowl } from './SoupBowl'
 
 export function SoupFooter({
   language,
@@ -76,45 +77,48 @@ export function SoupFooter({
       <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
           <div className="flex w-full shrink-0 flex-col sm:w-max lg:w-96 lg:self-start">
-            <a
-              href={`${home}#home`}
-              aria-label="Soup"
-              data-quiet
-              className="soup-footer-brand"
-            >
-              <img
-                src="/soup/logo.svg"
-                alt=""
-                width="40"
-                height="40"
-                loading="lazy"
-                decoding="async"
-              />
-              <svg
-                viewBox={`0 0 ${SOUP_GLYPH.width} ${SOUP_GLYPH.height}`}
-                role="img"
+            <div className="soup-footer-identity">
+              <a
+                href={`${home}#home`}
                 aria-label="Soup"
-                className="h-6 w-auto"
-                shapeRendering="crispEdges"
+                data-quiet
+                className="soup-footer-brand"
               >
-                {SOUP_GLYPH.rows.flatMap((row, y) =>
-                  [...row].flatMap((bit, x) =>
-                    bit === '1'
-                      ? [
-                          <rect
-                            key={`${x}-${y}`}
-                            x={x}
-                            y={y}
-                            width="1"
-                            height="1"
-                            fill="currentColor"
-                          />,
-                        ]
-                      : [],
-                  ),
-                )}
-              </svg>
-            </a>
+                <img
+                  src="/soup/logo-pixel.svg"
+                  alt=""
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <svg
+                  viewBox={`0 0 ${SOUP_GLYPH.width} ${SOUP_GLYPH.height}`}
+                  role="img"
+                  aria-label="Soup"
+                  className="h-6 w-auto"
+                  shapeRendering="crispEdges"
+                >
+                  {SOUP_GLYPH.rows.flatMap((row, y) =>
+                    [...row].flatMap((bit, x) =>
+                      bit === '1'
+                        ? [
+                            <rect
+                              key={`${x}-${y}`}
+                              x={x}
+                              y={y}
+                              width="1"
+                              height="1"
+                              fill="currentColor"
+                            />,
+                          ]
+                        : [],
+                    ),
+                  )}
+                </svg>
+              </a>
+              <SoupBowl />
+            </div>
             <p
               data-quiet
               className="mt-4 text-sm leading-relaxed text-text-muted"

@@ -18,7 +18,7 @@ const canonical = `https://trysoup.dev${localePath(language)}${path}`
     <meta name="theme-color" content="#0a0a0a" />
     <script is:inline set:html={themeInitScript} />
     {path === '' && <script is:inline set:html={etchInitScript} />}
-    <link rel="icon" href="/soup/logo.svg" type="image/svg+xml" />
+    <link rel="icon" href="/soup/logo-pixel.svg" type="image/svg+xml" />
     <link rel="canonical" href={canonical} />
     {alternates.map((code: string) => <link rel="alternate" hreflang={code} href={`https://trysoup.dev${localePath(code)}${path}`} />)}
     <link rel="alternate" hreflang="x-default" href={`https://trysoup.dev/${path}`} />
